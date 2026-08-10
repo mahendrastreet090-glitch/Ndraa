@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polling Bot Terbaik - King vs Queen</title>
+    <!-- Font Awesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: #0b0f19;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .poll-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 35px 25px;
+            width: 100%;
+            max-width: 620px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6),
+                        0 0 20px rgba(234, 179, 8, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            position: relative;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        /* HEADER ANIMATION */
+        .poll-header .crown-main {
+            font-size: 2.5rem;
+            color: #eab308;
+            filter: drop-shadow(0 0 10px rgba(234, 179, 8, 0.8));
+            animation: floatCrown 3s ease-in-out infinite;
+            display: inline-block;
+            margin-bottom: 5px;
+        }
+
+        .poll-header h2 {
+            font-size: 1.9rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 30%, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+
+        .poll-header p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            margin-bottom: 25px;
+        }
+
+        /* PROGRESS BAR WITH GLOW */
+        .progress-wrapper {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .progress-container {
+            background: #0f172a;
+            height: 20px;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .progress-bar-king {
+            background: linear-gradient(90deg, #ca8a04, #eab308);
+            height: 100%;
+            width: 50%;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 12px rgba(234, 179, 8, 0.5);
+        }
+
+        .progress-bar-queen {
+            background: linear-gradient(90deg, #ec4899, #f43f5e);
+            height: 100%;
+            width: 50%;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 12px rgba(236, 72, 153, 0.5);
+        }
+
+        /* BOT CARDS GRID */
+        .bot-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        @media (max-width: 500px) {
+            .bot-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .bot-box {
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 20px;
+            padding: 22px 15px;
+            border: 2px solid transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .bot-king {
+            border-color: rgba(234, 179, 8, 0.2);
+        }
+
+        .bot-king:hover {
+            border-color: #eab308;
+            box-shadow: 0 0 20px rgba(234, 179, 8, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .bot-queen {
+            border-color: rgba(236, 72, 153, 0.2);
+        }
+
+        .bot-queen:hover {
+            border-color: #ec4899;
+            box-shadow: 0 0 20px rgba(236, 72, 153, 0.3);
+            transform: translateY(-5px);
+        }
+
+        /* CROWN BADGES ABOVE ICONS */
+        .crown-badge {
+            font-size: 1.4rem;
+            position: absolute;
+            top: 12px;
+            animation: pulseGlow 2s infinite alternate;
+        }
+
+        .king-crown { color: #facc15; }
+        .queen-crown { color: #f472b6; }
+
+        .bot-icon {
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            margin: 20px 0 12px 0;
+            transition: transform 0.3s ease;
+        }
+
+        .bot-box:hover .bot-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .king-icon { 
+            background: rgba(234, 179, 8, 0.12); 
+            color: #eab308;
+            border: 1px solid rgba(234, 179, 8, 0.3);
+        }
+
+        .queen-icon { 
+            background: rgba(236, 72, 153, 0.12); 
+            color: #ec4899;
+            border: 1px solid rgba(236, 72, 153, 0.3);
+        }
+
+        .bot-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .vote-count {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin: 5px 0 2px 0;
+        }
+
+        .vote-percent {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        /* BUTTON ANIMATIONS */
+        .btn-vote {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-king { 
+            background: linear-gradient(135deg, #eab308, #ca8a04); 
+            color: #000;
+            box-shadow: 0 4px 15px rgba(234, 179, 8, 0.3);
+        }
+
+        .btn-king:hover { 
+            box-shadow: 0 6px 20px rgba(234, 179, 8, 0.5); 
+            transform: scale(1.02);
+        }
+
+        .btn-queen { 
+            background: linear-gradient(135deg, #ec4899, #db2777); 
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
+        }
+
+        .btn-queen:hover { 
+            box-shadow: 0 6px 20px rgba(236, 72, 153, 0.5); 
+            transform: scale(1.02);
+        }
+
+        .btn-vote:disabled {
+            background: #334155 !important;
+            color: #64748b !important;
+            box-shadow: none !important;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .status-msg {
+            font-size: 0.9rem;
+            color: #38bdf8;
+            font-weight: 600;
+            margin-top: 10px;
+            min-height: 20px;
+        }
+
+        /* KEYFRAME ANIMATIONS */
+        @keyframes floatCrown {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(5deg); }
+        }
+
+        @keyframes pulseGlow {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.2); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="poll-card">
+        <div class="poll-header">
+            <div class="crown-main">👑</div>
+            <h2>Bot Rating Arena</h2>
+            <p>Tentukan bot favoritmu, siapa raja/ratu sesungguhnya!</p>
+        </div>
+
+        <!-- Progress Bar Visual -->
+        <div class="progress-wrapper">
+            <div class="progress-container">
+                <div id="bar-king" class="progress-bar-king"></div>
+                <div id="bar-queen" class="progress-bar-queen"></div>
+            </div>
+        </div>
+
+        <div class="bot-container">
+            <!-- BOT KING -->
+            <div class="bot-box bot-king">
+                <div class="crown-badge king-crown">👑</div>
+                <div class="bot-icon king-icon">
+                    <i class="fas fa-chess-king"></i>
+                </div>
+                <div class="bot-title">Bot King 👑</div>
+                <div id="count-king" class="vote-count">0</div>
+                <div id="percent-king" class="vote-percent">0% Votes</div>
+                <button id="btn-vote-king" class="btn-vote btn-king" onclick="castVote('king')">
+                    <i class="fas fa-crown"></i> Vote King
+                </button>
+            </div>
+
+            <!-- BOT QUEEN -->
+            <div class="bot-box bot-queen">
+                <div class="crown-badge queen-crown">👑</div>
+                <div class="bot-icon queen-icon">
+                    <i class="fas fa-chess-queen"></i>
+                </div>
+                <div class="bot-title">Bot Queen 👑</div>
+                <div id="count-queen" class="vote-count">0</div>
+                <div id="percent-queen" class="vote-percent">0% Votes</div>
+                <button id="btn-vote-queen" class="btn-vote btn-queen" onclick="castVote('queen')">
+                    <i class="fas fa-crown"></i> Vote Queen
+                </button>
+            </div>
+        </div>
+
+        <div id="status-msg" class="status-msg"></div>
+    </div>
+
+    <!-- Firebase SDK (Modular) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // Ganti kredensial Firebase berikut dengan milikmu sendiri
+        const firebaseConfig = {
+            apiKey: "AIzaSyYOUR_API_KEY",
+            authDomain: "your-app.firebaseapp.com",
+            databaseURL: "https://your-app-default-rtdb.firebaseio.com",
+            projectId: "your-app",
+            storageBucket: "your-app.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const votesRef = ref(db, 'bot_ratings');
+
+        // Cek riwayat voting dari browser
+        const hasVoted = localStorage.getItem('has_voted_bot');
+        if (hasVoted) {
+            disableVoting(`Kamu sudah memberikan suara untuk Bot ${hasVoted.toUpperCase()}! 👑`);
+        }
+
+        // Realtime Data Sync
+        onValue(votesRef, (snapshot) => {
+            const data = snapshot.val() || { king: 0, queen: 0 };
+            const kingVotes = data.king || 0;
+            const queenVotes = data.queen || 0;
+            const totalVotes = kingVotes + queenVotes;
+
+            document.getElementById('count-king').innerText = kingVotes.toLocaleString();
+            document.getElementById('count-queen').innerText = queenVotes.toLocaleString();
+
+            let kingPercent = totalVotes > 0 ? Math.round((kingVotes / totalVotes) * 100) : 50;
+            let queenPercent = totalVotes > 0 ? Math.round((queenVotes / totalVotes) * 100) : 50;
+
+            document.getElementById('percent-king').innerText = `${kingPercent}% Votes`;
+            document.getElementById('percent-queen').innerText = `${queenPercent}% Votes`;
+
+            document.getElementById('bar-king').style.width = `${kingPercent}%`;
+            document.getElementById('bar-queen').style.width = `${queenPercent}%`;
+        });
+
+        // Vote Action
+        window.castVote = function(targetBot) {
+            if (localStorage.getItem('has_voted_bot')) return;
+
+            const targetRef = ref(db, `bot_ratings/${targetBot}`);
+
+            runTransaction(targetRef, (currentVotes) => {
+                return (currentVotes || 0) + 1;
+            }).then(() => {
+                localStorage.setItem('has_voted_bot', targetBot);
+                disableVoting(`Terima kasih! Kamu telah mendukung Bot ${targetBot.toUpperCase()} 👑`);
+            }).catch((err) => {
+                console.error("Gagal melakukan vote:", err);
+            });
+        };
+
+        function disableVoting(message) {
+            document.getElementById('btn-vote-king').disabled = true;
+            document.getElementById('btn-vote-queen').disabled = true;
+            document.getElementById('status-msg').innerText = message;
+        }
+    </script>
+</body>
+</html>
