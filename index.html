@@ -1,0 +1,1904 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Layanan WhatsApp Bot Premium dengan performa tinggi, fitur lengkap, server stabil, dan sistem otomatis untuk kebutuhan pribadi maupun bisnis Anda.">
+  <meta name="keywords" content="WhatsApp Bot, Bot WA Premium, Sewa Bot WA, Suntik Followers, Followers Instagram, Followers TikTok, Reaction Saluran, King Queen Bot">
+  <meta name="author" content="KING & QUEEN BOT">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="KING & QUEEN BOT - Ndraa official">
+  <meta property="og:description" content="Platform WhatsApp Bot premium & Layanan Digital otomatis 24 Jam Nonstop dengan performa tinggi dan aman.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="assets/kong.jpg">
+
+  <!-- Preload Gambar (Rahasianya ada di sini!) -->
+  <link rel="preload" href="assets/kong.jpg" as="image">
+
+  <title>KING & QUEEN BOT - Ndraa official</title>
+</head>
+
+
+    
+    <!-- Google Fonts & Font Awesome Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- CSS VARIABLES & RESET --- */
+        :root {
+            --bg-dark: #07070a;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --neon-blue: #00f0ff;
+            --neon-purple: #ad00ff;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --font-sans: 'Poppins', sans-serif;
+            --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* --- BACKGROUND PARTICLES / GLOW ORBS --- */
+        .bg-glow-1 {
+            position: fixed;
+            top: -10%;
+            left: -10%;
+            width: 50vw;
+            height: 50vw;
+            background: radial-gradient(circle, rgba(0, 240, 255, 0.07) 0%, transparent 70%);
+            z-index: -1;
+            pointer-events: none;
+        }
+        .bg-glow-2 {
+            position: fixed;
+            bottom: -10%;
+            right: -10%;
+            width: 50vw;
+            height: 50vw;
+            background: radial-gradient(circle, rgba(173, 0, 255, 0.07) 0%, transparent 70%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* --- LOADING SCREEN --- */
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-dark);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease, visibility 0.5s;
+        }
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--border-glass);
+            border-top: 4px solid var(--neon-blue);
+            border-bottom: 4px solid var(--neon-purple);
+            border-radius: 50%;
+            animation: spin 1.2s linear infinite;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+        }
+        .loader-text {
+            margin-top: 20px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* --- MOUSE GLOW --- */
+        #mouse-glow {
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(0, 240, 255, 0.04) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 9998;
+            mix-blend-mode: screen;
+            display: none;
+        }
+
+        /* --- REUSABLE UTILITIES & GLASSMORPHISM --- */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        .glass-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            transition: var(--transition);
+        }
+        .glass-card:hover {
+            border-color: rgba(0, 240, 255, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 240, 255, 0.05);
+            transform: translateY(-5px);
+        }
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 50px;
+            background: linear-gradient(45deg, #fff, var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+        }
+        .section-title span {
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 28px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+            color: #fff;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+            border: none;
+        }
+        .btn-primary:hover {
+            box-shadow: 0 0 25px rgba(173, 0, 255, 0.6);
+            transform: scale(1.03);
+        }
+        .btn-secondary {
+            background: transparent;
+            color: #fff;
+            border: 1px solid var(--neon-blue);
+            box-shadow: inset 0 0 0px rgba(0, 240, 255, 0);
+        }
+        .btn-secondary:hover {
+            background: rgba(0, 240, 255, 0.05);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+            transform: scale(1.03);
+        }
+        
+        /* Fade up scroll animation base */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        .fade-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --- NAVBAR --- */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-glass);
+            background: rgba(7, 7, 10, 0.7);
+            transition: var(--transition);
+        }
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 80px;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+        .nav-menu {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+        .nav-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        .nav-link:hover, .nav-link.active {
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+        }
+        .menu-toggle {
+            display: none;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* --- HERO SECTION WITH AESTHETIC BACKGROUND --- */
+        .hero {
+            padding: 160px 0 60px 0;
+            display: flex;
+            align-items: center;
+            min-height: 85vh;
+            position: relative;
+            overflow: hidden;
+            background: radial-gradient(circle at 50% 30%, rgba(173, 0, 255, 0.12) 0%, rgba(7, 7, 10, 0.95) 70%);
+        }
+
+        .hero-cyber-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(to right, rgba(0, 240, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(173, 0, 255, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            mask-image: radial-gradient(circle at 50% 50%, black 30%, transparent 80%);
+            -webkit-mask-image: radial-gradient(circle at 50% 50%, black 30%, transparent 80%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .hero-light-sphere-1 {
+            position: absolute;
+            top: 15%;
+            left: 10%;
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, rgba(0, 240, 255, 0.18) 0%, transparent 70%);
+            filter: blur(40px);
+            animation: pulseGlow 8s ease-in-out infinite alternate;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .hero-light-sphere-2 {
+            position: absolute;
+            bottom: 10%;
+            right: 15%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(173, 0, 255, 0.18) 0%, transparent 70%);
+            filter: blur(50px);
+            animation: pulseGlow 10s ease-in-out infinite alternate-reverse;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        @keyframes pulseGlow {
+            0% { transform: scale(1) translate(0, 0); opacity: 0.5; }
+            50% { transform: scale(1.2) translate(20px, -20px); opacity: 0.8; }
+            100% { transform: scale(0.9) translate(-10px, 15px); opacity: 0.6; }
+        }
+
+        .hero .container {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 50px;
+            align-items: center;
+        }
+        .hero-content h1 {
+            font-size: 3.8rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            letter-spacing: -1px;
+        }
+        .hero-content h1 span {
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+        }
+        .typing-container {
+            height: 50px;
+            margin-bottom: 15px;
+        }
+        .hero-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+            margin-bottom: 35px;
+            max-width: 600px;
+        }
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+        }
+        .hero-img-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        .hero-img-wrapper {
+            width: 340px;
+            height: 340px;
+            border-radius: 50%;
+            padding: 6px;
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+            box-shadow: 0 0 40px rgba(0, 240, 255, 0.25), inset 0 0 20px rgba(173, 0, 255, 0.3);
+            animation: float 6s ease-in-out infinite;
+            transition: var(--transition);
+        }
+        .hero-img-wrapper:hover {
+            box-shadow: 0 0 60px rgba(173, 0, 255, 0.5), inset 0 0 30px rgba(0, 240, 255, 0.5);
+            transform: scale(1.03) rotate(2deg);
+        }
+        .hero-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            background: var(--bg-dark);
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* --- CONTACT OWNER SECTION --- */
+        .contacts-section {
+            padding: 40px 0 80px 0;
+        }
+        .contacts-container {
+            max-width: 750px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .contact-item-card {
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        .contact-left-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .contact-avatar {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+            flex-shrink: 0;
+        }
+        .contact-details h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 2px;
+        }
+        .role-tag {
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            display: inline-block;
+        }
+        .role-owner {
+            color: var(--neon-blue);
+            text-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+        }
+        .role-admin {
+            color: var(--neon-purple);
+            text-shadow: 0 0 8px rgba(173, 0, 255, 0.4);
+        }
+        .btn-wa-contact {
+            padding: 8px 18px;
+            font-size: 0.85rem;
+            border-radius: 20px;
+            background: #25D366;
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 0 12px rgba(37, 211, 102, 0.3);
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+        .btn-wa-contact:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(37, 211, 102, 0.6);
+            background: #20ba5a;
+        }
+
+        /* --- ABOUT SECTION --- */
+        .about {
+            padding: 100px 0;
+        }
+        .about-box {
+            padding: 50px;
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+        .about-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--neon-blue), var(--neon-purple));
+        }
+        .about-text {
+            font-size: 1.15rem;
+            color: var(--text-main);
+            line-height: 1.8;
+        }
+
+        /* --- ADVANTAGES (KEUNGGULAN) SECTION --- */
+        .features {
+            padding: 100px 0;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 25px;
+        }
+        .feature-card {
+            padding: 30px 24px;
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+        }
+        .feature-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(0, 240, 255, 0.1);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--neon-blue);
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            transition: var(--transition);
+        }
+        .feature-card:hover .feature-icon {
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+            color: #fff;
+            box-shadow: 0 0 15px var(--neon-blue);
+            transform: rotate(360deg);
+        }
+        .feature-info h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .feature-info p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* --- SERVICES (LAYANAN) SECTION --- */
+        .services {
+            padding: 100px 0;
+        }
+        .services-desc {
+            text-align: center;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: -30px auto 50px auto;
+            font-size: 1.05rem;
+            line-height: 1.6;
+        }
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+        }
+        .service-card {
+            padding: 40px 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        .service-icon-box {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            display: inline-block;
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .service-card h3 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .service-card p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* --- ATMOSPHERE FOR BALANCE SYSTEM --- */
+        .balance-sys {
+            padding: 100px 0;
+        }
+        .balance-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            align-items: center;
+        }
+        .balance-left h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+        .balance-left p {
+            color: var(--text-muted);
+            line-height: 1.7;
+            margin-bottom: 25px;
+        }
+        .balance-right {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .balance-item {
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .balance-item i {
+            font-size: 2rem;
+            color: var(--neon-purple);
+            margin-bottom: 15px;
+        }
+        .balance-item h4 {
+            font-size: 1.05rem;
+            font-weight: 600;
+        }
+
+        /* --- OPTIMIZED PRICING VIEW --- */
+        #pricing-page-view {
+            display: none;
+            padding: 140px 0 100px 0;
+            min-height: 100vh;
+            background-color: var(--bg-dark);
+            position: relative;
+            z-index: 90;
+        }
+        .pricing-page-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .btn-back-home {
+            margin-bottom: 25px;
+            padding: 8px 20px;
+            font-size: 0.85rem;
+            height: auto;
+        }
+        
+        .split-pricing-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: start;
+            max-width: 650px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .tier-wrapper-box {
+            flex: 0 0 calc(50% - 7.5px);
+            width: calc(50% - 7.5px);
+        }
+        
+        .select-tier-box {
+            padding: 14px 10px;
+            text-align: center;
+            cursor: pointer;
+            border: 1px solid var(--border-glass);
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 30px;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .select-tier-box:hover {
+            transform: translateY(-3px);
+        }
+        .select-tier-box i.tier-icon {
+            font-size: 1.1rem;
+        }
+        .select-tier-box h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .select-tier-box.reguler-trigger { border-color: rgba(0, 240, 255, 0.2); }
+        .select-tier-box.reguler-trigger:hover, .select-tier-box.reguler-trigger.active {
+            border-color: var(--neon-blue);
+            background: rgba(0, 240, 255, 0.1);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+            color: #fff;
+        }
+        .reguler-trigger i.tier-icon { color: var(--neon-blue); }
+
+        .select-tier-box.vip-trigger { border-color: rgba(173, 0, 255, 0.2); }
+        .select-tier-box.vip-trigger:hover, .select-tier-box.vip-trigger.active {
+            border-color: var(--neon-purple);
+            background: rgba(173, 0, 255, 0.1);
+            box-shadow: 0 0 15px rgba(173, 0, 255, 0.3);
+            color: #fff;
+        }
+        .vip-trigger i.tier-icon { color: var(--neon-purple); }
+
+        .select-tier-box.ig-trigger:hover, .select-tier-box.ig-trigger.active {
+            border-color: #e1306c !important;
+            background: rgba(225, 48, 108, 0.1) !important;
+            box-shadow: 0 0 15px rgba(225, 48, 108, 0.3) !important;
+            color: #fff;
+        }
+
+        .select-tier-box.wa-trigger:hover, .select-tier-box.wa-trigger.active {
+            border-color: #25D366 !important;
+            background: rgba(37, 211, 102, 0.1) !important;
+            box-shadow: 0 0 15px rgba(37, 211, 102, 0.3) !important;
+            color: #fff;
+        }
+        
+        .tier-price-dropdown {
+            position: absolute;
+            left: 0;
+            right: 0;
+            width: 100%;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 15px;
+            z-index: 20;
+        }
+        
+        .price-list-wrapper {
+            padding: 20px 15px;
+            background: rgba(12, 12, 18, 0.98);
+            border-radius: 16px;
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+        }
+
+        #dropdown-reguler .price-list-wrapper {
+            border: 1.5px solid var(--neon-blue);
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.2);
+        }
+        #dropdown-vip .price-list-wrapper {
+            border: 1.5px solid var(--neon-purple);
+            box-shadow: 0 0 25px rgba(173, 0, 255, 0.2);
+        }
+        
+        .price-table-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .price-row-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 12px 14px;
+            background: rgba(255,255,255,0.01);
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.03);
+            position: relative;
+        }
+        .row-top-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        .row-duration {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .row-cost {
+            font-size: 0.9rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 6px;
+        }
+
+        #dropdown-reguler .row-cost { background: rgba(0, 240, 255, 0.12); color: var(--neon-blue); }
+        #dropdown-vip .row-cost { background: rgba(173, 0, 255, 0.12); color: var(--neon-purple); }
+        
+        .row-bonus {
+            font-size: 0.78rem;
+            font-weight: 400;
+            text-align: left;
+        }
+        #dropdown-reguler .row-bonus { color: #ff8dfd; }
+        #dropdown-vip .row-bonus { color: #8dffb0; }
+
+        .badge-tag {
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-hemat {
+            background: #00ff66;
+            color: #000;
+            box-shadow: 0 0 8px rgba(0, 255, 102, 0.4);
+        }
+        .badge-sultan {
+            background: #ffaa00;
+            color: #000;
+            box-shadow: 0 0 8px rgba(255, 170, 0, 0.4);
+        }
+
+        .price-list-wrapper .btn {
+            width: 100%;
+            font-size: 0.9rem;
+            padding: 12px;
+            border-radius: 25px;
+        }
+
+        /* --- STATS SECTION --- */
+        .stats {
+            padding: 80px 0;
+            background: linear-gradient(180deg, transparent, rgba(173, 0, 255, 0.02), transparent);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            text-align: center;
+        }
+        .stat-box h2 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        .stat-box p {
+            font-size: 1rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* --- TESTIMONIALS SECTION --- */
+        .testimonials {
+            padding: 100px 0;
+            position: relative;
+        }
+        .slider-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+            overflow: hidden;
+            position: relative;
+            padding: 20px 0;
+        }
+        .slider-track {
+            display: flex;
+            transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+            width: 100%;
+        }
+        .slide {
+            min-width: 100%;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+        .testi-card {
+            padding: 40px;
+            text-align: center;
+        }
+        .stars {
+            color: #ffd700;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+        .comment {
+            font-size: 1.1rem;
+            font-style: italic;
+            line-height: 1.7;
+            margin-bottom: 25px;
+            color: var(--text-main);
+        }
+        .profile {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #fff;
+            font-size: 1.1rem;
+            border: 2px solid var(--border-glass);
+        }
+        .user-info {
+            text-align: left;
+        }
+        .username {
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: block;
+        }
+        .user-role {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .slider-dots {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--border-glass);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .dot.active {
+            background: var(--neon-blue);
+            width: 25px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        /* --- FAQ SECTION --- */
+        .faq {
+            padding: 100px 0;
+        }
+        .faq-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .accordion-item {
+            border: 1px solid var(--border-glass);
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--bg-card);
+            transition: var(--transition);
+        }
+        .accordion-header {
+            padding: 22px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            transition: var(--transition);
+        }
+        .accordion-header h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+        }
+        .accordion-icon {
+            font-size: 1.1rem;
+            color: var(--neon-blue);
+            transition: transform 0.3s ease;
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease;
+            padding: 0 30px;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+        .accordion-item.active {
+            border-color: rgba(173, 0, 255, 0.3);
+            background: rgba(255,255,255,0.04);
+        }
+        .accordion-item.active .accordion-icon {
+            transform: rotate(180deg);
+            color: var(--neon-purple);
+        }
+
+        /* --- CTA SECTION --- */
+        .cta {
+            padding: 100px 0;
+        }
+        .cta-box {
+            padding: 60px 40px;
+            text-align: center;
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(173, 0, 255, 0.2);
+            box-shadow: 0 0 40px rgba(173, 0, 255, 0.05);
+        }
+        .cta-box h2 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+        }
+        .cta-box p {
+            color: var(--text-muted);
+            max-width: 650px;
+            margin: 0 auto 35px auto;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            border-top: 1px solid var(--border-glass);
+            padding: 40px 0;
+            background: #040406;
+        }
+        .footer-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .footer-copy {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        /* --- SCROLL TO TOP --- */
+        #scrollTop {
+            position: fixed;
+            bottom: 160px;
+            right: 30px;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+            color: #fff;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+            z-index: 99;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+        }
+        #scrollTop.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* --- FLOATING BUTTONS SYSTEM --- */
+        .floating-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 999;
+        }
+        .floating-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.5rem;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            transition: var(--transition);
+            position: relative;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .floating-btn-owner {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+        }
+        .floating-btn-owner:hover { transform: scale(1.1) rotate(8deg); }
+        .floating-btn-channel {
+            background: linear-gradient(135deg, #00f0ff 0%, #ad00ff 100%);
+        }
+        .floating-btn-channel:hover { transform: scale(1.1) rotate(-8deg); }
+        
+        .floating-btn::before {
+            content: attr(data-label);
+            position: absolute;
+            right: 70px;
+            background: rgba(7, 7, 10, 0.85);
+            border: 1px solid var(--border-glass);
+            color: #fff;
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            border-radius: 8px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(10px);
+            transition: var(--transition);
+        }
+        .floating-btn:hover::before {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+        }
+
+        /* --- RESPONSIVE DESIGN --- */
+        @media (max-width: 992px) {
+            .hero-grid {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 40px;
+            }
+            .hero-content h1 { font-size: 3rem; }
+            .hero-subtitle { margin: 0 auto 35px auto; }
+            .hero-buttons { justify-content: center; }
+            .hero-img-container { order: -1; }
+            .balance-grid { grid-template-columns: 1fr; text-align: center; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 40px; }
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu {
+                position: fixed;
+                top: 80px;
+                left: -100%;
+                width: 100%;
+                height: calc(100vh - 80px);
+                background: rgba(7, 7, 10, 0.95);
+                flex-direction: column;
+                align-items: center;
+                padding-top: 50px;
+                transition: 0.5s ease-in-out;
+                border-top: 1px solid var(--border-glass);
+            }
+            .nav-menu.active { left: 0; }
+            .menu-toggle { display: block; }
+            .section-title { font-size: 2rem; }
+            .hero-content h1 { font-size: 2.4rem; }
+            .split-pricing-container { padding: 0 5px; }
+            .pricing-page-header { margin-bottom: 25px; }
+            .contact-item-card {
+                padding: 12px 16px;
+            }
+            .contact-avatar {
+                width: 48px;
+                height: 48px;
+            }
+            .contact-details h3 {
+                font-size: 0.98rem;
+            }
+            .btn-wa-contact {
+                padding: 6px 14px;
+                font-size: 0.78rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <div class="loader-text" id="loader-label">KING & QUEEN BOT</div>
+    </div>
+
+    <!-- Mouse Glow effect -->
+    <div id="mouse-glow"></div>
+
+    <!-- Background Orbs -->
+    <div class="bg-glow-1"></div>
+    <div class="bg-glow-2"></div>
+
+    <!-- CORE LANDING PAGE WRAPPER -->
+    <div id="main-landing-content">
+        <!-- Navbar -->
+        <header>
+            <div class="container nav-container">
+                <a href="#" class="logo">KING & QUEEN</a>
+                <div class="menu-toggle" id="mobile-menu-btn">
+                    <i class="fas fa-bars"></i>
+                </div>
+                <ul class="nav-menu" id="nav-links">
+                    <li><a href="#" class="nav-link active">Home</a></li>
+                    <li><a href="#about" class="nav-link">Tentang</a></li>
+                    <li><a href="#features" class="nav-link">Keunggulan</a></li>
+                    <li><a href="#services" class="nav-link">Layanan</a></li>
+                    <li><a href="#" class="nav-link force-pricing-page">Harga</a></li>
+                    <li><a href="#faq" class="nav-link">FAQ</a></li>
+                </ul>
+            </div>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-cyber-grid"></div>
+            <div class="hero-light-sphere-1"></div>
+            <div class="hero-light-sphere-2"></div>
+
+            <div class="container hero-grid">
+                <div class="hero-content">
+                    <h1>Welcome to <br><span>KING & QUEEN BOT</span></h1>
+                    <div class="typing-container">
+                        <h2 id="typing-text" style="font-size: 1.5rem; font-weight: 600; color: var(--neon-blue);"></h2>
+                    </div>
+                    <p class="hero-subtitle">
+                        Layanan WhatsApp Bot Premium dengan performa tinggi, fitur lengkap, server stabil, dan sistem otomatis yang siap membantu kebutuhan pribadi maupun bisnis Anda.
+                    </p>
+                    <div class="hero-buttons">
+                        <a href="https://wa.me/6289510006505" target="_blank" class="btn btn-primary"><i class="fab fa-whatsapp"></i> Chat Sekarang</a>
+                        <a href="#" id="btn-open-pricing-page" class="btn btn-secondary"><i class="fas fa-tags"></i> Lihat Harga</a>
+                    </div>
+                </div>
+                <div class="hero-img-container">
+                    <div class="hero-img-wrapper">
+                        <img src="KING AND QUEEN.jpg" alt="King & Queen Bot Visual Platform">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Kontak Owner & Admin Section -->
+        <section class="contacts-section">
+            <div class="container">
+                <h2 class="section-title fade-up" style="font-size: 1.8rem; margin-bottom: 30px;">Contact <span>Owner & Admin</span></h2>
+                <div class="contacts-container">
+                    
+                    <!-- Ndra Official (Owner Utama) -->
+                    <div class="glass-card contact-item-card fade-up">
+                        <div class="contact-left-info">
+                            <img src="ndra.jpg" alt="Ndra Official" class="contact-avatar" style="border-color: var(--neon-blue);">
+                            <div class="contact-details">
+                                <h3>Ndra Official</h3>
+                                <span class="role-tag role-owner">Owner Utama</span>
+                            </div>
+                        </div>
+                        <a href="https://wa.me/6289510006505" target="_blank" class="btn-wa-contact"><i class="fab fa-whatsapp"></i> Chat WA</a>
+                    </div>
+
+                    <!-- Nana (Admin) -->
+                    <div class="glass-card contact-item-card fade-up">
+                        <div class="contact-left-info">
+                            <img src="nana.jpg" alt="Nana" class="contact-avatar" style="border-color: var(--neon-purple);">
+                            <div class="contact-details">
+                                <h3>Nana</h3>
+                                <span class="role-tag role-admin">Admin</span>
+                            </div>
+                        </div>
+                        <a href="https://wa.me/6283110938317" target="_blank" class="btn-wa-contact"><i class="fab fa-whatsapp"></i> Chat WA</a>
+                    </div>
+
+                    <!-- Zevanya (Admin) -->
+                    <div class="glass-card contact-item-card fade-up">
+                        <div class="contact-left-info">
+                            <img src="zevanya.jpg" alt="Zevanya" class="contact-avatar" style="border-color: var(--neon-purple);">
+                            <div class="contact-details">
+                                <h3>Zevanya</h3>
+                                <span class="role-tag role-admin">Admin</span>
+                            </div>
+                        </div>
+                        <a href="https://wa.me/6282249717551" target="_blank" class="btn-wa-contact"><i class="fab fa-whatsapp"></i> Chat WA</a>
+                    </div>
+
+                    <!-- Rini (Admin) -->
+                    <div class="glass-card contact-item-card fade-up">
+                        <div class="contact-left-info">
+                            <img src="rini.jpg" alt="Rini" class="contact-avatar" style="border-color: var(--neon-purple);">
+                            <div class="contact-details">
+                                <h3>Rini</h3>
+                                <span class="role-tag role-admin">Admin</span>
+                            </div>
+                        </div>
+                        <a href="https://wa.me/6283879489005" target="_blank" class="btn-wa-contact"><i class="fab fa-whatsapp"></i> Chat WA</a>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Tentang Section -->
+        <section class="about" id="about">
+            <div class="container">
+                <h2 class="section-title fade-up">Tentang <span>Platform Kami</span></h2>
+                <div class="glass-card coding-box about-box fade-up">
+                    <p class="about-text">
+                        <strong>KING & QUEEN BOT</strong> merupakan platform WhatsApp Bot premium yang selalu dikembangkan dengan teknologi terbaru agar memberikan pengalaman terbaik. Kami berkomitmen untuk menyajikan sistem interaksi AI dan automasi terdepan yang cepat, stabil, aman, dan dirancang sesederhana mungkin agar mudah digunakan oleh seluruh lapisan pengguna baik pemula maupun korporasi.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Keunggulan Section -->
+        <section class="features" id="features">
+            <div class="container">
+                <h2 class="section-title fade-up">Mengapa Memilih <span>Bot Kami?</span></h2>
+                <div class="features-grid">
+                    <div class="glass-card feature-card fade-up"><div class="feature-icon"><i class="fas fa-clock"></i></div><div class="feature-info"><h3>Online 24 Jam Nonstop</h3><p>Bot aktif terus-menerus memproses perintah tanpa henti.</p></div></div>
+                    <div class="glass-card feature-card fade-up"><div class="feature-icon"><i class="fas fa-server"></i></div><div class="feature-info"><h3>Server Super Stable</h3><p>Infrastruktur awan premium menjamin uptime maksimal.</p></div></div>
+                    <div class="glass-card feature-card fade-up"><div class="feature-icon"><i class="fas fa-bolt"></i></div><div class="feature-info"><h3>Fast Response</h3><p>Eksekusi perintah super cepat dalam hitungan milidetik.</p></div></div>
+                    <div class="glass-card feature-card fade-up"><div class="feature-icon"><i class="fas fa-brain"></i></div><div class="feature-info"><h3>AI Chat</h3><p>Kecerdasan buatan responsif mirip manusia asli.</p></div></div>
+                    <div class="glass-card feature-card fade-up"><div class="feature-icon"><i class="fas fa-download"></i></div><div class="feature-info"><h3>Downloader Lengkap</h3><p>Unduh media dari berbagai platform sosial dengan mudah.</p></div></div>
+                    <div class="glass-card feature-card fade-up"><div class="feature-icon"><i class="fas fa-palette"></i></div><div class="feature-info"><h3>Sticker Maker</h3><p>Konversi foto dan video menjadi stiker secara instan.</p></div></div>
+                    <div class="glass-card feature-card fade-up"><div class="feature-icon"><i class="fas fa-sliders-h"></i></div><div class="feature-info"><h3>Convert Audio & Video</h3><p>Ubah berbagai format berkas audio visual secara praktis.</p></div></div>
+                    <div class="glass-card feature-card fade-up"><div class="feature-icon"><i class="fas fa-upload"></i></div><div class="feature-info"><h3>Upload Media</h3><p>Mendukung pengunggahan berkas besar dengan aman.</p></div></div>
+                    <div class="glass-card feature-card fade-up"><div class="feature-icon"><i class="fas fa-cloud-download-alt"></i></div><div class="feature-info"><h3>Download Media</h3><p>Penyimpanan eksternal unduhan berkecepatan tinggi.</p></div></div>
+                    <div class="glass-card feature-card fade-up"><div class="feature-icon"><i class="fas fa-users-cog"></i></div><div class="feature-info"><h3>Group Management</h3><p>Kendali penuh fitur admin grup secara otomatis.</p></div></div>
+                    <div class="glass-card feature-card fade-up"><div class="feature-icon"><i class="fas fa-door-open"></i></div><div class="feature-info"><h3>Welcome & Goodbye</h3><p>Sambut dan lepas member grup dengan templat estetik.</p></div></div>
+                    <div class="glass-card feature-card fade-up"><div class="feature-icon"><i class="fas fa-link-slash"></i></div><div class="feature-info"><h3>Anti Link</h3><p>Proteksi grup dari penyebaran link ilegal dan berbahaya.</p></div></div>
+                    <div class="glass-card feature-card fade-up"><div class="feature-icon"><i class="fas fa-shield-virus"></i></div><div class="feature-info"><h3>Anti Spam</h3><p>Menjaga ruang obrolan agar terhindar dari banjir pesan.</p></div></div>
+                    <div class="glass-card feature-card fade-up"><div class="feature-icon"><i class="fas fa-user-shield"></i></div><div class="feature-info"><h3>Owner Friendly</h3><p>Konfigurasi mudah disesuaikan oleh pemilik bot.</p></div></div>
+                    <div class="glass-card feature-card fade-up"><div class="feature-icon"><i class="fas fa-sync-alt"></i></div><div class="feature-info"><h3>Update Rutin</h3><p>Pembaluan berkala guna memastikan fitur terkini berjalan lancar.</p></div></div>
+                    <div class="glass-card feature-card fade-up"><div class="feature-icon"><i class="fas fa-lock"></i></div><div class="feature-info"><h3>Aman Digunakan</h3><p>Enkripsi canggih meminimalisir risiko pada akun Anda.</p></div></div>
+                    <div class="glass-card feature-card fade-up"><div class="feature-icon"><i class="fas fa-smile"></i></div><div class="feature-info"><h3>Mudah Digunakan</h3><p>Struktur navigasi command yang ramah untuk siapa saja.</p></div></div>
+                    <div class="glass-card feature-card fade-up"><div class="feature-icon"><i class="fas fa-tags"></i></div><div class="feature-info"><h3>Harga Terjangaur</h3><p>Kualitas super premium dengan tarif ramah kantong.</p></div></div>
+                    <div class="glass-card feature-card fade-up"><div class="feature-icon"><i class="fas fa-headset"></i></div><div class="feature-info"><h3>Support Cepat</h3><p>Bantuan teknis responsif langsung dari pihak pengembang.</p></div></div>
+                    <div class="glass-card feature-card fade-up"><div class="feature-icon"><i class="fas fa-folder-plus"></i></div><div class="feature-info"><h3>Fitur Selalu Bertambah</h3><p>Daftar opsi perintah yang terus berkembang seiring waktu.</p></div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Layanan Kami Section -->
+        <section class="services" id="services">
+            <div class="container">
+                <h2 class="section-title fade-up">Layanan Premium <span>Kami</span></h2>
+                <p class="services-desc fade-up">Seluruh layanan diproses secara otomatis menggunakan sistem sehingga lebih cepat, aman, efisien, dan siap melayani Anda dalam hitungan detik.</p>
+                
+                <div class="services-grid">
+                    <div class="glass-card service-card fade-up"><div class="service-icon-box"><i class="fas fa-rocket"></i></div><h3>Sewa Bot WhatsApp</h3><p>Integrasikan asisten otomatis berperforma tinggi langsung ke grup atau nomor personal Anda secara realtime.</p></div>
+                    <div class="glass-card service-card fade-up"><div class="service-icon-box"><i class="fas fa-crown"></i></div><h3>Premium Bot</h3><p>Akses fitur eksklusif tanpa limitasi batas penggunaan harian dengan jalur prioritas tinggi.</p></div>
+                    <div class="glass-card service-card fade-up"><div class="service-icon-box"><i class="fab fa-instagram"></i></div><h3>Suntik Followers Instagram</h3><p>Tingkatkan kredibilitas profil media sosial secara instan melalui sistem penambah pengikut otomatis.</p></div>
+                    <div class="glass-card service-card fade-up"><div class="service-icon-box"><i class="fab fa-tiktok"></i></div><h3>Suntik Followers TikTok</h3><p>Perluas jangkauan konten dan raih audiens baru di platform video pendek terpopuler dengan cepat.</p></div>
+                    <div class="glass-card service-card fade-up"><div class="service-icon-box"><i class="fas fa-bullhorn"></i></div><h3>Suntik Followers Saluran WA</h3><p>Optimalkan saluran informasi publik Anda agar tampak profesional dengan basis pengikut yang besar.</p></div>
+                    <div class="glass-card service-card fade-up"><div class="service-icon-box"><i class="fas fa-thumbs-up"></i></div><h3>Reaction Saluran WhatsApp</h3><p>Ramaikan interaksi postingan di saluran broadcast Anda menggunakan ribuan reaksi instan otomatis.</p></div>
+                    <div class="glass-card service-card fade-up"><div class="service-icon-box"><i class="fab fa-facebook"></i></div><h3>Suntik Followers Facebook</h3><p>Kembangkan branding fanspage atau profil pribadi guna meningkatkan jangkauan bisnis digital Anda.</p></div>
+                    <div class="glass-card service-card fade-up"><div class="service-icon-box"><i class="fab fa-telegram"></i></div><h3>Suntik Followers Telegram</h3><p>Tambahkan basis anggota grup atau pengikut channel info Telegram secara kilat tanpa ribet.</p></div>
+                    <div class="glass-card service-card fade-up"><div class="service-icon-box"><i class="fas fa-heart"></i></div><h3>Likes Booster</h3><p>Optimalkan metrik suka (likes) di berbagai postingan media sosial Anda agar mudah masuk beranda FYP/Eksplor.</p></div>
+                    <div class="glass-card service-card fade-up"><div class="service-icon-box"><i class="fas fa-eye"></i></div><h3>Views Booster</h3><p>Tingkatkan metrik jumlah tayangan video Anda demi menaikkan nilai interaksi algoritma.</p></div>
+                    <div class="glass-card service-card fade-up"><div class="service-icon-box"><i class="fab fa-youtube"></i></div><h3>Subscribers</h3><p>Bantu channel Anda memenuhi syarat monetisasi penonton secara efisien melalui suntikan aman.</p></div>
+                    <div class="glass-card service-card fade-up"><div class="service-icon-box"><i class="fas fa-users"></i></div><h3>Members</h3><p>Tambahkan kuantitas anggota komunitas digital Anda agar terlihat aktif dan kredibel.</p></div>
+                    <div class="glass-card service-card fade-up" style="grid-column: 1 / -1;"><div class="service-icon-box"><i class="fas fa-cubes"></i></div><h3>Jasa Digital Lainnya</h3><p>Menyediakan beragam solusi pemrograman, optimasi media sosial, manajemen server VPS, serta kebutuhan web-development khusus lainnya sesuai request Anda.</p></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sistem Balance Section -->
+        <section class="balance-sys">
+            <div class="container balance-grid">
+                <div class="balance-left fade-up">
+                    <h2>Sistem <span>Balance Otomatis</span></h2>
+                    <p>KING & QUEEN BOT memiliki sistem balance otomatis yang memudahkan pengguna melakukan pembelian layanan hanya dalam hitungan detik. Balance dapat digunakan untuk membeli berbagai layanan digital.</p>
+                    <p>Selain itu, balance juga dapat ditukarkan secara otomatis tanpa perlu menunggu konfirmasi manual dari admin. Proses instan 24 jam penuh.</p>
+                </div>
+                <div class="balance-right">
+                    <div class="glass-card balance-item fade-up"><i class="fas fa-bolt"></i><h4>Premium Bot</h4></div>
+                    <div class="glass-card balance-item fade-up"><i class="fas fa-robot"></i><h4>Sewa Bot</h4></div>
+                    <div class="glass-card balance-item fade-up" style="grid-column: 1 / -1;"><i class="fas fa-globe"></i><h4>Layanan Digital Otomatis</h4></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Statistik Section -->
+        <section class="stats">
+            <div class="container stats-grid">
+                <div class="stat-box fade-up"><h2 class="counter" data-target="1000">0</h2><p>User Aktif</p></div>
+                <div class="stat-box fade-up"><h2 class="counter" data-target="25000">0</h2><p>Order Berhasil</p></div>
+                <div class="stat-box fade-up"><h2><span class="counter" data-target="99">0</span>%</h2><p>Kepuasan Pelanggan</p></div>
+                <div class="stat-box fade-up"><h2>24/7</h2><p>Online</p></div>
+            </div>
+        </section>
+
+        <!-- Testimoni Section -->
+        <section class="testimonials">
+            <div class="container">
+                <h2 class="section-title fade-up">Apa Kata <span>Mereka?</span></h2>
+                <div class="slider-wrapper fade-up">
+                    <div class="slider-track" id="sliderTrack">
+                        <div class="slide"><div class="glass-card testi-card"><div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div><p class="comment">"Bot paling stabil yang pernah saya gunakan."</p><div class="profile"><div class="avatar">A</div><div class="user-info"><span class="username">Andi S.</span><span class="user-role">Developer</span></div></div></div></div>
+                        <div class="slide"><div class="glass-card testi-card"><div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div><p class="comment">"Owner ramah dan premium langsung aktif."</p><div class="profile"><div class="avatar">B</div><div class="user-info"><span class="username">Budi H.</span><span class="user-role">Online Shop Owner</span></div></div></div></div>
+                        <div class="slide"><div class="glass-card testi-card"><div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div><p class="comment">"Harga murah tapi kualitasnya premium."</p><div class="profile"><div class="avatar">C</div><div class="user-info"><span class="username">Citra A.</span><span class="user-role">Mahasiswi</span></div></div></div></div>
+                        <div class="slide"><div class="glass-card testi-card"><div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div><p class="comment">"Suntik followers cepat masuk."</p><div class="profile"><div class="avatar">D</div><div class="user-info"><span class="username">Dani K.</span><span class="user-role">Content Creator</span></div></div></div></div>
+                        <div class="slide"><div class="glass-card testi-card"><div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div><p class="comment">"Reaction saluran WhatsApp langsung diproses."</p><div class="profile"><div class="avatar">E</div><div class="user-info"><span class="username">Eka W.</span><span class="user-role">Influencer</span></div></div></div></div>
+                        <div class="slide"><div class="glass-card testi-card"><div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div><p class="comment">"Server benar-benar stabil."</p><div class="profile"><div class="avatar">F</div><div class="user-info"><span class="username">Fahmi R.</span><span class="user-role">Gamer</span></div></div></div></div>
+                        <div class="slide"><div class="glass-card testi-card"><div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div><p class="comment">"Sudah langganan lama dan sangat puas."</p><div class="profile"><div class="avatar">G</div><div class="user-info"><span class="username">Gita N.</span><span class="user-role">Reseller</span></div></div></div></div>
+                        <div class="slide"><div class="glass-card testi-card"><div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div><p class="comment">"Fitur downloader lengkap."</p><div class="profile"><div class="avatar">H</div><div class="user-info"><span class="username">Hendra M.</span><span class="user-role">Trader</span></div></div></div></div>
+                        <div class="slide"><div class="glass-card testi-card"><div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div><p class="comment">"Pelayanan sangat memuaskan."</p><div class="profile"><div class="avatar">I</div><div class="user-info"><span class="username">Indah P.</span><span class="user-role">Dropshipper</span></div></div></div></div>
+                        <div class="slide"><div class="glass-card testi-card"><div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div><p class="comment">"Recommended untuk semua orang."</p><div class="profile"><div class="avatar">J</div><div class="user-info"><span class="username">Joko W.</span><span class="user-role">Entrepreneur</span></div></div></div></div>
+                    </div>
+                    <div class="slider-dots" id="sliderDots"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section class="faq" id="faq">
+            <div class="container">
+                <h2 class="section-title fade-up">Pertanyaan <span>Umum (FAQ)</span></h2>
+                <div class="faq-wrapper">
+                    <div class="accordion-item fade-up"><div class="accordion-header"><h3>Apakah bot online 24 jam?</h3><i class="fas fa-chevron-down accordion-icon"></i></div><div class="accordion-content"><p>Ya, benar. Sistem bot kami di-hosting pada infrastruktur server VPS berkemampuan tinggi dengan jaminan uptime maksimal, sehingga siap memproses pesan Anda kapan pun selama 24 jam nonstop.</p></div></div>
+                    <div class="accordion-item fade-up"><div class="accordion-header"><h3>Bagaimana cara menyewa bot?</h3><i class="fas fa-chevron-down accordion-icon"></i></div><div class="accordion-content"><p>Sangat mudah! Ya, Anda cukup menekan tombol "Chat Sekarang" atau "Sewa Sekarang" di web ini untuk langsung terhubung dengan WhatsApp resmi kami. Sistem otomatis atau tim admin kami akan memandu langkah pendaftaran Anda.</p></div></div>
+                    <div class="accordion-item fade-up"><div class="accordion-header"><h3>Apakah tersedia Premium Bot?</h3><i class="fas fa-chevron-down accordion-icon"></i></div><div class="accordion-content"><p>Tentu saja. Layanan Premium Bot dirancang bagi Anda yang menginginkan limitasi tanpa batas (unlimited) penggunaan harian serta akses ke fitur eksklusif kustomisasi tingkat lanjut.</p></div></div>
+                    <div class="accordion-item fade-up"><div class="accordion-header"><h3>Apakah balance bisa ditukar menjadi Premium atau Sewa Bot?</h3><i class="fas fa-chevron-down accordion-icon"></i></div><div class="accordion-content"><p>Ya. Sistem terintegrasi kami mendukung penukaran saldo (balance) secara realtime otomatis menjadi masa aktif sewa bot maupun status akun Premium tanpa perlu approval manual admin.</p></div></div>
+                    <div class="accordion-item fade-up"><div class="accordion-header"><h3>Apakah tersedia layanan suntik followers?</h3><i class="fas fa-chevron-down accordion-icon"></i></div><div class="accordion-content"><p>Tersedia lengkap. Kami menyediakan panel optimasi media sosial seperti suntik followers, likes, views untuk Instagram, TikTok, Facebook, Telegram, dan YouTube dengan proses aman.</p></div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Call to Action Section -->
+        <section class="cta">
+            <div class="container">
+                <div class="glass-card cta-box fade-up">
+                    <h2>Siap Bergabung Bersama <br><span style="background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">KING & QUEEN BOT?</span></h2>
+                    <p>Nikmati layanan WhatsApp Bot Premium, sistem otomatis, serta berbagai layanan digital terbaik dalam satu platform yang andal.</p>
+                    <a href="https://wa.me/6289510006505" target="_blank" class="btn btn-primary"><i class="fab fa-whatsapp"></i> CHAT SEKARANG</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <div class="container footer-container">
+                <div class="footer-copy">&copy; 2026 <strong>KING & QUEEN BOT</strong>. By Ndraa official</div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- PRICING PAGE VIEW -->
+    <div id="pricing-page-view">
+        <div class="container" style="position: relative;">
+            <div class="pricing-page-header">
+                <button class="btn btn-secondary btn-back-home" id="btn-back-to-home"><i class="fas fa-arrow-left"></i> Kembali ke Home</button>
+                <div style="font-size: 1.1rem; color: var(--neon-blue); font-weight: 600; margin-bottom: 8px; letter-spacing: 1px;">⚡ PREMIUM DIGITAL ECOSYSTEM 2026</div>
+                <h2 style="font-size: 2.2rem; font-weight: 800; margin-bottom: 15px; text-transform: uppercase;">LIST HARGA <span>SEWA K&Q</span></h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 750px; margin: 0 auto; line-height: 1.6;">
+                    🚀 Sistem Cloud Automasi 24 Jam Nonstop &nbsp;&bull;&nbsp; 🛡️ Proteksi Penuh & Anti Denda Ilegal<br>
+                    💳 Integrasi Smart Balance Otomatis &nbsp;&bull;&nbsp; 🔄 Saldo Fleksibel Dapat Ditukar Sewa / Akses Premium
+                </p>
+            </div>
+
+            <!-- Kontainer Utama Tombol Grid -->
+            <div class="split-pricing-container">
+                
+                <!-- BARIS 1 (KIRI): REGULER -->
+                <div class="tier-wrapper-box">
+                    <div class="select-tier-box reguler-trigger" id="trigger-reguler">
+                        <i class="fas fa-users tier-icon"></i>
+                        <h3>Reguler</h3>
+                    </div>
+
+                    <div class="tier-price-dropdown" id="dropdown-reguler">
+                        <div class="price-list-wrapper">
+                            <div class="price-table-list">
+                                <div class="price-row-item">
+                                    <div class="row-top-meta">
+                                        <span class="row-duration">1 Bulan <span class="badge-tag badge-hemat">Paket Hemat</span></span>
+                                        <span class="row-cost">Rp15K</span>
+                                    </div>
+                                    <span class="row-bonus">Premium 3 Akun</span>
+                                </div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">2 Bulan</span><span class="row-cost">Rp23K</span></div><span class="row-bonus">Premium 4 Akun</span></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">3 Bulan</span><span class="row-cost">Rp28K</span></div><span class="row-bonus">Premium 4 Akun</span></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">4 Bulan</span><span class="row-cost">Rp35K</span></div><span class="row-bonus">Premium All Admin</span></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">5 Bulan</span><span class="row-cost">Rp45K</span></div><span class="row-bonus">Premium All Admin</span></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">6 Bulan</span><span class="row-cost">Rp55K</span></div><span class="row-bonus">Premium All Admin</span></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">7 Bulan</span><span class="row-cost">Rp65K</span></div><span class="row-bonus">Premium All Admin</span></div>
+                                <div class="price-row-item">
+                                    <div class="row-top-meta">
+                                        <span class="row-duration">8 Bulan <span class="badge-tag badge-sultan">Paket Sultan</span></span>
+                                        <span class="row-cost">Rp75K</span>
+                                    </div>
+                                    <span class="row-bonus">Premium All Admin</span>
+                                </div>
+                            </div>
+                            <a href="https://wa.me/6289510006505?text=Halo%20kak%20aku%20mau%20sewa%20yang%20reguler" target="_blank" class="btn btn-primary">Sewa Reguler</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BARIS 1 (KANAN): VIP -->
+                <div class="tier-wrapper-box">
+                    <div class="select-tier-box vip-trigger" id="trigger-vip">
+                        <i class="fas fa-crown tier-icon"></i>
+                        <h3>Sewa VIP</h3>
+                    </div>
+
+                    <div class="tier-price-dropdown" id="dropdown-vip">
+                        <div class="price-list-wrapper">
+                            <div class="price-table-list">
+                                <div class="price-row-item">
+                                    <div class="row-top-meta">
+                                        <span class="row-duration">1 Bulan <span class="badge-tag badge-hemat">Paket Hemat</span></span>
+                                        <span class="row-cost">Rp25K</span>
+                                    </div>
+                                    <span class="row-bonus">Redeem 2Jt</span>
+                                </div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">2 Bulan</span><span class="row-cost">Rp40K</span></div><span class="row-bonus">Redeem 5Jt</span></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">3 Bulan</span><span class="row-cost">Rp55K</span></div><span class="row-bonus">Redeem 10Jt</span></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">4 Bulan</span><span class="row-cost">Rp70K</span></div><span class="row-bonus">Redeem 12Jt</span></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">5 Bulan</span><span class="row-cost">Rp85K</span></div><span class="row-bonus">1 Perm + 12Jt</span></div>
+                                <div class="price-row-item">
+                                    <div class="row-top-meta">
+                                        <span class="row-duration">6 Bulan <span class="badge-tag badge-sultan">Paket Sultan</span></span>
+                                        <span class="row-cost">Rp99K</span>
+                                    </div>
+                                    <span class="row-bonus">2 Perm + 20Jt</span>
+                                </div>
+                            </div>
+                            <a href="https://wa.me/6289510006505?text=Halo%20kak%20aku%20mau%20sewa%20yang%20vip" target="_blank" class="btn btn-primary" style="background: linear-gradient(45deg, var(--neon-purple), #ff007f); box-shadow: 0 0 15px rgba(173,0,255,0.4);">Sewa VIP</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BARIS 2 (KIRI): FOLLOWERS INSTAGRAM -->
+                <div class="tier-wrapper-box">
+                    <div class="select-tier-box ig-trigger" id="trigger-ig" style="border-color: rgba(225, 48, 108, 0.3);">
+                        <i class="fab fa-instagram tier-icon" style="color: #e1306c;"></i>
+                        <h3>Followers IG</h3>
+                    </div>
+
+                    <div class="tier-price-dropdown" id="dropdown-ig">
+                        <div class="price-list-wrapper" style="border-color: #e1306c; box-shadow: 0 0 25px rgba(225, 48, 108, 0.2);">
+                            <div class="price-table-list">
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">100 Followers</span><span class="row-cost" style="background: rgba(225, 48, 108, 0.15); color: #ff6097;">Rp3.000</span></div></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">200 Followers</span><span class="row-cost" style="background: rgba(225, 48, 108, 0.15); color: #ff6097;">Rp6.000</span></div></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">300 Followers</span><span class="row-cost" style="background: rgba(225, 48, 108, 0.15); color: #ff6097;">Rp9.000</span></div></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">400 Followers</span><span class="row-cost" style="background: rgba(225, 48, 108, 0.15); color: #ff6097;">Rp12.000</span></div></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">500 Followers</span><span class="row-cost" style="background: rgba(225, 48, 108, 0.15); color: #ff6097;">Rp15.000</span></div></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">600 Followers</span><span class="row-cost" style="background: rgba(225, 48, 108, 0.15); color: #ff6097;">Rp18.000</span></div></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">700 Followers</span><span class="row-cost" style="background: rgba(225, 48, 108, 0.15); color: #ff6097;">Rp21.000</span></div></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">800 Followers</span><span class="row-cost" style="background: rgba(225, 48, 108, 0.15); color: #ff6097;">Rp24.000</span></div></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">900 Followers</span><span class="row-cost" style="background: rgba(225, 48, 108, 0.15); color: #ff6097;">Rp27.000</span></div></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">1.000 Followers</span><span class="row-cost" style="background: rgba(225, 48, 108, 0.15); color: #ff6097;">Rp30.000</span></div></div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 15px; text-align: left; line-height: 1.4; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
+                                <strong>Catatan Penting 🗒️:</strong><br>
+                                • No garansi (tanpa jaminan)<br>
+                                • Followers berkurang bukan tanggung jawab admin<br>
+                                • Tidak menerima komplain setelah order selesai<br>
+                                • Jangan spam username sebelum/selama proses<br>
+                                • Order = setuju dengan semua ketentuan
+                            </div>
+                            <a href="https://wa.me/6289510006505?text=Halo%20kak%20aku%20mau%20order%20Followers%20Instagram" target="_blank" class="btn btn-primary" style="background: linear-gradient(45deg, #f09433, #e1306c, #dc2743);">Beli Followers IG</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BARIS 2 (KANAN): SUNTIK WA -->
+                <div class="tier-wrapper-box">
+                    <div class="select-tier-box wa-trigger" id="trigger-wa" style="border-color: rgba(37, 211, 102, 0.3);">
+                        <i class="fab fa-whatsapp tier-icon" style="color: #25D366;"></i>
+                        <h3>Suntik WA</h3>
+                    </div>
+
+                    <div class="tier-price-dropdown" id="dropdown-wa">
+                        <div class="price-list-wrapper" style="border-color: #25D366; box-shadow: 0 0 25px rgba(37, 211, 102, 0.2);">
+                            
+                            <h4 style="font-size: 0.9rem; color: #25D366; margin-bottom: 10px; text-align: left;">📈 Followers Channel WhatsApp</h4>
+                            <div class="price-table-list" style="margin-bottom: 15px;">
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">10 followers</span><span class="row-cost" style="background: rgba(37, 211, 102, 0.15); color: #25D366;">Rp500</span></div></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">20 followers</span><span class="row-cost" style="background: rgba(37, 211, 102, 0.15); color: #25D366;">Rp1.000</span></div></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">30 followers</span><span class="row-cost" style="background: rgba(37, 211, 102, 0.15); color: #25D366;">Rp1.500</span></div></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">50 followers</span><span class="row-cost" style="background: rgba(37, 211, 102, 0.15); color: #25D366;">Rp2.500</span></div></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">70 followers</span><span class="row-cost" style="background: rgba(37, 211, 102, 0.15); color: #25D366;">Rp3.500</span></div></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">85 followers</span><span class="row-cost" style="background: rgba(37, 211, 102, 0.15); color: #25D366;">Rp4.250</span></div></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">100 followers</span><span class="row-cost" style="background: rgba(37, 211, 102, 0.15); color: #25D366;">Rp5.000</span></div></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">200 followers</span><span class="row-cost" style="background: rgba(37, 211, 102, 0.15); color: #25D366;">Rp10.000</span></div></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">400 followers</span><span class="row-cost" style="background: rgba(37, 211, 102, 0.15); color: #25D366;">Rp20.000</span></div></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">600 followers</span><span class="row-cost" style="background: rgba(37, 211, 102, 0.15); color: #25D366;">Rp30.000</span></div></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">1.000 followers</span><span class="row-cost" style="background: rgba(37, 211, 102, 0.15); color: #25D366;">Rp50.000</span></div></div>
+                            </div>
+
+                            <h4 style="font-size: 0.9rem; color: #ffcc00; margin-bottom: 10px; text-align: left;">❤️ Reaction Channel WhatsApp (😮❤️😂🙏🏻👍🏻)</h4>
+                            <div class="price-table-list">
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">20 reaction</span><span class="row-cost" style="background: rgba(255, 204, 0, 0.15); color: #ffcc00;">Rp500</span></div></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">40 reaction</span><span class="row-cost" style="background: rgba(255, 204, 0, 0.15); color: #ffcc00;">Rp1.000</span></div></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">60 reaction</span><span class="row-cost" style="background: rgba(255, 204, 0, 0.15); color: #ffcc00;">Rp1.500</span></div></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">80 reaction</span><span class="row-cost" style="background: rgba(255, 204, 0, 0.15); color: #ffcc00;">Rp2.000</span></div></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">100 reaction</span><span class="row-cost" style="background: rgba(255, 204, 0, 0.15); color: #ffcc00;">Rp2.500</span></div></div>
+                                <div class="price-row-item"><div class="row-top-meta"><span class="row-duration">150 reaction</span><span class="row-cost" style="background: rgba(255, 204, 0, 0.15); color: #ffcc00;">Rp3.500</span></div></div>
+                            </div>
+                            <a href="https://wa.me/6289510006505?text=Halo%20kak%20aku%20mau%20order%20Suntik%20WhatsApp" target="_blank" class="btn btn-primary" style="background: #25D366; color: #fff; margin-top: 15px;">Beli Layanan WA</a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Scroll To Top Button -->
+    <button id="scrollTop" aria-label="Scroll to top"><i class="fas fa-arrow-up"></i></button>
+
+    <!-- Floating Action Buttons -->
+    <div class="floating-container">
+        <a href="https://whatsapp.com/channel/0029VaZ43rDLI8YeAAtq5M2T" target="_blank" class="floating-btn floating-btn-channel" data-label="Saluran WhatsApp"><i class="fas fa-bullhorn"></i></a>
+        <a href="https://wa.me/6289510006505" target="_blank" class="floating-btn floating-btn-owner" data-label="Chat Owner"><i class="fab fa-whatsapp"></i></a>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // 1. Loading Screen
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('loader');
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                loader.style.visibility = 'hidden';
+            }, 500);
+        });
+
+        // 2. Mouse Glow Effect (Desktop Only)
+        const mouseGlow = document.getElementById('mouse-glow');
+        if (window.innerWidth > 768) {
+            mouseGlow.style.display = 'block';
+            window.addEventListener('mousemove', (e) => {
+                mouseGlow.style.left = e.clientX + 'px';
+                mouseGlow.style.top = e.clientY + 'px';
+            });
+        }
+
+        // 3. Mobile Navigation Menu Toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const navLinks = document.getElementById('nav-links');
+        mobileMenuBtn.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            const icon = mobileMenuBtn.querySelector('i');
+            if(navLinks.classList.contains('active')) {
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-times');
+            } else {
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            }
+        });
+
+        // Close mobile menu on click link
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('active');
+                const icon = mobileMenuBtn.querySelector('i');
+                if (icon) {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                }
+            });
+        });
+
+        // 4. Typing Text Effect
+        const typingText = document.getElementById('typing-text');
+        const phrases = [
+            'WhatsApp Bot Premium 24/7',
+            'Sewa Bot Multi-Fitur Stabil',
+            'Suntik Followers Instagram & TikTok',
+            'Reaction Saluran WA Instan',
+            'Layanan Digital Terpercaya'
+        ];
+        let phraseIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+
+        function type() {
+            const currentPhrase = phrases[phraseIndex];
+            if (isDeleting) {
+                typingText.textContent = currentPhrase.substring(0, charIndex - 1);
+                charIndex--;
+            } else {
+                typingText.textContent = currentPhrase.substring(0, charIndex + 1);
+                charIndex++;
+            }
+
+            let typeSpeed = isDeleting ? 40 : 80;
+
+            if (!isDeleting && charIndex === currentPhrase.length) {
+                typeSpeed = 2000; // Pause at end
+                isDeleting = true;
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                phraseIndex = (phraseIndex + 1) % phrases.length;
+                typeSpeed = 500;
+            }
+
+            setTimeout(type, typeSpeed);
+        }
+        document.addEventListener('DOMContentLoaded', type);
+
+        // 5. Scroll Animations (Fade Up)
+        const fadeElements = document.querySelectorAll('.fade-up');
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        fadeElements.forEach(el => observer.observe(el));
+
+        // 6. Stats Counter Animation
+        const counters = document.querySelectorAll('.counter');
+        let counterStarted = false;
+
+        function startCounters() {
+            counters.forEach(counter => {
+                const target = +counter.getAttribute('data-target');
+                const duration = 2000;
+                const increment = target / (duration / 16);
+
+                let current = 0;
+                const updateCount = () => {
+                    current += increment;
+                    if(current < target) {
+                        counter.innerText = Math.ceil(current);
+                        requestAnimationFrame(updateCount);
+                    } else {
+                        counter.innerText = target;
+                    }
+                };
+                updateCount();
+            });
+        }
+
+        const statsSection = document.querySelector('.stats');
+        if(statsSection) {
+            window.addEventListener('scroll', () => {
+                const pos = statsSection.getBoundingClientRect().top;
+                if(pos < window.innerHeight - 100 && !counterStarted) {
+                    counterStarted = true;
+                    startCounters();
+                }
+            });
+        }
+
+        // 7. Testimonial Slider
+        const sliderTrack = document.getElementById('sliderTrack');
+        const slides = document.querySelectorAll('.slide');
+        const sliderDots = document.getElementById('sliderDots');
+        let currentSlide = 0;
+        let slideInterval;
+
+        // Generate Dots
+        slides.forEach((_, idx) => {
+            const dot = document.createElement('div');
+            dot.classList.add('dot');
+            if(idx === 0) dot.classList.add('active');
+            dot.addEventListener('click', () => goToSlide(idx));
+            sliderDots.appendChild(dot);
+        });
+
+        const dots = document.querySelectorAll('.dot');
+
+        function updateDots() {
+            dots.forEach((dot, idx) => {
+                dot.classList.toggle('active', idx === currentSlide);
+            });
+        }
+
+        function goToSlide(index) {
+            currentSlide = index;
+            sliderTrack.style.transform = `translateX(-${currentSlide * 100}%)`;
+            updateDots();
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            goToSlide(currentSlide);
+        }
+
+        function startSlider() {
+            slideInterval = setInterval(nextSlide, 4000);
+        }
+
+        function stopSlider() {
+            clearInterval(slideInterval);
+        }
+
+        if(sliderTrack) {
+            startSlider();
+            sliderTrack.addEventListener('mouseenter', stopSlider);
+            sliderTrack.addEventListener('mouseleave', startSlider);
+        }
+
+        // 8. FAQ Accordion
+        const accordionItems = document.querySelectorAll('.accordion-item');
+        accordionItems.forEach(item => {
+            const header = item.querySelector('.accordion-header');
+            const content = item.querySelector('.accordion-content');
+
+            header.addEventListener('click', () => {
+                const isActive = item.classList.contains('active');
+                
+                // Close all other items
+                accordionItems.forEach(i => {
+                    i.classList.remove('active');
+                    i.querySelector('.accordion-content').style.maxHeight = null;
+                    i.querySelector('.accordion-content').style.padding = "0 30px";
+                });
+
+                // Toggle current
+                if (!isActive) {
+                    item.classList.add('active');
+                    content.style.maxHeight = content.scrollHeight + 40 + "px";
+                    content.style.padding = "15px 30px 25px 30px";
+                }
+            });
+        });
+
+        // 9. Scroll To Top Button
+        const scrollTopBtn = document.getElementById('scrollTop');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 400) {
+                scrollTopBtn.classList.add('show');
+            } else {
+                scrollTopBtn.classList.remove('show');
+            }
+        });
+
+        scrollTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // 10. SPA Views Logic (Home vs Pricing Page Toggle)
+        const mainLandingContent = document.getElementById('main-landing-content');
+        const pricingPageView = document.getElementById('pricing-page-view');
+        const btnOpenPricing = document.getElementById('btn-open-pricing-page');
+        const btnBackHome = document.getElementById('btn-back-to-home');
+        const forcePricingPageLinks = document.querySelectorAll('.force-pricing-page');
+
+        function openPricingPage() {
+            mainLandingContent.style.display = 'none';
+            pricingPageView.style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        function openHomePage() {
+            pricingPageView.style.display = 'none';
+            mainLandingContent.style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        if(btnOpenPricing) btnOpenPricing.addEventListener('click', (e) => { e.preventDefault(); openPricingPage(); });
+        if(btnBackHome) btnBackHome.addEventListener('click', (e) => { e.preventDefault(); openHomePage(); });
+        forcePricingPageLinks.forEach(link => {
+            link.addEventListener('click', (e) => { e.preventDefault(); openPricingPage(); });
+        });
+
+        // 11. Split Pricing Accordion / Dropdown Toggle Logic
+        const tierTriggers = [
+            { trigger: 'trigger-reguler', dropdown: 'dropdown-reguler' },
+            { trigger: 'trigger-vip', dropdown: 'dropdown-vip' },
+            { trigger: 'trigger-ig', dropdown: 'dropdown-ig' },
+            { trigger: 'trigger-wa', dropdown: 'dropdown-wa' }
+        ];
+
+        tierTriggers.forEach(item => {
+            const trigEl = document.getElementById(item.trigger);
+            const dropEl = document.getElementById(item.dropdown);
+
+            if(trigEl && dropEl) {
+                trigEl.addEventListener('click', () => {
+                    const isActive = trigEl.classList.contains('active');
+
+                    // Reset All Tiers
+                    tierTriggers.forEach(t => {
+                        const tEl = document.getElementById(t.trigger);
+                        const dEl = document.getElementById(t.dropdown);
+                        if(tEl && dEl) {
+                            tEl.classList.remove('active');
+                            dEl.style.maxHeight = null;
+                        }
+                    });
+
+                    // If wasn't active, activate current
+                    if(!isActive) {
+                        trigEl.classList.add('active');
+                        dropEl.style.maxHeight = dropEl.scrollHeight + "px";
+                        
+                        // Smooth scroll to tier position on mobile
+                        setTimeout(() => {
+                            trigEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }, 100);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
