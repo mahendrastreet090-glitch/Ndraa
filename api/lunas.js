@@ -14,6 +14,73 @@ function escapeXml(unsafe) {
   });
 }
 
+// === UPLOADER UTAMA: Termai (c.termai.cc) ===
+async function uploadTermai(imageBuffer) {
+  const formData = new FormData();
+  formData.append('file', new File([imageBuffer], 'stamped_image.jpg', { type: 'image/jpeg' }));
+
+  const res = await fetch('https://c.termai.cc/api/upload?key=AIzaBj7z2z3xBjsk', {
+    method: 'POST',
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    },
+    body: formData
+  });
+
+  if (!res.ok) throw new Error(`Termai HTTP Status: ${res.status}`);
+  const json = await res.json();
+
+  const fileUrl = json?.path || json?.url || json?.data?.url;
+  if (!fileUrl) throw new Error('Response Termai tidak mengembalikan URL/path');
+
+  return fileUrl;
+}
+
+// === UPLOADER CADANGAN 1: Catbox ===
+async function uploadCatbox(imageBuffer) {
+  const formData = new FormData();
+  formData.append('reqtype', 'fileupload');
+  formData.append('fileToUpload', new File([imageBuffer], 'stamped_image.jpg', { type: 'image/jpeg' }));
+
+  const res = await fetch('https://catbox.moe/user/api.php', {
+    method: 'POST',
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    },
+    body: formData
+  });
+
+  if (!res.ok) throw new Error(`Catbox HTTP Status: ${res.status}`);
+  const text = (await res.text()).trim();
+
+  if (!text.startsWith('http')) {
+    throw new Error(`Catbox Error Response: ${text}`);
+  }
+  return text;
+}
+
+// === UPLOADER CADANGAN 2: TmpFiles ===
+async function uploadTmpFiles(imageBuffer) {
+  const formData = new FormData();
+  formData.append('file', new File([imageBuffer], 'stamped_image.jpg', { type: 'image/jpeg' }));
+
+  const res = await fetch('https://tmpfiles.org/api/v1/upload', {
+    method: 'POST',
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    },
+    body: formData
+  });
+
+  if (!res.ok) throw new Error(`TmpFiles HTTP Status: ${res.status}`);
+  const json = await res.json();
+
+  if (json?.status === 'success' && json?.data?.url) {
+    return json.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
+  }
+  throw new Error('Gagal upload ke TmpFiles');
+}
+
 export default async function handler(req, res) {
   // 1. Validasi HTTP Method
   if (req.method !== 'POST') {
@@ -41,7 +108,6 @@ export default async function handler(req, res) {
     // 3. Proses Input Gambar (Base64 atau URL)
     if (base64) {
       try {
-        // Membersihkan prefix data URI jika ada (data:image/...;base64,)
         const cleanBase64 = base64.replace(/^data:image\/[a-zA-Z+-]+;base64,/, '');
         imageBuffer = Buffer.from(cleanBase64, 'base64');
       } catch (err) {
@@ -58,7 +124,6 @@ export default async function handler(req, res) {
           throw new Error('Protokol tidak valid');
         }
 
-        // Fetch gambar dengan timeout 10 detik
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
 
@@ -104,11 +169,10 @@ export default async function handler(req, res) {
     const imgWidth = metadata.width || 800;
     const imgHeight = metadata.height || 600;
 
-    // Format & Escape Teks Stempel
     const stampText = String(text).trim() || "LUNAS";
     const safeText = escapeXml(stampText);
 
-    // Kalkulasi Ukuran Stempel Responsif berdasarkan Ukuran Gambar
+    // Ukuran Stempel Responsif
     const minDim = Math.min(imgWidth, imgHeight);
     const boxWidth = Math.round(minDim * 0.65);
     const boxHeight = Math.round(boxWidth * 0.38);
@@ -116,7 +180,7 @@ export default async function handler(req, res) {
     const strokeWidth = Math.max(3, Math.round(minDim * 0.012));
     const borderRadius = Math.round(minDim * 0.02);
 
-    // Template SVG Stempel Cap Merah Transparan
+    // Overlay SVG
     const svgOverlay = `
       <svg width="${boxWidth}" height="${boxHeight}" xmlns="http://www.w3.org/2000/svg">
         <style>
@@ -149,44 +213,35 @@ export default async function handler(req, res) {
       </svg>
     `;
 
-    // Putar stempel miring (-12 derajat)
     const rotatedStamp = await sharp(Buffer.from(svgOverlay))
       .rotate(-12, { background: { r: 0, g: 0, b: 0, alpha: 0 } })
       .toBuffer();
 
-    // Gabungkan Gambar Asli dengan Overlay Stempel tepat di Tengah
     const processedImageBuffer = await sharp(imageBuffer)
       .composite([{ input: rotatedStamp, gravity: 'center' }])
       .jpeg({ quality: 90 })
       .toBuffer();
 
-    // 5. Upload Hasil Gambar ke Catbox
-    let catboxUrl;
+    // 5. Upload Gambar (Utama: Termai -> Cadangan 1: Catbox -> Cadangan 2: TmpFiles)
+    let imageUrl;
     try {
-      const formData = new FormData();
-      formData.append('reqtype', 'fileupload');
-      formData.append('fileToUpload', new Blob([processedImageBuffer], { type: 'image/jpeg' }), 'stamped_image.jpg');
-
-      const catboxRes = await fetch('https://catbox.moe/user/api.php', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!catboxRes.ok) {
-        throw new Error('Catbox upload error');
+      imageUrl = await uploadTermai(processedImageBuffer);
+    } catch (termaiErr) {
+      console.warn("Upload Termai gagal, mencoba Catbox:", termaiErr.message);
+      try {
+        imageUrl = await uploadCatbox(processedImageBuffer);
+      } catch (catboxErr) {
+        console.warn("Upload Catbox gagal, mencoba TmpFiles:", catboxErr.message);
+        try {
+          imageUrl = await uploadTmpFiles(processedImageBuffer);
+        } catch (fallbackErr) {
+          return res.status(500).json({
+            status: false,
+            creator: "Ndra09",
+            error: "Gagal mengunggah gambar ke server penyimpanan"
+          });
+        }
       }
-
-      catboxUrl = (await catboxRes.text()).trim();
-
-      if (!catboxUrl.startsWith('http')) {
-        throw new Error('Respons Catbox tidak valid');
-      }
-    } catch (err) {
-      return res.status(500).json({
-        status: false,
-        creator: "Ndra09",
-        error: "Gagal mengunggah gambar ke Catbox"
-      });
     }
 
     // 6. Response Sukses
@@ -195,7 +250,7 @@ export default async function handler(req, res) {
       creator: "Ndra09",
       result: {
         text: stampText,
-        url_gambar: catboxUrl
+        url_gambar: imageUrl
       }
     });
 
