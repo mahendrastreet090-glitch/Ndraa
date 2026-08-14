@@ -13,6 +13,7 @@ export const config = {
 // ============================================
 
 const CREATOR = 'Ndra09'
+const TERMAI_URL = 'https://c.termai.cc/api/upload?key=AIzaBj7z2z3xBjsk'
 
 // ============================================
 // ESCAPE XML
@@ -28,72 +29,94 @@ function escapeXml(value) {
 }
 
 // ============================================
-// UPLOAD CATBOX
+// UPLOAD KE C.TERMAI.CC
 // ============================================
 
-async function uploadCatbox(buffer) {
+async function uploadTermai(buffer) {
   const formData = new FormData()
-
-  formData.append('reqtype', 'fileupload')
 
   const blob = new Blob(
     [buffer],
-    { type: 'image/jpeg' }
+    {
+      type: 'image/jpeg'
+    }
   )
 
   formData.append(
-    'fileToUpload',
+    'file',
     blob,
     'ndra-stempel.jpg'
   )
 
   const response = await fetch(
-    'https://catbox.moe/user/api.php',
+    TERMAI_URL,
     {
       method: 'POST',
-      body: formData,
+
       headers: {
         'User-Agent':
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36'
-      }
+      },
+
+      body: formData
     }
   )
 
   if (!response.ok) {
     throw new Error(
-      `Catbox HTTP ${response.status}`
+      `Termai HTTP ${response.status}`
     )
   }
 
-  const result = (
-    await response.text()
-  ).trim()
+  const result = await response.json()
 
-  if (!result.startsWith('http')) {
+  console.log(
+    '[TERMAI RESPONSE]',
+    result
+  )
+
+  const fileUrl =
+    result?.path ||
+    result?.url ||
+    result?.data?.url ||
+    result?.data?.path
+
+  if (!fileUrl) {
     throw new Error(
-      `Catbox: ${result}`
+      'Termai tidak mengembalikan URL gambar'
     )
   }
 
-  return result
+  // Kalau Termai mengembalikan URL lengkap
+  if (
+    fileUrl.startsWith('http://') ||
+    fileUrl.startsWith('https://')
+  ) {
+    return fileUrl
+  }
+
+  // Kalau hanya path
+  return `https://c.termai.cc/${String(fileUrl).replace(/^\/+/, '')}`
 }
 
 // ============================================
-// AMBIL GAMBAR DARI URL
+// DOWNLOAD GAMBAR DARI URL
 // ============================================
 
 async function downloadImage(url) {
-  let parsed
+  let parsedUrl
 
   try {
-    parsed = new URL(url)
+    parsedUrl = new URL(url)
   } catch {
-    throw new Error('URL gambar tidak valid')
+    throw new Error(
+      'URL gambar tidak valid'
+    )
   }
 
   if (
-    parsed.protocol !== 'http:' &&
-    parsed.protocol !== 'https:'
+    parsedUrl.protocol !== 'http:' &&
+    parsedUrl.protocol !== 'https:'
   ) {
     throw new Error(
       'URL hanya boleh menggunakan HTTP/HTTPS'
@@ -103,22 +126,26 @@ async function downloadImage(url) {
   const controller =
     new AbortController()
 
-  const timeout = setTimeout(
-    () => controller.abort(),
-    15000
-  )
+  const timeout =
+    setTimeout(
+      () => controller.abort(),
+      15000
+    )
 
   try {
-    const response = await fetch(
-      url,
-      {
-        signal: controller.signal,
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0'
+    const response =
+      await fetch(
+        url,
+        {
+          signal:
+            controller.signal,
+
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0'
+          }
         }
-      }
-    )
+      )
 
     if (!response.ok) {
       throw new Error(
@@ -132,7 +159,9 @@ async function downloadImage(url) {
       ) || ''
 
     if (
-      !contentType.toLowerCase().startsWith('image/')
+      !contentType
+        .toLowerCase()
+        .startsWith('image/')
     ) {
       throw new Error(
         'URL tersebut bukan file gambar'
@@ -142,7 +171,16 @@ async function downloadImage(url) {
     const arrayBuffer =
       await response.arrayBuffer()
 
-    return Buffer.from(arrayBuffer)
+    const buffer =
+      Buffer.from(arrayBuffer)
+
+    if (!buffer.length) {
+      throw new Error(
+        'Gambar kosong'
+      )
+    }
+
+    return buffer
 
   } finally {
     clearTimeout(timeout)
@@ -150,7 +188,7 @@ async function downloadImage(url) {
 }
 
 // ============================================
-// AMBIL BUFFER DARI BASE64
+// BASE64 → BUFFER
 // ============================================
 
 function decodeBase64(base64) {
@@ -163,16 +201,22 @@ function decodeBase64(base64) {
     )
   }
 
-  let clean = base64.trim()
+  let clean =
+    base64.trim()
 
-  // Hapus data:image/jpeg;base64,...
-  clean = clean.replace(
-    /^data:image\/[a-zA-Z0-9.+-]+;base64,/i,
-    ''
-  )
+  // Hapus prefix:
+  // data:image/jpeg;base64,
+  // data:image/png;base64,
+  // dll
+  clean =
+    clean.replace(
+      /^data:image\/[a-zA-Z0-9.+-]+;base64,/i,
+      ''
+    )
 
-  // Hilangkan whitespace
-  clean = clean.replace(/\s/g, '')
+  // Hapus spasi / newline
+  clean =
+    clean.replace(/\s/g, '')
 
   if (!clean) {
     throw new Error(
@@ -181,7 +225,10 @@ function decodeBase64(base64) {
   }
 
   const buffer =
-    Buffer.from(clean, 'base64')
+    Buffer.from(
+      clean,
+      'base64'
+    )
 
   if (!buffer.length) {
     throw new Error(
@@ -197,58 +244,58 @@ function decodeBase64(base64) {
 // ============================================
 
 function createStampSvg({
-  width,
-  height,
+  stampWidth,
+  stampHeight,
   text
 }) {
 
   const safeText =
     escapeXml(text)
 
-  // Ukuran cap
-  const stampWidth =
-    Math.round(width * 0.72)
+  // ==========================================
+  // STROKE
+  // ==========================================
 
-  const stampHeight =
-    Math.round(stampWidth * 0.36)
-
-  // Posisi cap
-  const centerX =
-    Math.round(width / 2)
-
-  const centerY =
-    Math.round(height / 2)
-
-  // Border
   const outerStroke =
     Math.max(
-      8,
-      Math.round(stampWidth * 0.035)
+      7,
+      Math.round(
+        stampWidth * 0.035
+      )
     )
 
   const innerStroke =
     Math.max(
       3,
-      Math.round(stampWidth * 0.012)
+      Math.round(
+        stampWidth * 0.012
+      )
     )
 
   const radius =
-    Math.round(stampHeight * 0.18)
-
-  const innerGap =
-    Math.round(stampWidth * 0.045)
-
-  // Font utama
-  let fontSize =
     Math.round(
-      stampHeight * 0.48
+      stampHeight * 0.18
     )
 
-  // Batasi agar teks panjang tidak keluar
+  const innerGap =
+    Math.round(
+      stampWidth * 0.045
+    )
+
+  // ==========================================
+  // FONT
+  // ==========================================
+
+  let fontSize =
+    Math.round(
+      stampHeight * 0.50
+    )
+
+  // Estimasi lebar teks
   const estimatedWidth =
     safeText.length *
     fontSize *
-    0.65
+    0.62
 
   const maxTextWidth =
     stampWidth * 0.78
@@ -262,52 +309,56 @@ function createStampSvg({
         maxTextWidth /
         Math.max(
           1,
-          safeText.length * 0.65
+          safeText.length * 0.62
         )
       )
   }
 
   fontSize =
     Math.max(
-      20,
+      18,
       fontSize
     )
 
-  // By Ndra Store
+  // ==========================================
+  // BY NDRA STORE
+  // ==========================================
+
   const byFontSize =
     Math.max(
-      14,
+      12,
       Math.round(
-        stampWidth * 0.055
+        stampWidth * 0.045
       )
     )
 
   const byY =
     stampHeight +
     Math.round(
-      stampHeight * 0.23
+      stampHeight * 0.18
     )
-
-  const svgWidth =
-    stampWidth
 
   const svgHeight =
     byY +
     Math.round(
-      byFontSize * 1.4
+      byFontSize * 1.5
     )
+
+  // ==========================================
+  // SVG
+  // ==========================================
 
   return `
 <svg
   xmlns="http://www.w3.org/2000/svg"
-  width="${svgWidth}"
+  width="${stampWidth}"
   height="${svgHeight}"
-  viewBox="0 0 ${svgWidth} ${svgHeight}"
+  viewBox="0 0 ${stampWidth} ${svgHeight}"
 >
 
-  <!--
-    STEMPEL UTAMA
-  -->
+  <!-- =====================================
+       STEMPEL LUAR
+  ====================================== -->
 
   <rect
     x="${outerStroke / 2}"
@@ -316,105 +367,66 @@ function createStampSvg({
     height="${stampHeight - outerStroke}"
     rx="${radius}"
     ry="${radius}"
-    fill="rgba(255,255,255,0.04)"
+    fill="rgba(255,255,255,0.03)"
     stroke="#d62828"
     stroke-width="${outerStroke}"
   />
 
-  <!-- Border Dalam -->
+  <!-- =====================================
+       STEMPEL DALAM
+  ====================================== -->
 
   <rect
     x="${outerStroke + innerGap}"
     y="${outerStroke + innerGap}"
-    width="${stampWidth - ((outerStroke + innerGap) * 2)}"
-    height="${stampHeight - ((outerStroke + innerGap) * 2)}"
-    rx="${Math.max(5, radius - 5)}"
-    ry="${Math.max(5, radius - 5)}"
+    width="${
+      stampWidth -
+      ((outerStroke + innerGap) * 2)
+    }"
+    height="${
+      stampHeight -
+      ((outerStroke + innerGap) * 2)
+    }"
+    rx="${Math.max(4, radius - 5)}"
+    ry="${Math.max(4, radius - 5)}"
     fill="none"
     stroke="#d62828"
     stroke-width="${innerStroke}"
   />
 
-  <!--
-    TEKS LUNAS
-
-    Sengaja menggunakan font generik
-    agar tidak bergantung CDN/font eksternal.
-  -->
+  <!-- =====================================
+       TEKS STEMPEL
+       
+       PENTING:
+       JANGAN gunakan textLength="0"
+  ====================================== -->
 
   <text
     x="${stampWidth / 2}"
     y="${stampHeight / 2}"
     font-family="DejaVu Sans, Arial, sans-serif"
     font-size="${fontSize}px"
-    font-weight="bold"
+    font-weight="900"
     fill="#d62828"
     text-anchor="middle"
     dominant-baseline="middle"
-    textLength="0"
   >${safeText}</text>
 
-
-  <!--
-    BY NDRA STORE
-  -->
+  <!-- =====================================
+       BY NDRA STORE
+  ====================================== -->
 
   <text
     x="${stampWidth / 2}"
     y="${byY}"
     font-family="DejaVu Sans, Arial, sans-serif"
     font-size="${byFontSize}px"
-    font-weight="bold"
+    font-weight="600"
     fill="#000000"
     text-anchor="middle"
     dominant-baseline="middle"
   >By Ndra Store</text>
 
-</svg>
-`
-}
-
-// ============================================
-// BUAT WATERMARK TAMBAHAN
-// ============================================
-
-function createWatermarkSvg({
-  width,
-  height
-}) {
-
-  const fontSize =
-    Math.max(
-      12,
-      Math.round(
-        Math.min(width, height) *
-        0.025
-      )
-    )
-
-  const margin =
-    Math.round(
-      Math.min(width, height) *
-      0.025
-    )
-
-  return `
-<svg
-  xmlns="http://www.w3.org/2000/svg"
-  width="${width}"
-  height="${height}"
->
-  <text
-    x="${width - margin}"
-    y="${height - margin}"
-    font-family="DejaVu Sans, Arial, sans-serif"
-    font-size="${fontSize}px"
-    font-weight="bold"
-    fill="#ffffff"
-    stroke="#000000"
-    stroke-width="1.5"
-    text-anchor="end"
-  >By Ndra Store</text>
 </svg>
 `
 }
@@ -428,9 +440,9 @@ export default async function handler(
   res
 ) {
 
-  // ========================================
+  // ==========================================
   // CORS
-  // ========================================
+  // ==========================================
 
   res.setHeader(
     'Access-Control-Allow-Origin',
@@ -447,30 +459,37 @@ export default async function handler(
     'Content-Type'
   )
 
+  // ==========================================
   // OPTIONS
+  // ==========================================
+
   if (req.method === 'OPTIONS') {
-    return res.status(200).end()
+    return res
+      .status(200)
+      .end()
   }
 
-  // ========================================
+  // ==========================================
   // METHOD
-  // ========================================
+  // ==========================================
 
   if (req.method !== 'POST') {
 
-    return res.status(405).json({
-      status: false,
-      creator: CREATOR,
-      error: 'Gunakan method POST'
-    })
-
+    return res
+      .status(405)
+      .json({
+        status: false,
+        creator: CREATOR,
+        error:
+          'Gunakan method POST'
+      })
   }
 
   try {
 
-    // ======================================
+    // ========================================
     // INPUT
-    // ======================================
+    // ========================================
 
     const body =
       req.body || {}
@@ -481,45 +500,44 @@ export default async function handler(
     const url =
       body.url
 
-    const text =
-      body.text
+    let text =
+      body.text || 'LUNAS'
 
-    // ======================================
-    // VALIDASI
-    // ======================================
+    // ========================================
+    // VALIDASI INPUT
+    // ========================================
 
     if (!base64 && !url) {
 
-      return res.status(400).json({
-        status: false,
-        creator: CREATOR,
-        error:
-          "Parameter 'base64' atau 'url' wajib diisi"
-      })
-
+      return res
+        .status(400)
+        .json({
+          status: false,
+          creator: CREATOR,
+          error:
+            "Parameter 'base64' atau 'url' wajib diisi"
+        })
     }
 
-    // ======================================
-    // TEKS
-    // ======================================
+    // ========================================
+    // TEKS STEMPEL
+    // ========================================
 
-    let stampText =
-      String(
-        text || 'LUNAS'
-      ).trim()
-
-    if (!stampText) {
-      stampText = 'LUNAS'
-    }
-
-    stampText =
-      stampText
+    text =
+      String(text)
+        .trim()
         .substring(0, 50)
-        .toUpperCase()
 
-    // ======================================
+    if (!text) {
+      text = 'LUNAS'
+    }
+
+    const stampText =
+      text.toUpperCase()
+
+    // ========================================
     // AMBIL GAMBAR
-    // ======================================
+    // ========================================
 
     let imageBuffer
 
@@ -535,56 +553,51 @@ export default async function handler(
 
     }
 
-    // ======================================
-    // VALIDASI GAMBAR DENGAN SHARP
-    // ======================================
-
-    const metadata =
-      await sharp(imageBuffer)
-        .metadata()
-
-    if (
-      !metadata.width ||
-      !metadata.height
-    ) {
-
-      return res.status(400).json({
-        status: false,
-        creator: CREATOR,
-        error:
-          'Gambar tidak valid'
-      })
-
-    }
-
-    const originalWidth =
-      metadata.width
-
-    const originalHeight =
-      metadata.height
-
-    // ======================================
+    // ========================================
     // NORMALISASI GAMBAR
-    // ======================================
+    //
+    // rotate() otomatis memperbaiki EXIF
+    // orientation foto HP.
+    // ========================================
 
     const normalizedImage =
       await sharp(imageBuffer)
         .rotate()
         .toBuffer()
 
-    const normalizedMetadata =
-      await sharp(normalizedImage)
-        .metadata()
+    // ========================================
+    // METADATA
+    // ========================================
+
+    const metadata =
+      await sharp(
+        normalizedImage
+      ).metadata()
+
+    if (
+      !metadata.width ||
+      !metadata.height
+    ) {
+
+      return res
+        .status(400)
+        .json({
+          status: false,
+          creator: CREATOR,
+          error:
+            'Gambar tidak valid'
+        })
+    }
 
     const width =
-      normalizedMetadata.width
+      metadata.width
 
     const height =
-      normalizedMetadata.height
+      metadata.height
 
-    // ======================================
-    // BUAT STEMPEL
-    // ======================================
+    // ========================================
+    // UKURAN STEMPEL
+    // ========================================
 
     const minDimension =
       Math.min(
@@ -602,33 +615,31 @@ export default async function handler(
         stampWidth * 0.36
       )
 
-    // ======================================
-    // SVG
-    // ======================================
+    // ========================================
+    // BUAT SVG STEMPEL
+    // ========================================
 
     const stampSvg =
       createStampSvg({
-        width,
-        height,
+        stampWidth,
+        stampHeight,
         text: stampText
       })
 
-    // ======================================
-    // RENDER SVG
-    // ======================================
+    // ========================================
+    // RENDER SVG → PNG
+    // ========================================
 
     const stampBuffer =
       await sharp(
-        Buffer.from(
-          stampSvg
-        )
+        Buffer.from(stampSvg)
       )
       .png()
       .toBuffer()
 
-    // ======================================
+    // ========================================
     // ROTASI STEMPEL
-    // ======================================
+    // ========================================
 
     const rotatedStamp =
       await sharp(
@@ -648,92 +659,78 @@ export default async function handler(
       .png()
       .toBuffer()
 
-    // ======================================
-    // WATERMARK BAWAH KANAN
-    // ======================================
-
-    const watermarkSvg =
-      createWatermarkSvg({
-        width,
-        height
-      })
-
-    const watermarkBuffer =
-      Buffer.from(
-        watermarkSvg
-      )
-
-    // ======================================
+    // ========================================
     // COMPOSITE
-    // ======================================
+    // ========================================
 
     const processedImage =
       await sharp(
         normalizedImage
       )
       .composite([
-
-        // STEMPEL DI TENGAH
         {
-          input: rotatedStamp,
-          gravity: 'center'
-        },
+          input:
+            rotatedStamp,
 
-        // WATERMARK
-        {
-          input: watermarkBuffer,
-          top: 0,
-          left: 0
+          gravity:
+            'center'
         }
-
       ])
       .jpeg({
         quality: 92,
-        chromaSubsampling: '4:4:4'
+        chromaSubsampling:
+          '4:4:4'
       })
       .toBuffer()
 
-    // ======================================
-    // UPLOAD CATBOX
-    // ======================================
+    // ========================================
+    // UPLOAD C.TERMAI.CC
+    // ========================================
 
     const imageUrl =
-      await uploadCatbox(
+      await uploadTermai(
         processedImage
       )
 
-    // ======================================
+    // ========================================
     // RESPONSE
-    // ======================================
+    // ========================================
 
-    return res.status(200).json({
+    return res
+      .status(200)
+      .json({
 
-      status: true,
+        status: true,
 
-      creator: CREATOR,
+        creator: CREATOR,
 
-      result: {
+        result: {
 
-        text: stampText,
+          text:
+            stampText,
 
-        url_gambar:
-          imageUrl,
+          url_gambar:
+            imageUrl,
 
-        original_size: {
-          width:
-            originalWidth,
-          height:
-            originalHeight
-        },
+          original_size: {
+            width:
+              width,
+            height:
+              height
+          },
 
-        output_size: {
-          width,
-          height
+          stamp: {
+            width:
+              stampWidth,
+            height:
+              stampHeight,
+            rotation:
+              -12
+          }
+
         }
 
-      }
-
-    })
+      })
 
   } catch (error) {
 
@@ -742,18 +739,19 @@ export default async function handler(
       error
     )
 
-    return res.status(500).json({
+    return res
+      .status(500)
+      .json({
 
-      status: false,
+        status: false,
 
-      creator: CREATOR,
+        creator:
+          CREATOR,
 
-      error:
-        error?.message ||
-        'Terjadi kesalahan internal pada server'
+        error:
+          error?.message ||
+          'Terjadi kesalahan internal pada server'
 
-    })
-
+      })
   }
-
 }
