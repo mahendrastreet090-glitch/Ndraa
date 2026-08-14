@@ -2,7 +2,6 @@
   "name": "ndra09-api",
   "version": "1.0.0",
   "description": "Rest API by Ndra09",
-  "main": "index.js",
   "type": "module",
   "author": "Ndra09"
 }

@@ -3,145 +3,271 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Stempel LUNAS Generator - Ndra09 API</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>NDRA OFFICIAL - Rest API Uploader</title>
   <style>
-    .bg-grid {
-      background-size: 20px 20px;
-      background-image: radial-gradient(circle, #cbd5e1 1px, transparent 1px);
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
+
+    body {
+      background-color: #0f172a;
+      color: #f8fafc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .card {
+      background-color: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 24px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #38bdf8;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    p.subtitle {
+      font-size: 0.875rem;
+      color: #94a3b8;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.875rem;
+      margin-bottom: 6px;
+      color: #cbd5e1;
+    }
+
+    input[type="file"], input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      background-color: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.875rem;
+      outline: none;
+    }
+
+    input[type="file"]::file-selector-button {
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+
+    button.btn-submit {
+      width: 100%;
+      padding: 12px;
+      background-color: #0284c7;
+      color: white;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button.btn-submit:hover {
+      background-color: #0369a1;
+    }
+
+    button.btn-submit:disabled {
+      background-color: #475569;
+      cursor: not-allowed;
+    }
+
+    .result-box {
+      margin-top: 24px;
+      display: none;
+      background-color: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      border-radius: 4px;
+      margin-bottom: 12px;
+    }
+
+    .status-true { background-color: #059669; color: #ecfdf5; }
+    .status-false { background-color: #dc2626; color: #fef2f2; }
+
+    pre {
+      font-family: monospace;
+      font-size: 0.8rem;
+      color: #38bdf8;
+      white-space: pre-wrap;
+      word-break: break-all;
+      background-color: #1e293b;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+
+    .action-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-action {
+      flex: 1;
+      padding: 8px;
+      font-size: 0.8rem;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      text-align: center;
+      text-decoration: none;
+    }
+
+    .btn-copy { background-color: #334155; color: white; }
+    .btn-open { background-color: #16a34a; color: white; }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col items-center justify-between p-4 bg-grid">
+<body>
 
-  <header class="w-full max-w-2xl text-center py-6">
-    <h1 class="text-3xl font-extrabold text-red-500 tracking-wide uppercase">Stempel LUNAS Generator</h1>
-    <p class="text-slate-400 text-sm mt-1">Buat bukti pembayaran otomatis menggunakan Canvas API</p>
-  </header>
+  <div class="card">
+    <h1>NDRA OFFICIAL API</h1>
+    <p class="subtitle">Image Uploader & Stempel Generator</p>
 
-  <main class="w-full max-w-2xl bg-slate-800/90 backdrop-blur border border-slate-700 rounded-2xl p-6 shadow-2xl my-auto">
-    
-    <form id="lunasForm" class="space-y-5">
-      <div>
-        <label class="block text-sm font-medium text-slate-300 mb-2">Upload Bukti Pembayaran / Gambar</label>
-        <div class="flex items-center justify-center w-full">
-          <label for="imageInput" class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-slate-600 rounded-xl cursor-pointer bg-slate-900/50 hover:bg-slate-700/50 hover:border-red-500 transition-all group">
-            <div class="flex flex-col items-center justify-center pt-5 pb-6">
-              <svg class="w-10 h-10 mb-3 text-slate-400 group-hover:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-              </svg>
-              <p class="mb-1 text-sm text-slate-300"><span class="font-semibold">Klik untuk memilih</span> atau seret file ke sini</p>
-              <p class="text-xs text-slate-500">PNG, JPG, JPEG, atau WEBP</p>
-            </div>
-            <input id="imageInput" type="file" accept="image/*" class="hidden" required />
-          </label>
-        </div>
-        <p id="fileName" class="text-xs text-emerald-400 mt-2 hidden"></p>
-      </div>
-
-      <div>
-        <label for="textInput" class="block text-sm font-medium text-slate-300 mb-1">Teks Stempel (Opsional)</label>
-        <input type="text" id="textInput" placeholder="LUNAS" value="LUNAS" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-red-500 text-sm">
-      </div>
-
-      <button type="submit" id="submitBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-red-600/30">
-        <span>Proses Gambar</span>
-      </button>
-    </form>
-
-    <div id="resultBox" class="mt-6 pt-6 border-t border-slate-700 hidden">
-      <h2 class="text-lg font-bold text-slate-200 mb-3 text-center">Hasil Stempel</h2>
-      <div class="flex flex-col items-center gap-4">
-        <div class="relative max-h-96 overflow-hidden rounded-lg border border-slate-700 shadow-md flex justify-center">
-          <!-- Canvas tersembunyi untuk proses, img untuk pratinjau -->
-          <canvas id="canvas" class="hidden"></canvas>
-          <img id="resultImage" class="max-h-96 object-contain" alt="Hasil Stempel">
-        </div>
-        <a id="downloadBtn" download="lunas-result.jpg" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition-all flex items-center gap-2 shadow-lg shadow-emerald-600/30">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-          </svg>
-          Download Gambar
-        </a>
-      </div>
+    <div class="form-group">
+      <label for="imageInput">Pilih Gambar:</label>
+      <input type="file" id="imageInput" accept="image/*">
     </div>
 
-  </main>
+    <div class="form-group">
+      <label for="textInput">Teks Stempel:</label>
+      <input type="text" id="textInput" value="LUNAS">
+    </div>
 
-  <footer class="w-full max-w-2xl text-center py-4 text-xs text-slate-500">
-    &copy; 2026 Ndra09 API. Powered by Vercel & Client Canvas.
-  </footer>
+    <button class="btn-submit" id="submitBtn" onclick="processUpload()">Proses & Upload</button>
+
+    <div class="result-box" id="resultBox">
+      <span class="status-badge" id="statusBadge">STATUS</span>
+      
+      <div style="font-size: 0.85rem; margin-bottom: 6px; color: #94a3b8;">
+        Creator: <strong id="creatorText" style="color: #fff;">-</strong>
+      </div>
+
+      <pre id="jsonOutput">// Output JSON akan muncul di sini</pre>
+
+      <div class="action-btns" id="actionBtns" style="display: none;">
+        <button class="btn-action btn-copy" onclick="copyLink()">📋 Salin Link</button>
+        <a id="openBtn" href="#" target="_blank" class="btn-action btn-open">🔗 Buka Gambar</a>
+      </div>
+    </div>
+  </div>
 
   <script>
-    const imageInput = document.getElementById('imageInput');
-    const textInput = document.getElementById('textInput');
-    const fileName = document.getElementById('fileName');
-    const lunasForm = document.getElementById('lunasForm');
-    const resultBox = document.getElementById('resultBox');
-    const resultImage = document.getElementById('resultImage');
-    const downloadBtn = document.getElementById('downloadBtn');
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
+    let uploadedUrl = ""
 
-    imageInput.addEventListener('change', (e) => {
-      if (e.target.files.length > 0) {
-        fileName.textContent = `File terpilih: ${e.target.files[0].name}`;
-        fileName.classList.remove('hidden');
+    async function processUpload() {
+      const fileInput = document.getElementById('imageInput')
+      const textInput = document.getElementById('textInput')
+      const submitBtn = document.getElementById('submitBtn')
+      const resultBox = document.getElementById('resultBox')
+      const statusBadge = document.getElementById('statusBadge')
+      const creatorText = document.getElementById('creatorText')
+      const jsonOutput = document.getElementById('jsonOutput')
+      const actionBtns = document.getElementById('actionBtns')
+
+      if (!fileInput.files || fileInput.files.length === 0) {
+        alert("Pilih gambar terlebih dahulu!")
+        return
       }
-    });
 
-    lunasForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      
-      const file = imageInput.files[0];
-      if (!file) return;
+      const file = fileInput.files[0]
+      const reader = new FileReader()
 
-      const customText = textInput.value.trim() || "LUNAS";
-      const reader = new FileReader();
+      submitBtn.disabled = true
+      submitBtn.innerText = "Memproses..."
+      resultBox.style.display = "none"
 
-      reader.onload = function(event) {
-        const img = new Image();
-        img.onload = function() {
-          // Set ukuran canvas sesuai gambar
-          canvas.width = img.width;
-          canvas.height = img.height;
+      reader.onload = async function (e) {
+        const base64Data = e.target.result
 
-          // Gambarkan foto asli
-          ctx.drawImage(img, 0, 0);
+        try {
+          const response = await fetch('/api/lunas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              base64: base64Data,
+              text: textInput.value || "LUNAS"
+            })
+          })
 
-          // Buat Stempel
-          const fontSize = Math.floor(img.width * 0.12);
-          ctx.font = `bold ${fontSize}px sans-serif`;
-          ctx.fillStyle = 'rgba(220, 38, 38, 0.85)';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
+          const data = await response.json()
 
-          ctx.save();
-          ctx.translate(img.width / 2, img.height / 2);
-          ctx.rotate((-20 * Math.PI) / 180);
+          resultBox.style.display = "block"
+          jsonOutput.innerText = JSON.stringify(data, null, 2)
+          creatorText.innerText = data.creator || "Ndra09"
 
-          const textWidth = ctx.measureText(customText).width;
-          const padX = fontSize * 0.4;
-          const padY = fontSize * 0.2;
+          if (data.status) {
+            statusBadge.className = "status-badge status-true"
+            statusBadge.innerText = "STATUS: TRUE (200)"
+            
+            if (data.result && data.result.url_gambar) {
+              uploadedUrl = data.result.url_gambar
+              document.getElementById('openBtn').href = uploadedUrl
+              actionBtns.style.display = "flex"
+            }
+          } else {
+            statusBadge.className = "status-badge status-false"
+            statusBadge.innerText = "STATUS: FALSE"
+            actionBtns.style.display = "none"
+          }
 
-          ctx.strokeStyle = 'rgba(220, 38, 38, 0.85)';
-          ctx.lineWidth = Math.max(4, fontSize * 0.08);
-          ctx.strokeRect(-textWidth / 2 - padX, -fontSize / 2 - padY, textWidth + padX * 2, fontSize + padY * 2);
+        } catch (err) {
+          resultBox.style.display = "block"
+          statusBadge.className = "status-badge status-false"
+          statusBadge.innerText = "STATUS: ERROR"
+          jsonOutput.innerText = JSON.stringify({ status: false, error: err.message }, null, 2)
+          actionBtns.style.display = "none"
+        } finally {
+          submitBtn.disabled = false
+          submitBtn.innerText = "Proses & Upload"
+        }
+      }
 
-          ctx.fillText(customText, 0, 0);
-          ctx.restore();
+      reader.readAsDataURL(file)
+    }
 
-          // Ekstrak hasil ke URL
-          const resultDataUrl = canvas.toDataURL('image/jpeg', 0.9);
-          resultImage.src = resultDataUrl;
-          downloadBtn.href = resultDataUrl;
-          resultBox.classList.remove('hidden');
-        };
-        img.src = event.target.result;
-      };
-
-      reader.readAsDataURL(file);
-    });
+    function copyLink() {
+      if (uploadedUrl) {
+        navigator.clipboard.writeText(uploadedUrl)
+        alert("Link gambar berhasil disalin!")
+      }
+    }
   </script>
 </body>
 </html>
