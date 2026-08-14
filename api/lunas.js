@@ -1,4 +1,10 @@
 import sharp from 'sharp'
+import fs from 'fs'
+import path from 'path'
+
+// ============================================
+// KONFIGURASI VERCEL
+// ============================================
 
 export const config = {
   api: {
@@ -13,30 +19,51 @@ export const config = {
 // ============================================
 
 const CREATOR = 'Ndra09'
-const TERMAI_URL = 'https://c.termai.cc/api/upload?key=AIzaBj7z2z3xBjsk'
+
+// API UPLOAD TERMAI
+const TERMAI_UPLOAD_URL =
+  'https://c.termai.cc/api/upload?key=AIzaBj7z2z3xBjsk'
 
 // ============================================
-// ESCAPE XML
+// LOKASI GAMBAR STEMPEL
 // ============================================
 
-function escapeXml(value) {
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;')
+// File:
+// assets/lunas.png
+
+const STAMP_PATH = path.join(
+  process.cwd(),
+  'assets',
+  'lunas.png'
+)
+
+// ============================================
+// CEK FILE STEMPEL
+// ============================================
+
+function getStampPath() {
+
+  if (!fs.existsSync(STAMP_PATH)) {
+
+    throw new Error(
+      'File assets/lunas.png tidak ditemukan'
+    )
+
+  }
+
+  return STAMP_PATH
 }
 
 // ============================================
-// UPLOAD KE C.TERMAI.CC
+// UPLOAD KE TERMAI
 // ============================================
 
-async function uploadTermai(buffer) {
+async function uploadTermai(imageBuffer) {
+
   const formData = new FormData()
 
   const blob = new Blob(
-    [buffer],
+    [imageBuffer],
     {
       type: 'image/jpeg'
     }
@@ -45,11 +72,11 @@ async function uploadTermai(buffer) {
   formData.append(
     'file',
     blob,
-    'ndra-stempel.jpg'
+    'ndra-lunas.jpg'
   )
 
   const response = await fetch(
-    TERMAI_URL,
+    TERMAI_UPLOAD_URL,
     {
       method: 'POST',
 
@@ -63,40 +90,35 @@ async function uploadTermai(buffer) {
   )
 
   if (!response.ok) {
+
     throw new Error(
       `Termai HTTP ${response.status}`
     )
+
   }
 
-  const result = await response.json()
+  const result =
+    await response.json()
 
-  console.log(
-    '[TERMAI RESPONSE]',
-    result
-  )
-
-  const fileUrl =
+  const imageUrl =
     result?.path ||
     result?.url ||
-    result?.data?.url ||
-    result?.data?.path
+    result?.data?.url
 
-  if (!fileUrl) {
+  if (!imageUrl) {
+
+    console.error(
+      'Response Termai:',
+      result
+    )
+
     throw new Error(
       'Termai tidak mengembalikan URL gambar'
     )
+
   }
 
-  // Kalau Termai mengembalikan URL lengkap
-  if (
-    fileUrl.startsWith('http://') ||
-    fileUrl.startsWith('https://')
-  ) {
-    return fileUrl
-  }
-
-  // Kalau hanya path
-  return `https://c.termai.cc/${String(fileUrl).replace(/^\/+/, '')}`
+  return imageUrl
 }
 
 // ============================================
@@ -104,23 +126,31 @@ async function uploadTermai(buffer) {
 // ============================================
 
 async function downloadImage(url) {
+
   let parsedUrl
 
   try {
-    parsedUrl = new URL(url)
+
+    parsedUrl =
+      new URL(url)
+
   } catch {
+
     throw new Error(
       'URL gambar tidak valid'
     )
+
   }
 
   if (
     parsedUrl.protocol !== 'http:' &&
     parsedUrl.protocol !== 'https:'
   ) {
+
     throw new Error(
-      'URL hanya boleh menggunakan HTTP/HTTPS'
+      'URL hanya boleh HTTP atau HTTPS'
     )
+
   }
 
   const controller =
@@ -133,6 +163,7 @@ async function downloadImage(url) {
     )
 
   try {
+
     const response =
       await fetch(
         url,
@@ -148,9 +179,11 @@ async function downloadImage(url) {
       )
 
     if (!response.ok) {
+
       throw new Error(
-        `Gagal mengambil gambar (${response.status})`
+        `Gagal mengambil gambar HTTP ${response.status}`
       )
+
     }
 
     const contentType =
@@ -163,65 +196,67 @@ async function downloadImage(url) {
         .toLowerCase()
         .startsWith('image/')
     ) {
+
       throw new Error(
         'URL tersebut bukan file gambar'
       )
+
     }
 
     const arrayBuffer =
       await response.arrayBuffer()
 
-    const buffer =
-      Buffer.from(arrayBuffer)
-
-    if (!buffer.length) {
-      throw new Error(
-        'Gambar kosong'
-      )
-    }
-
-    return buffer
+    return Buffer.from(
+      arrayBuffer
+    )
 
   } finally {
+
     clearTimeout(timeout)
+
   }
 }
 
 // ============================================
-// BASE64 → BUFFER
+// DECODE BASE64
 // ============================================
 
 function decodeBase64(base64) {
+
   if (
     typeof base64 !== 'string' ||
     !base64.trim()
   ) {
+
     throw new Error(
       'Base64 gambar kosong'
     )
+
   }
 
   let clean =
     base64.trim()
 
-  // Hapus prefix:
-  // data:image/jpeg;base64,
-  // data:image/png;base64,
-  // dll
+  // data:image/jpeg;base64,...
   clean =
     clean.replace(
       /^data:image\/[a-zA-Z0-9.+-]+;base64,/i,
       ''
     )
 
-  // Hapus spasi / newline
+  // Hapus whitespace
   clean =
-    clean.replace(/\s/g, '')
+    clean.replace(
+      /\s/g,
+      ''
+    )
 
   if (!clean) {
+
     throw new Error(
       'Base64 gambar kosong'
     )
+
   }
 
   const buffer =
@@ -231,204 +266,116 @@ function decodeBase64(base64) {
     )
 
   if (!buffer.length) {
+
     throw new Error(
       'Base64 tidak valid'
     )
+
   }
 
   return buffer
 }
 
 // ============================================
-// BUAT SVG STEMPEL
+// BUAT STEMPEL DARI ASSET
 // ============================================
 
-function createStampSvg({
-  stampWidth,
-  stampHeight,
-  text
-}) {
+async function createStamp(
+  imageWidth,
+  imageHeight
+) {
 
-  const safeText =
-    escapeXml(text)
-
-  // ==========================================
-  // STROKE
-  // ==========================================
-
-  const outerStroke =
-    Math.max(
-      7,
-      Math.round(
-        stampWidth * 0.035
-      )
-    )
-
-  const innerStroke =
-    Math.max(
-      3,
-      Math.round(
-        stampWidth * 0.012
-      )
-    )
-
-  const radius =
-    Math.round(
-      stampHeight * 0.18
-    )
-
-  const innerGap =
-    Math.round(
-      stampWidth * 0.045
-    )
+  const stampPath =
+    getStampPath()
 
   // ==========================================
-  // FONT
+  // Baca asset lunas.png
   // ==========================================
 
-  let fontSize =
-    Math.round(
-      stampHeight * 0.50
-    )
+  const stamp =
+    sharp(stampPath)
 
-  // Estimasi lebar teks
-  const estimatedWidth =
-    safeText.length *
-    fontSize *
-    0.62
-
-  const maxTextWidth =
-    stampWidth * 0.78
+  const stampMetadata =
+    await stamp.metadata()
 
   if (
-    estimatedWidth >
-    maxTextWidth
+    !stampMetadata.width ||
+    !stampMetadata.height
   ) {
-    fontSize =
-      Math.floor(
-        maxTextWidth /
-        Math.max(
-          1,
-          safeText.length * 0.62
-        )
-      )
+
+    throw new Error(
+      'assets/lunas.png tidak valid'
+    )
+
   }
 
-  fontSize =
-    Math.max(
-      18,
-      fontSize
+  // ==========================================
+  // UKURAN STEMPEL
+  // ==========================================
+
+  const minDimension =
+    Math.min(
+      imageWidth,
+      imageHeight
+    )
+
+  /*
+   * 72% dari sisi terkecil gambar.
+   *
+   * Contoh:
+   *
+   * Foto 1080 x 1920
+   * sisi terkecil = 1080
+   * cap = sekitar 778px
+   */
+
+  const targetWidth =
+    Math.round(
+      minDimension * 0.72
     )
 
   // ==========================================
-  // BY NDRA STORE
+  // RESIZE STEMPEL
   // ==========================================
 
-  const byFontSize =
-    Math.max(
-      12,
-      Math.round(
-        stampWidth * 0.045
+  const resizedStamp =
+    await stamp
+      .resize({
+        width:
+          targetWidth,
+
+        fit:
+          'inside',
+
+        withoutEnlargement:
+          false
+      })
+      .png()
+      .toBuffer()
+
+  // ==========================================
+  // ROTASI STEMPEL
+  // ==========================================
+
+  const rotatedStamp =
+    await sharp(
+      resizedStamp
+    )
+      .rotate(
+        -12,
+        {
+          background: {
+            r: 0,
+            g: 0,
+            b: 0,
+            alpha: 0
+          }
+        }
       )
-    )
+      .png()
+      .toBuffer()
 
-  const byY =
-    stampHeight +
-    Math.round(
-      stampHeight * 0.18
-    )
-
-  const svgHeight =
-    byY +
-    Math.round(
-      byFontSize * 1.5
-    )
-
-  // ==========================================
-  // SVG
-  // ==========================================
-
-  return `
-<svg
-  xmlns="http://www.w3.org/2000/svg"
-  width="${stampWidth}"
-  height="${svgHeight}"
-  viewBox="0 0 ${stampWidth} ${svgHeight}"
->
-
-  <!-- =====================================
-       STEMPEL LUAR
-  ====================================== -->
-
-  <rect
-    x="${outerStroke / 2}"
-    y="${outerStroke / 2}"
-    width="${stampWidth - outerStroke}"
-    height="${stampHeight - outerStroke}"
-    rx="${radius}"
-    ry="${radius}"
-    fill="rgba(255,255,255,0.03)"
-    stroke="#d62828"
-    stroke-width="${outerStroke}"
-  />
-
-  <!-- =====================================
-       STEMPEL DALAM
-  ====================================== -->
-
-  <rect
-    x="${outerStroke + innerGap}"
-    y="${outerStroke + innerGap}"
-    width="${
-      stampWidth -
-      ((outerStroke + innerGap) * 2)
-    }"
-    height="${
-      stampHeight -
-      ((outerStroke + innerGap) * 2)
-    }"
-    rx="${Math.max(4, radius - 5)}"
-    ry="${Math.max(4, radius - 5)}"
-    fill="none"
-    stroke="#d62828"
-    stroke-width="${innerStroke}"
-  />
-
-  <!-- =====================================
-       TEKS STEMPEL
-       
-       PENTING:
-       JANGAN gunakan textLength="0"
-  ====================================== -->
-
-  <text
-    x="${stampWidth / 2}"
-    y="${stampHeight / 2}"
-    font-family="DejaVu Sans, Arial, sans-serif"
-    font-size="${fontSize}px"
-    font-weight="900"
-    fill="#d62828"
-    text-anchor="middle"
-    dominant-baseline="middle"
-  >${safeText}</text>
-
-  <!-- =====================================
-       BY NDRA STORE
-  ====================================== -->
-
-  <text
-    x="${stampWidth / 2}"
-    y="${byY}"
-    font-family="DejaVu Sans, Arial, sans-serif"
-    font-size="${byFontSize}px"
-    font-weight="600"
-    fill="#000000"
-    text-anchor="middle"
-    dominant-baseline="middle"
-  >By Ndra Store</text>
-
-</svg>
-`
+  return rotatedStamp
 }
 
 // ============================================
@@ -463,32 +410,43 @@ export default async function handler(
   // OPTIONS
   // ==========================================
 
-  if (req.method === 'OPTIONS') {
+  if (
+    req.method === 'OPTIONS'
+  ) {
+
     return res
       .status(200)
       .end()
+
   }
 
   // ==========================================
   // METHOD
   // ==========================================
 
-  if (req.method !== 'POST') {
+  if (
+    req.method !== 'POST'
+  ) {
 
-    return res
-      .status(405)
-      .json({
-        status: false,
-        creator: CREATOR,
-        error:
-          'Gunakan method POST'
-      })
+    return res.status(405).json({
+
+      status:
+        false,
+
+      creator:
+        CREATOR,
+
+      error:
+        'Gunakan method POST'
+
+    })
+
   }
 
   try {
 
     // ========================================
-    // INPUT
+    // BODY
     // ========================================
 
     const body =
@@ -500,40 +458,42 @@ export default async function handler(
     const url =
       body.url
 
-    let text =
+    const text =
       body.text || 'LUNAS'
 
     // ========================================
     // VALIDASI INPUT
     // ========================================
 
-    if (!base64 && !url) {
+    if (
+      !base64 &&
+      !url
+    ) {
 
-      return res
-        .status(400)
-        .json({
-          status: false,
-          creator: CREATOR,
-          error:
-            "Parameter 'base64' atau 'url' wajib diisi"
-        })
+      return res.status(400).json({
+
+        status:
+          false,
+
+        creator:
+          CREATOR,
+
+        error:
+          "Parameter 'base64' atau 'url' wajib diisi"
+
+      })
+
     }
 
     // ========================================
-    // TEKS STEMPEL
+    // TEXT
     // ========================================
 
-    text =
+    const stampText =
       String(text)
         .trim()
         .substring(0, 50)
-
-    if (!text) {
-      text = 'LUNAS'
-    }
-
-    const stampText =
-      text.toUpperCase()
+        .toUpperCase() || 'LUNAS'
 
     // ========================================
     // AMBIL GAMBAR
@@ -554,14 +514,13 @@ export default async function handler(
     }
 
     // ========================================
-    // NORMALISASI GAMBAR
-    //
-    // rotate() otomatis memperbaiki EXIF
-    // orientation foto HP.
+    // NORMALISASI FOTO
     // ========================================
 
     const normalizedImage =
-      await sharp(imageBuffer)
+      await sharp(
+        imageBuffer
+      )
         .rotate()
         .toBuffer()
 
@@ -572,21 +531,27 @@ export default async function handler(
     const metadata =
       await sharp(
         normalizedImage
-      ).metadata()
+      )
+        .metadata()
 
     if (
       !metadata.width ||
       !metadata.height
     ) {
 
-      return res
-        .status(400)
-        .json({
-          status: false,
-          creator: CREATOR,
-          error:
-            'Gambar tidak valid'
-        })
+      return res.status(400).json({
+
+        status:
+          false,
+
+        creator:
+          CREATOR,
+
+        error:
+          'Gambar tidak valid'
+
+      })
+
     }
 
     const width =
@@ -596,68 +561,14 @@ export default async function handler(
       metadata.height
 
     // ========================================
-    // UKURAN STEMPEL
-    // ========================================
-
-    const minDimension =
-      Math.min(
-        width,
-        height
-      )
-
-    const stampWidth =
-      Math.round(
-        minDimension * 0.72
-      )
-
-    const stampHeight =
-      Math.round(
-        stampWidth * 0.36
-      )
-
-    // ========================================
-    // BUAT SVG STEMPEL
-    // ========================================
-
-    const stampSvg =
-      createStampSvg({
-        stampWidth,
-        stampHeight,
-        text: stampText
-      })
-
-    // ========================================
-    // RENDER SVG → PNG
+    // BUAT STEMPEL
     // ========================================
 
     const stampBuffer =
-      await sharp(
-        Buffer.from(stampSvg)
+      await createStamp(
+        width,
+        height
       )
-      .png()
-      .toBuffer()
-
-    // ========================================
-    // ROTASI STEMPEL
-    // ========================================
-
-    const rotatedStamp =
-      await sharp(
-        stampBuffer
-      )
-      .rotate(
-        -12,
-        {
-          background: {
-            r: 0,
-            g: 0,
-            b: 0,
-            alpha: 0
-          }
-        }
-      )
-      .png()
-      .toBuffer()
 
     // ========================================
     // COMPOSITE
@@ -667,24 +578,28 @@ export default async function handler(
       await sharp(
         normalizedImage
       )
-      .composite([
-        {
-          input:
-            rotatedStamp,
+        .composite([
 
-          gravity:
-            'center'
-        }
-      ])
-      .jpeg({
-        quality: 92,
-        chromaSubsampling:
-          '4:4:4'
-      })
-      .toBuffer()
+          {
+            input:
+              stampBuffer,
+
+            gravity:
+              'center'
+          }
+
+        ])
+        .jpeg({
+          quality:
+            94,
+
+          chromaSubsampling:
+            '4:4:4'
+        })
+        .toBuffer()
 
     // ========================================
-    // UPLOAD C.TERMAI.CC
+    // UPLOAD TERMAI
     // ========================================
 
     const imageUrl =
@@ -696,41 +611,38 @@ export default async function handler(
     // RESPONSE
     // ========================================
 
-    return res
-      .status(200)
-      .json({
+    return res.status(200).json({
 
-        status: true,
+      status:
+        true,
 
-        creator: CREATOR,
+      creator:
+        CREATOR,
 
-        result: {
+      result: {
 
-          text:
-            stampText,
+        text:
+          stampText,
 
-          url_gambar:
-            imageUrl,
+        url_gambar:
+          imageUrl,
 
-          original_size: {
-            width:
-              width,
-            height:
-              height
-          },
+        message:
+          'Gambar berhasil diberi stempel',
 
-          stamp: {
-            width:
-              stampWidth,
-            height:
-              stampHeight,
-            rotation:
-              -12
-          }
+        ukuran: {
+
+          width:
+            width,
+
+          height:
+            height
 
         }
 
-      })
+      }
+
+    })
 
   } catch (error) {
 
@@ -739,19 +651,20 @@ export default async function handler(
       error
     )
 
-    return res
-      .status(500)
-      .json({
+    return res.status(500).json({
 
-        status: false,
+      status:
+        false,
 
-        creator:
-          CREATOR,
+      creator:
+        CREATOR,
 
-        error:
-          error?.message ||
-          'Terjadi kesalahan internal pada server'
+      error:
+        error?.message ||
+        'Terjadi kesalahan internal pada server'
 
-      })
+    })
+
   }
+
 }
