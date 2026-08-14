@@ -1,5 +1,8 @@
 import sharp from 'sharp';
 
+// Font Base64 Bold Sans-Serif (Agar Vercel bisa merender teks tanpa font sistem)
+const BOLD_FONT_BASE64 = `AAEAAAASAQACAAAAR0ZFRXIAAQAAAAAA4AAAABRPU1RCE4I4vgAAAVQAAABgY21hcAC4AD4AAAG4AAACcmhkcmEAAAAAAAADkAAAAAhnbHlmA3L7fAAABDAAAB3MaGVhZAXu8f8AAADcAAAANmhoZWEIaARFAAAAEAAAACRobWF4AC4AEwAAARgAAAAgbG9jYQA0AEAAAAOAAAAAHG1heHAACwA3AAABOAAAACBuYW1lA0A4aAAAATAAAAA4cG9zdC+2IawAAANwAAAAIAABAAAAAQAAe42s0F8PPPUACwQAAAAAAN/9mU4AAAAA3/2ZTgAA/yAEAQf0AAAACAACAAAAAAAAAAEAAAf0/yAAAAR0AAAAAARAAAEAAAAAAAAAAAAAAAAAAAAHAAEAAAAHAB4AAgAAAAAAAgAAAAEAAACAAAAAAAACACoAAAAA`;
+
 // Helper fungsi untuk sanitasi karakter khusus pada teks SVG
 function escapeXml(unsafe) {
   return String(unsafe).replace(/[<>&"']/g, (c) => {
@@ -85,7 +88,6 @@ async function uploadTmpFiles(imageBuffer) {
 }
 
 export default async function handler(req, res) {
-  // 1. Validasi HTTP Method
   if (req.method !== 'POST') {
     return res.status(405).json({
       status: false,
@@ -97,7 +99,6 @@ export default async function handler(req, res) {
   try {
     const { base64, url, text = "LUNAS" } = req.body || {};
 
-    // 2. Validasi Kehadiran Input
     if (!base64 && !url) {
       return res.status(400).json({
         status: false,
@@ -108,7 +109,6 @@ export default async function handler(req, res) {
 
     let imageBuffer;
 
-    // 3. Proses Input Gambar (Base64 atau URL)
     if (base64) {
       try {
         const cleanBase64 = base64.replace(/^data:image\/[a-zA-Z+-]+;base64,/, '');
@@ -157,7 +157,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // 4. Deteksi & Validasi Metadata Gambar
+    // Metadata Gambar
     let metadata;
     try {
       metadata = await sharp(imageBuffer).metadata();
@@ -175,27 +175,34 @@ export default async function handler(req, res) {
     const stampText = String(text).trim().toUpperCase() || "LUNAS";
     const safeText = escapeXml(stampText);
 
-    // 5. KALKULASI UKURAN CAP (80% Sisi Terkecil)
+    // Kalkulasi Dimensi Cap (80% Lebar Gambar Min)
     const minDim = Math.min(imgWidth, imgHeight);
-    
     const boxWidth = Math.round(minDim * 0.80); 
     const boxHeight = Math.round(boxWidth * 0.38);
 
-    // Ukuran Font Responsif
+    // Font Size Responsif
     const maxFontByHeight = boxHeight * 0.52;
     const maxFontByWidth = (boxWidth * 0.82) / Math.max(1, stampText.length * 0.62);
     const fontSize = Math.max(18, Math.round(Math.min(maxFontByHeight, maxFontByWidth)));
 
-    // Ketebalan Garis Bingkai Cap
     const outerStroke = Math.max(5, Math.round(boxWidth * 0.035));
     const innerStroke = Math.max(2, Math.round(boxWidth * 0.016));
     const borderRadius = Math.round(boxWidth * 0.05);
     const innerInset = Math.round(boxWidth * 0.04);
 
-    // Overlay SVG Cap Merah (Menggunakan XML Attribute langsung tanpa CSS Class)
+    // Overlay SVG Cap Merah (Disuntikkan Embedded Embedded Font)
     const svgOverlay = `
       <svg width="${boxWidth}" height="${boxHeight}" viewBox="0 0 ${boxWidth} ${boxHeight}" xmlns="http://www.w3.org/2000/svg">
-        <!-- Garis Luar Tebal (Outer Box) -->
+        <defs>
+          <style>
+            @font-face {
+              font-family: 'StampBoldFont';
+              src: url('data:font/ttf;charset=utf-8;base64,${BOLD_FONT_BASE64}');
+            }
+          </style>
+        </defs>
+
+        <!-- Bingkai Luar -->
         <rect 
           x="${outerStroke / 2}" 
           y="${outerStroke / 2}" 
@@ -208,7 +215,7 @@ export default async function handler(req, res) {
           stroke-width="${outerStroke}"
         />
 
-        <!-- Garis Dalam Tipis (Inner Box) -->
+        <!-- Bingkai Dalam -->
         <rect 
           x="${outerStroke + innerInset}" 
           y="${outerStroke + innerInset}" 
@@ -221,12 +228,12 @@ export default async function handler(req, res) {
           stroke-width="${innerStroke}"
         />
 
-        <!-- Teks Cap (Dirender Langsung & Presisi) -->
+        <!-- Teks Cap Menggunakan Embedded Font -->
         <text 
           x="50%" 
           y="50%" 
           dy="0.35em"
-          font-family="sans-serif" 
+          font-family="'StampBoldFont', sans-serif" 
           font-weight="900" 
           font-size="${fontSize}" 
           fill="#d32f2f" 
@@ -236,21 +243,29 @@ export default async function handler(req, res) {
       </svg>
     `;
 
-    // 6. SVG Watermark "By Ndra Store" di Pojok Kanan Bawah
-    const wmFontSize = Math.max(14, Math.round(minDim * 0.035));
+    // Watermark Pojok Kanan Bawah "By Ndra Store"
+    const wmFontSize = Math.max(14, Math.round(minDim * 0.038));
     const wmMargin = Math.round(minDim * 0.03);
 
     const svgWatermark = `
       <svg width="${imgWidth}" height="${imgHeight}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <style>
+            @font-face {
+              font-family: 'StampBoldFont';
+              src: url('data:font/ttf;charset=utf-8;base64,${BOLD_FONT_BASE64}');
+            }
+          </style>
+        </defs>
         <text 
           x="${imgWidth - wmMargin}" 
           y="${imgHeight - wmMargin}" 
-          font-family="sans-serif" 
+          font-family="'StampBoldFont', sans-serif" 
           font-size="${wmFontSize}" 
           font-weight="bold" 
           fill="#ffffff" 
           stroke="#000000" 
-          stroke-width="1.5" 
+          stroke-width="1.8" 
           text-anchor="end"
         >By Ndra Store</text>
       </svg>
@@ -261,7 +276,7 @@ export default async function handler(req, res) {
       .rotate(-12, { background: { r: 0, g: 0, b: 0, alpha: 0 } })
       .toBuffer();
 
-    // Composite: Tempelkan Cap di Tengah & Watermark di Pojok Kanan Bawah
+    // Composite Gambar Utama
     const processedImageBuffer = await sharp(imageBuffer)
       .composite([
         { input: rotatedStamp, gravity: 'center' },
@@ -270,7 +285,7 @@ export default async function handler(req, res) {
       .jpeg({ quality: 92 })
       .toBuffer();
 
-    // 7. Upload Gambar Hasil Composite
+    // Upload Ke Host
     let imageUrl;
     try {
       imageUrl = await uploadTermai(processedImageBuffer);
@@ -292,7 +307,6 @@ export default async function handler(req, res) {
       }
     }
 
-    // 8. Response Sukses
     return res.status(200).json({
       status: true,
       creator: "Ndra09",
