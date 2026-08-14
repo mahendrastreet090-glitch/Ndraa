@@ -1,9 +1,24 @@
 import sharp from 'sharp';
 
-// Font Base64 Bold Sans-Serif (Agar Vercel bisa merender teks tanpa font sistem)
-const BOLD_FONT_BASE64 = `AAEAAAASAQACAAAAR0ZFRXIAAQAAAAAA4AAAABRPU1RCE4I4vgAAAVQAAABgY21hcAC4AD4AAAG4AAACcmhkcmEAAAAAAAADkAAAAAhnbHlmA3L7fAAABDAAAB3MaGVhZAXu8f8AAADcAAAANmhoZWEIaARFAAAAEAAAACRobWF4AC4AEwAAARgAAAAgbG9jYQA0AEAAAAOAAAAAHG1heHAACwA3AAABOAAAACBuYW1lA0A4aAAAATAAAAA4cG9zdC+2IawAAANwAAAAIAABAAAAAQAAe42s0F8PPPUACwQAAAAAAN/9mU4AAAAA3/2ZTgAA/yAEAQf0AAAACAACAAAAAAAAAAEAAAf0/yAAAAR0AAAAAARAAAEAAAAAAAAAAAAAAAAAAAAHAAEAAAAHAB4AAgAAAAAAAgAAAAEAAACAAAAAAAACACoAAAAA`;
+// Variable cache font di memory Vercel
+let cachedFontBase64 = null;
 
-// Helper fungsi untuk sanitasi karakter khusus pada teks SVG
+// Fungsi untuk mengambil font tebal (Roboto 900) dari CDN & disimpan di memory
+async function getFontBase64() {
+  if (cachedFontBase64) return cachedFontBase64;
+  try {
+    const res = await fetch('https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-900-normal.ttf');
+    if (!res.ok) throw new Error('Gagal unduh font');
+    const buffer = await res.arrayBuffer();
+    cachedFontBase64 = Buffer.from(buffer).toString('base64');
+    return cachedFontBase64;
+  } catch (err) {
+    console.error("Gagal load font CDN:", err.message);
+    return null;
+  }
+}
+
+// Helper sanitasi karakter khusus pada teks SVG
 function escapeXml(unsafe) {
   return String(unsafe).replace(/[<>&"']/g, (c) => {
     switch (c) {
@@ -157,11 +172,13 @@ export default async function handler(req, res) {
       }
     }
 
-    // Metadata Gambar
-    let metadata;
-    try {
-      metadata = await sharp(imageBuffer).metadata();
-    } catch (err) {
+    // Ambil metadata & Font Tebal
+    const [metadata, fontBase64] = await Promise.all([
+      sharp(imageBuffer).metadata().catch(() => null),
+      getFontBase64()
+    ]);
+
+    if (!metadata) {
       return res.status(400).json({
         status: false,
         creator: "Ndra09",
@@ -175,12 +192,12 @@ export default async function handler(req, res) {
     const stampText = String(text).trim().toUpperCase() || "LUNAS";
     const safeText = escapeXml(stampText);
 
-    // Kalkulasi Dimensi Cap (80% Lebar Gambar Min)
+    // Dimensi Cap Jumbo (80% Sisi Terkecil Gambar)
     const minDim = Math.min(imgWidth, imgHeight);
     const boxWidth = Math.round(minDim * 0.80); 
     const boxHeight = Math.round(boxWidth * 0.38);
 
-    // Font Size Responsif
+    // Dynamic Font Size Scaling
     const maxFontByHeight = boxHeight * 0.52;
     const maxFontByWidth = (boxWidth * 0.82) / Math.max(1, stampText.length * 0.62);
     const fontSize = Math.max(18, Math.round(Math.min(maxFontByHeight, maxFontByWidth)));
@@ -190,19 +207,25 @@ export default async function handler(req, res) {
     const borderRadius = Math.round(boxWidth * 0.05);
     const innerInset = Math.round(boxWidth * 0.04);
 
-    // Overlay SVG Cap Merah (Disuntikkan Embedded Embedded Font)
+    // Pengaturan Font SVG
+    const fontDefs = fontBase64 ? `
+      <defs>
+        <style>
+          @font-face {
+            font-family: 'CustomStampFont';
+            src: url('data:font/ttf;charset=utf-8;base64,${fontBase64}');
+          }
+        </style>
+      </defs>
+    ` : '';
+    const fontFamily = fontBase64 ? "'CustomStampFont', sans-serif" : "sans-serif";
+
+    // Overlay SVG Cap Merah
     const svgOverlay = `
       <svg width="${boxWidth}" height="${boxHeight}" viewBox="0 0 ${boxWidth} ${boxHeight}" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <style>
-            @font-face {
-              font-family: 'StampBoldFont';
-              src: url('data:font/ttf;charset=utf-8;base64,${BOLD_FONT_BASE64}');
-            }
-          </style>
-        </defs>
+        ${fontDefs}
 
-        <!-- Bingkai Luar -->
+        <!-- Outer Box -->
         <rect 
           x="${outerStroke / 2}" 
           y="${outerStroke / 2}" 
@@ -215,7 +238,7 @@ export default async function handler(req, res) {
           stroke-width="${outerStroke}"
         />
 
-        <!-- Bingkai Dalam -->
+        <!-- Inner Box -->
         <rect 
           x="${outerStroke + innerInset}" 
           y="${outerStroke + innerInset}" 
@@ -228,12 +251,12 @@ export default async function handler(req, res) {
           stroke-width="${innerStroke}"
         />
 
-        <!-- Teks Cap Menggunakan Embedded Font -->
+        <!-- Teks Cap -->
         <text 
           x="50%" 
           y="50%" 
           dy="0.35em"
-          font-family="'StampBoldFont', sans-serif" 
+          font-family="${fontFamily}" 
           font-weight="900" 
           font-size="${fontSize}" 
           fill="#d32f2f" 
@@ -243,24 +266,17 @@ export default async function handler(req, res) {
       </svg>
     `;
 
-    // Watermark Pojok Kanan Bawah "By Ndra Store"
+    // Watermark "By Ndra Store"
     const wmFontSize = Math.max(14, Math.round(minDim * 0.038));
     const wmMargin = Math.round(minDim * 0.03);
 
     const svgWatermark = `
       <svg width="${imgWidth}" height="${imgHeight}" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <style>
-            @font-face {
-              font-family: 'StampBoldFont';
-              src: url('data:font/ttf;charset=utf-8;base64,${BOLD_FONT_BASE64}');
-            }
-          </style>
-        </defs>
+        ${fontDefs}
         <text 
           x="${imgWidth - wmMargin}" 
           y="${imgHeight - wmMargin}" 
-          font-family="'StampBoldFont', sans-serif" 
+          font-family="${fontFamily}" 
           font-size="${wmFontSize}" 
           font-weight="bold" 
           fill="#ffffff" 
@@ -276,7 +292,7 @@ export default async function handler(req, res) {
       .rotate(-12, { background: { r: 0, g: 0, b: 0, alpha: 0 } })
       .toBuffer();
 
-    // Composite Gambar Utama
+    // Composite Gambar
     const processedImageBuffer = await sharp(imageBuffer)
       .composite([
         { input: rotatedStamp, gravity: 'center' },
