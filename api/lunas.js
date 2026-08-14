@@ -175,30 +175,29 @@ export default async function handler(req, res) {
     const stampText = String(text).trim().toUpperCase() || "LUNAS";
     const safeText = escapeXml(stampText);
 
-    // 5. Kalkulasi Desain Stempel Responsif & Presisi
+    // 5. KALKULASI CAP GEDEK (85% Lebar Sisi Terkecil Gambar)
     const minDim = Math.min(imgWidth, imgHeight);
     
-    // Dimensi Kotak Stempel
-    const boxWidth = Math.round(minDim * 0.55);
-    const boxHeight = Math.round(boxWidth * 0.35);
+    const boxWidth = Math.round(minDim * 0.85); // Cap jauh lebih besar
+    const boxHeight = Math.round(boxWidth * 0.38);
 
-    // Kalkulasi Ukuran Font Otomatis (Agar Teks Panjang Tetap Muat)
-    const maxFontByHeight = boxHeight * 0.48;
-    const maxFontByWidth = (boxWidth * 0.82) / Math.max(1, stampText.length * 0.65);
-    const fontSize = Math.max(14, Math.round(Math.min(maxFontByHeight, maxFontByWidth)));
+    // Scaling Font Otomatis Presisi
+    const maxFontByHeight = boxHeight * 0.52;
+    const maxFontByWidth = (boxWidth * 0.82) / Math.max(1, stampText.length * 0.62);
+    const fontSize = Math.max(20, Math.round(Math.min(maxFontByHeight, maxFontByWidth)));
 
-    // Ketebalan Garis Bingkai
-    const outerStroke = Math.max(3, Math.round(boxWidth * 0.025));
-    const innerStroke = Math.max(1, Math.round(boxWidth * 0.012));
-    const borderRadius = Math.round(boxWidth * 0.04);
-    const innerInset = Math.round(boxWidth * 0.035);
+    // Ketebalan Garis Bingkai Cap (Extra Bold)
+    const outerStroke = Math.max(6, Math.round(boxWidth * 0.038));
+    const innerStroke = Math.max(2, Math.round(boxWidth * 0.018));
+    const borderRadius = Math.round(boxWidth * 0.05);
+    const innerInset = Math.round(boxWidth * 0.04);
 
-    // Overlay SVG Stempel Merah Khas Cap Resmi
+    // Overlay SVG Cap Merah
     const svgOverlay = `
       <svg width="${boxWidth}" height="${boxHeight}" viewBox="0 0 ${boxWidth} ${boxHeight}" xmlns="http://www.w3.org/2000/svg">
         <style>
           .outer-border {
-            fill: rgba(211, 47, 47, 0.08);
+            fill: rgba(211, 47, 47, 0.12);
             stroke: #d32f2f;
             stroke-width: ${outerStroke}px;
           }
@@ -214,7 +213,7 @@ export default async function handler(req, res) {
             fill: #d32f2f;
             text-anchor: middle;
             dominant-baseline: central;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
           }
         </style>
 
@@ -229,34 +228,59 @@ export default async function handler(req, res) {
           class="outer-border" 
         />
 
-        <!-- Garis Dalam Tipis Solid (Inner Box) -->
+        <!-- Garis Dalam Tipis (Inner Box) -->
         <rect 
           x="${outerStroke + innerInset}" 
           y="${outerStroke + innerInset}" 
           width="${boxWidth - (outerStroke + innerInset) * 2}" 
           height="${boxHeight - (outerStroke + innerInset) * 2}" 
-          rx="${Math.max(2, borderRadius - 2)}" 
-          ry="${Math.max(2, borderRadius - 2)}" 
+          rx="${Math.max(2, borderRadius - 3)}" 
+          ry="${Math.max(2, borderRadius - 3)}" 
           class="inner-border" 
         />
 
-        <!-- Teks Stempel -->
+        <!-- Teks Cap -->
         <text x="50%" y="50%" class="stamp-text">${safeText}</text>
       </svg>
     `;
 
-    // Rotasi Stempel -12 Derajat (Miring Alami)
+    // 6. SVG Watermark "By Ndra Store" di Pojok Kanan Bawah
+    const wmFontSize = Math.max(14, Math.round(minDim * 0.035));
+    const wmMargin = Math.round(minDim * 0.03);
+
+    const svgWatermark = `
+      <svg width="${imgWidth}" height="${imgHeight}" xmlns="http://www.w3.org/2000/svg">
+        <style>
+          .wm-text {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-size: ${wmFontSize}px;
+            font-weight: bold;
+            fill: #ffffff;
+            stroke: #000000;
+            stroke-width: 1.5px;
+            paint-order: stroke fill;
+            text-anchor: end;
+          }
+        </style>
+        <text x="${imgWidth - wmMargin}" y="${imgHeight - wmMargin}" class="wm-text">By Ndra Store</text>
+      </svg>
+    `;
+
+    // Rotasi Stempel -12 Derajat
     const rotatedStamp = await sharp(Buffer.from(svgOverlay))
       .rotate(-12, { background: { r: 0, g: 0, b: 0, alpha: 0 } })
       .toBuffer();
 
-    // Tempelkan Stempel ke Tengah Gambar Utama
+    // Composite: Tempelkan Cap Jumbo di Tengah & Watermark di Pojok Kanan Bawah
     const processedImageBuffer = await sharp(imageBuffer)
-      .composite([{ input: rotatedStamp, gravity: 'center' }])
-      .jpeg({ quality: 90 })
+      .composite([
+        { input: rotatedStamp, gravity: 'center' },
+        { input: Buffer.from(svgWatermark), top: 0, left: 0 }
+      ])
+      .jpeg({ quality: 92 })
       .toBuffer();
 
-    // 6. Upload Gambar Hasil Composite
+    // 7. Upload Gambar Hasil Composite
     let imageUrl;
     try {
       imageUrl = await uploadTermai(processedImageBuffer);
@@ -278,7 +302,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // 7. Response Sukses
+    // 8. Response Sukses
     return res.status(200).json({
       status: true,
       creator: "Ndra09",
