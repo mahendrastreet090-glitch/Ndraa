@@ -1,11 +1,9 @@
-import sharp from 'sharp'
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({
       status: false,
       creator: "Ndra09",
-      error: "Method not allowed. Use POST instead."
+      error: "Gunakan method POST"
     })
   }
 
@@ -16,75 +14,52 @@ export default async function handler(req, res) {
       return res.status(400).json({
         status: false,
         creator: "Ndra09",
-        error: "Missing 'base64' parameter in request body."
+        error: "Parameter 'base64' tidak boleh kosong!"
       })
     }
 
-    // Decode Base64 ke Buffer
     const cleanBase64 = base64.replace(/^data:image\/\w+;base64,/, '').trim()
     const imgBuffer = Buffer.from(cleanBase64, 'base64')
 
-    // Dapatkan Dimensi Gambar Asli
-    const metadata = await sharp(imgBuffer).metadata()
-    const width = metadata.width || 800
-    const height = metadata.height || 800
+    // 1. Upload Buffer Gambar ke tmpfiles.org
+    const formData = new FormData()
+    const blob = new Blob([imgBuffer], { type: 'image/jpeg' })
+    formData.append('file', blob, 'image.jpg')
 
-    // Hitung Ukuran Teks & Stempel
-    const fontSize = Math.floor(width * 0.1)
-    const textLength = text.length
-    const stampWidth = Math.floor(fontSize * textLength * 0.75 + fontSize)
-    const stampHeight = Math.floor(fontSize * 1.5)
+    const uploadRes = await fetch('https://tmpfiles.org/api/v1/upload', {
+      method: 'POST',
+      body: formData
+    })
 
-    // Buat Stempel menggunakan SVG
+    const uploadData = await uploadRes.json()
+
+    if (!uploadData || !uploadData.data || !uploadData.data.url) {
+      throw new Error("Gagal mengunggah gambar ke tmpfiles")
+    }
+
+    // Ubah URL ke link direct download
+    const rawUrl = uploadData.data.url
+    const directUrl = rawUrl.replace('tmpfiles.org/', 'tmpfiles.org/dl/')
+
+    // 2. Buat Stempel SVG Transparan
     const svgStamp = `
-      <svg width="${stampWidth}" height="${stampHeight}" xmlns="http://www.w3.org/2000/svg">
-        <rect 
-          x="4" 
-          y="4" 
-          width="${stampWidth - 8}" 
-          height="${stampHeight - 8}" 
-          fill="none" 
-          stroke="rgba(220, 38, 38, 0.9)" 
-          stroke-width="${Math.max(4, Math.floor(fontSize * 0.08))}" 
-          rx="8" 
-        />
-        <text 
-          x="50%" 
-          y="50%" 
-          font-family="sans-serif" 
-          font-weight="bold" 
-          font-size="${fontSize}px" 
-          fill="rgba(220, 38, 38, 0.9)" 
-          text-anchor="middle" 
-          dominant-baseline="central"
-        >
-          ${text}
-        </text>
+      <svg width="500" height="250" xmlns="http://www.w3.org/2000/svg">
+        <g transform="rotate(-15 250 125)">
+          <rect x="20" y="20" width="460" height="210" rx="20" fill="none" stroke="#DC2626" stroke-width="12" stroke-opacity="0.85"/>
+          <text x="50%" y="55%" font-family="sans-serif" font-weight="900" font-size="64" fill="#DC2626" fill-opacity="0.85" text-anchor="middle" dominant-baseline="central">${text}</text>
+        </g>
       </svg>
     `
+    const base64Svg = Buffer.from(svgStamp).toString('base64')
 
-    // Putar/Miringkan SVG Stempel sebesar -20 derajat
-    const rotatedStampBuffer = await sharp(Buffer.from(svgStamp))
-      .rotate(-20, { background: { r: 0, g: 0, b: 0, alpha: 0 } })
-      .toBuffer()
-
-    // Tempelkan Stempel Miring ke Tengah Gambar Utama
-    const resultBuffer = await sharp(imgBuffer)
-      .composite([{
-        input: rotatedStampBuffer,
-        gravity: 'center'
-      }])
-      .jpeg({ quality: 85 })
-      .toBuffer()
-
-    const resultBase64 = resultBuffer.toString('base64')
-
+    // 3. Output Respon JSON
     return res.status(200).json({
       status: true,
       creator: "Ndra09",
       result: {
         text: text,
-        base64: resultBase64
+        url_gambar: directUrl,
+        stempel_svg: `data:image/svg+xml;base64,${base64Svg}`
       }
     })
 
@@ -92,7 +67,7 @@ export default async function handler(req, res) {
     return res.status(500).json({
       status: false,
       creator: "Ndra09",
-      error: err.message || "Failed to process image."
+      error: err.message || "Gagal memproses di server Vercel"
     })
   }
 }
