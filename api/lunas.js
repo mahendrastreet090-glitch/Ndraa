@@ -18,38 +18,34 @@ export default async function handler(req, res) {
       })
     }
 
-    // Mengambil Base64 (yang sudah ada stempelnya dari frontend/canvas)
     const cleanBase64 = base64.replace(/^data:image\/\w+;base64,/, '').trim()
     const imgBuffer = Buffer.from(cleanBase64, 'base64')
 
-    // Upload Gambar Berstempel ke Qu.ax
+    // Upload Gambar Berstempel ke tmpfiles.org
     const formData = new FormData()
     const blob = new Blob([imgBuffer], { type: 'image/jpeg' })
-    
-    // PERHATIKAN: Qu.ax mewajibkan nama 'files[]' agar file terbaca sempurna
-    formData.append('files[]', blob, 'stamped_image.jpg')
+    formData.append('file', blob, 'stamped_image.jpg')
 
-    const uploadRes = await fetch('https://qu.ax/upload.php', {
+    const uploadRes = await fetch('https://tmpfiles.org/api/v1/upload', {
       method: 'POST',
       body: formData
     })
 
     const uploadData = await uploadRes.json()
 
-    if (!uploadData || !uploadData.files || !uploadData.files[0] || !uploadData.files[0].url) {
-      throw new Error("Gagal mengunggah gambar ke Qu.ax")
+    if (!uploadData || !uploadData.data || !uploadData.data.url) {
+      throw new Error("Gagal mengunggah gambar ke tmpfiles")
     }
 
-    // Direct URL gambar berstempel dari Qu.ax
-    const directUrl = uploadData.files[0].url
+    const rawUrl = uploadData.data.url
+    const directUrl = rawUrl.replace('tmpfiles.org/', 'tmpfiles.org/dl/')
 
     return res.status(200).json({
       status: true,
       creator: "Ndra09",
       result: {
         text: text,
-        url_gambar: directUrl,
-        base64: `data:image/jpeg;base64,${cleanBase64}` // dikirim kembali untuk cadangan bot
+        url_gambar: directUrl
       }
     })
 
