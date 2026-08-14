@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>NDRA OFFICIAL API - Image Stempel Generator</title>
+<title>NDRA OFFICIAL API — Image Processing API</title>
 
 <style>
 * {
@@ -13,105 +13,394 @@
     padding: 0;
 }
 
-body {
-    font-family: "Segoe UI", Arial, sans-serif;
-    background:
-        radial-gradient(circle at top, #172554 0%, #020617 55%);
-    color: #e5e7eb;
-    min-height: 100vh;
-    padding: 25px 15px 50px;
+:root {
+    --bg: #020604;
+    --panel: #050b08;
+    --panel-2: #07110c;
+    --border: #153522;
+    --border-light: #1d4930;
+
+    --green: #00ff88;
+    --green-soft: #00c96b;
+    --green-dark: #07301c;
+
+    --text: #d9fbe8;
+    --muted: #72917f;
+    --muted-2: #466453;
+
+    --danger: #ff5c5c;
 }
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    min-height: 100vh;
+    padding: 24px 14px 60px;
+
+    background:
+        radial-gradient(
+            circle at 50% -15%,
+            rgba(0, 255, 136, .11),
+            transparent 38%
+        ),
+        linear-gradient(
+            180deg,
+            #020604 0%,
+            #030806 50%,
+            #010302 100%
+        );
+
+    color: var(--text);
+
+    font-family:
+        "JetBrains Mono",
+        "Fira Code",
+        "SFMono-Regular",
+        Consolas,
+        "Courier New",
+        monospace;
+
+    overflow-x: hidden;
+}
+
+/* ==========================================
+   BACKGROUND GRID
+========================================== */
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+
+    pointer-events: none;
+
+    background-image:
+        linear-gradient(
+            rgba(0, 255, 136, .018) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(0, 255, 136, .018) 1px,
+            transparent 1px
+        );
+
+    background-size: 35px 35px;
+
+    mask-image:
+        linear-gradient(
+            to bottom,
+            black,
+            transparent 85%
+        );
+}
+
+/* ==========================================
+   MAIN
+========================================== */
 
 .container {
     width: 100%;
-    max-width: 850px;
+    max-width: 920px;
     margin: auto;
+    position: relative;
+    z-index: 2;
 }
 
-/* HEADER */
+/* ==========================================
+   HEADER
+========================================== */
 
 .header {
     text-align: center;
-    padding: 30px 15px;
+    padding: 38px 10px 30px;
 }
 
-.logo {
-    display: inline-block;
-    padding: 8px 18px;
-    border-radius: 30px;
-    background: rgba(220, 38, 38, .12);
-    border: 1px solid rgba(220, 38, 38, .25);
-    color: #f87171;
-    font-size: 14px;
+.brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+
+    padding: 7px 13px;
+
+    border: 1px solid rgba(0,255,136,.25);
+    background: rgba(0,255,136,.035);
+
+    color: var(--green);
+
+    font-size: 11px;
     font-weight: 700;
-    margin-bottom: 15px;
+
+    letter-spacing: 1.5px;
+
+    margin-bottom: 20px;
+}
+
+.brand-dot {
+    width: 6px;
+    height: 6px;
+
+    background: var(--green);
+    border-radius: 50%;
+
+    box-shadow:
+        0 0 10px var(--green);
+
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: .3;
+    }
 }
 
 .header h1 {
-    font-size: clamp(30px, 7vw, 52px);
-    font-weight: 800;
-    margin-bottom: 12px;
-    color: #f8fafc;
+    font-size: clamp(27px, 6vw, 48px);
+
+    line-height: 1.15;
+
+    font-weight: 900;
+
+    color: #effff6;
+
+    letter-spacing: -1px;
+
+    margin-bottom: 14px;
+
+    text-shadow:
+        0 0 25px rgba(0,255,136,.08);
+}
+
+.header h1 span {
+    color: var(--green);
 }
 
 .header p {
-    color: #94a3b8;
-    line-height: 1.7;
-    font-size: 15px;
+    max-width: 650px;
+
+    margin: auto;
+
+    color: var(--muted);
+
+    font-size: 12px;
+
+    line-height: 1.8;
 }
 
-/* CARD */
+.system-status {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    margin-top: 18px;
+
+    color: var(--muted-2);
+
+    font-size: 10px;
+
+    letter-spacing: .8px;
+}
+
+.system-status::before {
+    content: "";
+
+    width: 6px;
+    height: 6px;
+
+    border-radius: 50%;
+
+    background: var(--green);
+
+    box-shadow:
+        0 0 12px var(--green);
+}
+
+/* ==========================================
+   CARD
+========================================== */
 
 .card {
-    background: rgba(15, 23, 42, .88);
-    border: 1px solid #1e293b;
-    border-radius: 20px;
-    padding: 25px;
-    margin-bottom: 20px;
-    box-shadow: 0 20px 50px rgba(0,0,0,.25);
+    position: relative;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(5,15,10,.96),
+            rgba(2,8,6,.96)
+        );
+
+    border: 1px solid var(--border);
+
+    border-radius: 7px;
+
+    padding: 24px;
+
+    margin-bottom: 18px;
+
+    box-shadow:
+        0 20px 55px rgba(0,0,0,.35),
+        inset 0 0 35px rgba(0,255,136,.012);
+
+    overflow: hidden;
 }
 
-.card-title {
-    font-size: 21px;
-    font-weight: 700;
-    margin-bottom: 20px;
-    color: #f8fafc;
+.card::before {
+    content: "";
+
+    position: absolute;
+
+    top: 0;
+    left: 0;
+    right: 0;
+
+    height: 1px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(0,255,136,.6),
+            transparent
+        );
 }
 
-.card-title span {
-    color: #ef4444;
-}
-
-/* TABS */
-
-.tabs {
+.window-bar {
     display: flex;
-    gap: 5px;
-    padding: 5px;
-    background: #020617;
-    border: 1px solid #1e293b;
-    border-radius: 14px;
+
+    align-items: center;
+
+    gap: 7px;
+
+    padding: 9px 12px;
+
+    margin: -24px -24px 22px;
+
+    background: #020604;
+
+    border-bottom: 1px solid #10291b;
+
+    color: #4c6d59;
+
+    font-size: 10px;
+}
+
+.window-dot {
+    width: 7px;
+    height: 7px;
+
+    border-radius: 50%;
+
+    background: #254331;
+}
+
+.window-title {
+    margin-left: 6px;
+}
+
+/* ==========================================
+   SECTION TITLE
+========================================== */
+
+.section-title {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    color: var(--text);
+
+    font-size: 15px;
+
+    font-weight: 800;
+
     margin-bottom: 20px;
 }
 
-.tab {
+.section-title::before {
+    content: "";
+
+    width: 3px;
+    height: 18px;
+
+    background: var(--green);
+
+    box-shadow:
+        0 0 12px rgba(0,255,136,.35);
+}
+
+.section-title span {
+    color: var(--green);
+}
+
+/* ==========================================
+   REQUEST MODE
+========================================== */
+
+.mode-switch {
+    display: flex;
+
+    gap: 4px;
+
+    padding: 4px;
+
+    margin-bottom: 22px;
+
+    background: #010403;
+
+    border: 1px solid var(--border);
+
+    border-radius: 5px;
+}
+
+.mode-btn {
     flex: 1;
-    border: 0;
+
+    border: 1px solid transparent;
+
     background: transparent;
-    color: #94a3b8;
-    padding: 13px;
-    border-radius: 10px;
+
+    color: var(--muted);
+
+    padding: 11px;
+
+    border-radius: 3px;
+
     cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
+
+    font-family: inherit;
+
+    font-size: 11px;
+
+    font-weight: 700;
+
+    transition: .2s;
 }
 
-.tab.active {
-    background: #dc2626;
-    color: white;
+.mode-btn:hover {
+    color: var(--green);
 }
 
-/* FORM */
+.mode-btn.active {
+    background: var(--green-dark);
+
+    border-color: var(--border-light);
+
+    color: var(--green);
+}
+
+/* ==========================================
+   FORM
+========================================== */
 
 .form-group {
     margin-bottom: 18px;
@@ -119,84 +408,162 @@ body {
 
 label {
     display: block;
-    color: #cbd5e1;
-    font-size: 14px;
-    font-weight: 600;
+
+    color: #7fa18d;
+
+    font-size: 10px;
+
+    font-weight: 700;
+
+    letter-spacing: 1px;
+
     margin-bottom: 8px;
+}
+
+label span {
+    color: var(--green);
+
+    margin-right: 5px;
 }
 
 input[type="file"],
 input[type="text"],
 input[type="url"] {
     width: 100%;
-    background: #020617;
-    color: #f8fafc;
-    border: 1px solid #334155;
-    border-radius: 12px;
+
     padding: 13px;
+
+    border: 1px solid #173b28;
+
+    border-radius: 4px;
+
     outline: none;
-    font-size: 14px;
+
+    background: #010604;
+
+    color: var(--text);
+
+    font-family: inherit;
+
+    font-size: 12px;
+
+    transition: .2s;
+}
+
+input::placeholder {
+    color: #304b3a;
 }
 
 input:focus {
-    border-color: #ef4444;
+    border-color: rgba(0,255,136,.65);
+
+    box-shadow:
+        0 0 0 2px rgba(0,255,136,.035),
+        0 0 20px rgba(0,255,136,.05);
 }
 
 input[type="file"] {
-    padding: 9px;
+    padding: 8px;
 }
 
 input[type="file"]::file-selector-button {
-    border: none;
-    background: #dc2626;
-    color: white;
-    padding: 9px 15px;
-    border-radius: 8px;
+    border: 1px solid #1c6640;
+
+    background: #062315;
+
+    color: var(--green);
+
+    padding: 8px 13px;
+
     margin-right: 10px;
+
+    border-radius: 3px;
+
     cursor: pointer;
+
+    font-family: inherit;
+
+    font-weight: 700;
 }
 
-/* BUTTON */
+/* ==========================================
+   SUBMIT
+========================================== */
 
 .process-btn {
     width: 100%;
-    padding: 15px;
-    border: none;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #ef4444, #b91c1c);
-    color: white;
-    font-size: 16px;
-    font-weight: 700;
+
+    padding: 14px 18px;
+
+    border: 1px solid #1d7447;
+
+    border-radius: 4px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #052515,
+            #07371f,
+            #052515
+        );
+
+    color: var(--green);
+
+    font-family: inherit;
+
+    font-size: 12px;
+
+    font-weight: 800;
+
+    letter-spacing: .7px;
+
     cursor: pointer;
+
     transition: .2s;
 }
 
 .process-btn:hover {
-    transform: translateY(-1px);
+    background: #084526;
+
+    border-color: var(--green);
+
+    box-shadow:
+        0 0 25px rgba(0,255,136,.08);
 }
 
 .process-btn:disabled {
-    opacity: .55;
+    opacity: .45;
+
     cursor: not-allowed;
-    transform: none;
 }
 
-/* LOADING */
+/* ==========================================
+   LOADING
+========================================== */
 
 .loading {
     display: none;
+
     text-align: center;
-    padding: 30px 10px;
+
+    padding: 28px 10px 5px;
 }
 
 .spinner {
-    width: 42px;
-    height: 42px;
-    border: 4px solid #334155;
-    border-top-color: #ef4444;
+    width: 34px;
+    height: 34px;
+
+    margin: auto auto 13px;
+
+    border: 2px solid #163523;
+
+    border-top-color: var(--green);
+
+    border-right-color: var(--green);
+
     border-radius: 50%;
-    animation: spin .8s linear infinite;
-    margin: auto auto 15px;
+
+    animation: spin .7s linear infinite;
 }
 
 @keyframes spin {
@@ -206,58 +573,103 @@ input[type="file"]::file-selector-button {
 }
 
 .loading p {
-    color: #94a3b8;
+    color: var(--muted);
+
+    font-size: 10px;
+
+    line-height: 1.8;
 }
 
-/* RESULT */
+/* ==========================================
+   RESULT
+========================================== */
 
 .result {
     display: none;
+
+    margin-top: 22px;
+
+    padding-top: 20px;
+
+    border-top: 1px dashed #173b28;
+}
+
+.success,
+.error {
+    padding: 12px 14px;
+
+    margin-bottom: 18px;
+
+    border-radius: 4px;
+
+    font-size: 11px;
+
+    font-weight: 700;
 }
 
 .success {
-    background: rgba(16, 185, 129, .08);
-    border: 1px solid rgba(16, 185, 129, .25);
-    color: #34d399;
-    padding: 12px 15px;
-    border-radius: 10px;
-    margin-bottom: 18px;
-    font-weight: 600;
+    background: rgba(0,255,136,.045);
+
+    border: 1px solid rgba(0,255,136,.22);
+
+    color: var(--green);
 }
 
 .error {
-    background: rgba(239, 68, 68, .08);
-    border: 1px solid rgba(239, 68, 68, .25);
-    color: #f87171;
-    padding: 12px 15px;
-    border-radius: 10px;
-    margin-bottom: 18px;
+    background: rgba(255,60,60,.045);
+
+    border: 1px solid rgba(255,60,60,.22);
+
+    color: var(--danger);
 }
 
-/* IMAGE */
+/* ==========================================
+   IMAGE PREVIEW
+========================================== */
 
 .preview {
-    background: #020617;
-    border: 1px solid #1e293b;
-    border-radius: 15px;
-    padding: 15px;
-    text-align: center;
+    padding: 12px;
+
     margin-bottom: 18px;
+
+    background: #010403;
+
+    border: 1px solid var(--border);
+
+    border-radius: 4px;
+}
+
+.preview-header {
+    color: #456553;
+
+    font-size: 9px;
+
+    letter-spacing: 1px;
+
+    margin-bottom: 10px;
 }
 
 .preview img {
-    max-width: 100%;
-    max-height: 600px;
-    border-radius: 10px;
     display: block;
+
+    max-width: 100%;
+
+    max-height: 600px;
+
     margin: auto;
+
+    border-radius: 2px;
 }
 
-/* LINK */
+/* ==========================================
+   LINK
+========================================== */
 
 .link-box {
     display: flex;
-    gap: 8px;
+
+    gap: 6px;
+
     margin-bottom: 18px;
 }
 
@@ -266,65 +678,141 @@ input[type="file"]::file-selector-button {
 }
 
 .small-btn {
-    border: none;
-    padding: 0 17px;
-    border-radius: 10px;
-    color: white;
-    background: #334155;
+    min-height: 40px;
+
+    padding: 0 15px;
+
+    border: 1px solid #234735;
+
+    border-radius: 4px;
+
+    background: #07140d;
+
+    color: #b9e9cc;
+
     cursor: pointer;
-    font-weight: 600;
+
+    font-family: inherit;
+
+    font-size: 10px;
+
+    font-weight: 700;
+}
+
+.small-btn:hover {
+    color: var(--green);
+
+    border-color: var(--green);
 }
 
 .open-btn {
-    background: #16a34a;
     display: flex;
+
     align-items: center;
+
     justify-content: center;
+
+    background: #07301c;
+
+    border-color: #1c7447;
+
+    color: var(--green);
+
     text-decoration: none;
+
     white-space: nowrap;
 }
 
-/* CODE */
+/* ==========================================
+   CODE
+========================================== */
 
 .code-title {
-    font-size: 14px;
+    color: #6c8d79;
+
+    font-size: 10px;
+
     font-weight: 700;
-    color: #cbd5e1;
+
     margin: 20px 0 8px;
+
+    letter-spacing: .6px;
+}
+
+.code-title::before {
+    content: "$ ";
+
+    color: var(--green);
 }
 
 pre {
-    background: #020617;
-    border: 1px solid #1e293b;
-    border-radius: 12px;
-    padding: 15px;
+    padding: 14px;
+
+    background: #010403;
+
+    border: 1px solid var(--border);
+
+    border-radius: 4px;
+
     overflow-x: auto;
-    color: #93c5fd;
-    font-family: monospace;
-    font-size: 12px;
-    line-height: 1.6;
+
+    color: #8fd5aa;
+
+    font-family: inherit;
+
+    font-size: 10px;
+
+    line-height: 1.7;
+
     white-space: pre-wrap;
+
     word-break: break-word;
 }
 
 .copy-code {
-    margin-top: 8px;
-    padding: 9px 13px;
-    background: #334155;
-    border: none;
-    color: white;
-    border-radius: 8px;
+    margin-top: 7px;
+
+    padding: 8px 12px;
+
+    border: 1px solid #234735;
+
+    border-radius: 3px;
+
+    background: #07140d;
+
+    color: #8fbda0;
+
     cursor: pointer;
+
+    font-family: inherit;
+
+    font-size: 9px;
+
+    font-weight: 700;
 }
 
-/* API INFO */
+.copy-code:hover {
+    color: var(--green);
+
+    border-color: var(--green);
+}
+
+/* ==========================================
+   API DOCUMENTATION
+========================================== */
 
 .info-row {
     display: flex;
+
     justify-content: space-between;
-    gap: 15px;
+
+    gap: 20px;
+
     padding: 13px 0;
-    border-bottom: 1px solid #1e293b;
+
+    border-bottom: 1px dashed #153323;
+
+    font-size: 11px;
 }
 
 .info-row:last-child {
@@ -332,44 +820,86 @@ pre {
 }
 
 .info-label {
-    color: #94a3b8;
+    color: #537360;
+}
+
+.info-label::before {
+    content: ">";
+    color: var(--green);
+
+    margin-right: 7px;
 }
 
 .info-value {
-    color: #f8fafc;
-    font-weight: 600;
+    max-width: 70%;
+
     text-align: right;
+
+    color: #b9e9ca;
+
+    font-weight: 700;
+
     word-break: break-all;
 }
 
-/* FOOTER */
+/* ==========================================
+   FOOTER
+========================================== */
 
 .footer {
+    padding: 22px;
+
     text-align: center;
-    color: #64748b;
-    font-size: 13px;
-    padding: 20px;
+
+    color: #304c3c;
+
+    font-size: 9px;
+
+    line-height: 1.8;
+
+    letter-spacing: .5px;
 }
 
 .footer b {
-    color: #ef4444;
+    color: var(--green-soft);
 }
 
-/* MOBILE */
+/* ==========================================
+   MOBILE
+========================================== */
 
 @media (max-width: 600px) {
 
     body {
-        padding: 10px 8px 40px;
+        padding: 8px 7px 35px;
+    }
+
+    .header {
+        padding: 28px 7px 24px;
+    }
+
+    .header h1 {
+        font-size: 28px;
+    }
+
+    .header p {
+        font-size: 10px;
     }
 
     .card {
         padding: 17px;
-        border-radius: 16px;
     }
 
-    .header {
-        padding: 25px 8px;
+    .window-bar {
+        margin: -17px -17px 19px;
+    }
+
+    .mode-switch {
+        flex-direction: column;
+    }
+
+    .mode-btn {
+        padding: 12px;
     }
 
     .link-box {
@@ -377,16 +907,23 @@ pre {
     }
 
     .small-btn {
-        padding: 12px;
+        width: 100%;
     }
 
     .info-row {
         flex-direction: column;
+
         gap: 5px;
     }
 
     .info-value {
+        max-width: 100%;
+
         text-align: left;
+    }
+
+    pre {
+        font-size: 9px;
     }
 }
 </style>
@@ -398,59 +935,93 @@ pre {
 
     <!-- HEADER -->
 
-    <div class="header">
+    <header class="header">
 
-        <div class="logo">
-            🧪 NDRA OFFICIAL API
+        <div class="brand">
+
+            <span class="brand-dot"></span>
+
+            NDRA OFFICIAL API
+
         </div>
 
-        <h1>Image Stempel Generator</h1>
+        <h1>
+            IMAGE <span>PROCESSING</span> API
+        </h1>
 
         <p>
-            REST API untuk menambahkan stempel
-            <b>"LUNAS"</b> atau teks custom
-            secara otomatis ke gambar.
+            Developer interface untuk memproses gambar
+            menggunakan NDRA OFFICIAL API.
+            Mendukung input <b>Base64</b> dan
+            <b>Image URL</b> dengan custom text.
         </p>
 
-    </div>
+        <div class="system-status">
+            API SERVICE OPERATIONAL
+        </div>
+
+    </header>
 
 
-    <!-- TEST API -->
+    <!-- API CONSOLE -->
 
-    <div class="card">
+    <section class="card">
 
-        <div class="card-title">
-            🧪 <span>Uji Coba</span> API
+        <div class="window-bar">
+
+            <span class="window-dot"></span>
+            <span class="window-dot"></span>
+            <span class="window-dot"></span>
+
+            <span class="window-title">
+                api-console / image-processing
+            </span>
+
         </div>
 
 
-        <div class="tabs">
+        <div class="section-title">
+
+            Image Processing
+            <span>Console</span>
+
+        </div>
+
+
+        <!-- INPUT MODE -->
+
+        <div class="mode-switch">
 
             <button
-                class="tab active"
+                class="mode-btn active"
                 id="fileTab"
                 onclick="switchMode('file')">
-                📤 Upload File
+
+                Upload
+
             </button>
 
             <button
-                class="tab"
+                class="mode-btn"
                 id="urlTab"
                 onclick="switchMode('url')">
-                🔗 URL Gambar
+
+                Image URL
+
             </button>
 
         </div>
 
 
-        <!-- FILE MODE -->
+        <!-- FILE INPUT -->
 
         <div id="fileMode">
 
             <div class="form-group">
 
                 <label>
-                    PILIH GAMBAR
+                    <span>01</span>
+                    IMAGE INPUT
                 </label>
 
                 <input
@@ -463,20 +1034,23 @@ pre {
         </div>
 
 
-        <!-- URL MODE -->
+        <!-- URL INPUT -->
 
-        <div id="urlMode" style="display:none">
+        <div
+            id="urlMode"
+            style="display:none">
 
             <div class="form-group">
 
                 <label>
-                    URL GAMBAR
+                    <span>01</span>
+                    IMAGE URL
                 </label>
 
                 <input
                     type="url"
                     id="imageUrl"
-                    placeholder="https://example.com/gambar.jpg">
+                    placeholder="https://example.com/image.jpg">
 
             </div>
 
@@ -488,24 +1062,27 @@ pre {
         <div class="form-group">
 
             <label>
-                TEKS STEMPEL
+                <span>02</span>
+                STAMP TEXT
             </label>
 
             <input
                 type="text"
                 id="stampText"
                 value="LUNAS"
-                placeholder="Contoh: LUNAS">
+                placeholder="LUNAS">
 
         </div>
 
+
+        <!-- PROCESS -->
 
         <button
             class="process-btn"
             id="processBtn"
             onclick="processImage()">
 
-            ⚡ Proses Gambar
+            PROCESS IMAGE
 
         </button>
 
@@ -519,7 +1096,9 @@ pre {
             <div class="spinner"></div>
 
             <p>
-                Memproses gambar & menempelkan stempel di server...
+                Processing request...
+                <br>
+                Waiting for API response.
             </p>
 
         </div>
@@ -531,31 +1110,37 @@ pre {
             class="result"
             id="result">
 
+
             <div
                 class="success"
                 id="successMessage">
 
-                ✅ Berhasil! Gambar berhasil diproses.
+                Request processed successfully.
 
             </div>
 
 
-            <!-- IMAGE PREVIEW -->
+            <!-- PREVIEW -->
 
             <div class="preview">
+
+                <div class="preview-header">
+                    RESPONSE IMAGE
+                </div>
 
                 <img
                     id="resultImage"
                     src=""
-                    alt="Hasil Stempel">
+                    alt="Processed Image">
 
             </div>
 
 
-            <!-- LINK -->
+            <!-- RESULT URL -->
 
             <label>
-                LINK GAMBAR HASIL
+                <span>03</span>
+                RESULT URL
             </label>
 
             <div class="link-box">
@@ -569,7 +1154,7 @@ pre {
                     class="small-btn"
                     onclick="copyResultLink()">
 
-                    📋 Salin
+                    COPY
 
                 </button>
 
@@ -579,17 +1164,17 @@ pre {
                     href="#"
                     target="_blank">
 
-                    🔗 Buka
+                    OPEN
 
                 </a>
 
             </div>
 
 
-            <!-- API INFO -->
+            <!-- JSON -->
 
             <div class="code-title">
-                📡 Response JSON API
+                Response JSON
             </div>
 
             <pre id="jsonResponse"></pre>
@@ -598,7 +1183,7 @@ pre {
             <!-- CURL URL -->
 
             <div class="code-title">
-                💻 cURL Request — URL
+                cURL — URL
             </div>
 
             <pre id="curlUrl"></pre>
@@ -607,7 +1192,7 @@ pre {
                 class="copy-code"
                 onclick="copyCode('curlUrl')">
 
-                📋 Salin cURL
+                COPY REQUEST
 
             </button>
 
@@ -615,7 +1200,7 @@ pre {
             <!-- CURL BASE64 -->
 
             <div class="code-title">
-                💻 cURL Request — Base64
+                cURL — Base64
             </div>
 
             <pre id="curlBase64"></pre>
@@ -624,31 +1209,48 @@ pre {
                 class="copy-code"
                 onclick="copyCode('curlBase64')">
 
-                📋 Salin cURL
+                COPY REQUEST
 
             </button>
 
 
-            <!-- REQUEST -->
+            <!-- ENDPOINT -->
 
             <div class="code-title">
-                📡 Endpoint
+                Endpoint
             </div>
 
             <pre id="endpointInfo"></pre>
 
         </div>
 
-    </div>
+    </section>
 
 
-    <!-- API DOCUMENTATION -->
+    <!-- API REFERENCE -->
 
-    <div class="card">
+    <section class="card">
 
-        <div class="card-title">
-            &gt;_ cURL Request
+        <div class="window-bar">
+
+            <span class="window-dot"></span>
+            <span class="window-dot"></span>
+            <span class="window-dot"></span>
+
+            <span class="window-title">
+                api-reference
+            </span>
+
         </div>
+
+
+        <div class="section-title">
+
+            API
+            <span>Reference</span>
+
+        </div>
+
 
         <div class="info-row">
 
@@ -662,6 +1264,7 @@ pre {
 
         </div>
 
+
         <div class="info-row">
 
             <span class="info-label">
@@ -674,10 +1277,24 @@ pre {
 
         </div>
 
+
         <div class="info-row">
 
             <span class="info-label">
-                Parameter
+                Content-Type
+            </span>
+
+            <span class="info-value">
+                application/json
+            </span>
+
+        </div>
+
+
+        <div class="info-row">
+
+            <span class="info-label">
+                Parameters
             </span>
 
             <span class="info-value">
@@ -685,6 +1302,7 @@ pre {
             </span>
 
         </div>
+
 
         <div class="info-row">
 
@@ -698,16 +1316,33 @@ pre {
 
         </div>
 
-    </div>
+    </section>
 
 
-    <!-- RESPONSE EXAMPLE -->
+    <!-- RESPONSE -->
 
-    <div class="card">
+    <section class="card">
 
-        <div class="card-title">
-            📋 Contoh Response
+        <div class="window-bar">
+
+            <span class="window-dot"></span>
+            <span class="window-dot"></span>
+            <span class="window-dot"></span>
+
+            <span class="window-title">
+                response.json
+            </span>
+
         </div>
+
+
+        <div class="section-title">
+
+            Response
+            <span>Schema</span>
+
+        </div>
+
 
 <pre>{
   "status": true,
@@ -718,16 +1353,24 @@ pre {
   }
 }</pre>
 
-    </div>
+    </section>
 
 
-    <div class="footer">
+    <!-- FOOTER -->
 
-        NDRA OFFICIAL API<br>
+    <footer class="footer">
 
-        <b>By Ndra Store</b>
+        NDRA OFFICIAL API
 
-    </div>
+        <br>
+
+        <b>Image Processing Service</b>
+
+        <br>
+
+        Developer Interface
+
+    </footer>
 
 </div>
 
@@ -746,9 +1389,9 @@ let lastCurlUrl = "";
 let lastCurlBase64 = "";
 
 
-/* ================================
-   SWITCH MODE
-================================ */
+/* ==========================================
+   SWITCH INPUT MODE
+========================================== */
 
 function switchMode(mode) {
 
@@ -770,17 +1413,21 @@ function switchMode(mode) {
     if (mode === "file") {
 
         fileMode.style.display = "block";
+
         urlMode.style.display = "none";
 
         fileTab.classList.add("active");
+
         urlTab.classList.remove("active");
 
     } else {
 
         fileMode.style.display = "none";
+
         urlMode.style.display = "block";
 
         fileTab.classList.remove("active");
+
         urlTab.classList.add("active");
 
     }
@@ -788,9 +1435,9 @@ function switchMode(mode) {
 }
 
 
-/* ================================
-   FILE -> BASE64
-================================ */
+/* ==========================================
+   FILE TO BASE64
+========================================== */
 
 function fileToBase64(file) {
 
@@ -799,21 +1446,24 @@ function fileToBase64(file) {
         const reader =
             new FileReader();
 
+
         reader.onload = () => {
 
             resolve(reader.result);
 
         };
 
+
         reader.onerror = () => {
 
             reject(
                 new Error(
-                    "Gagal membaca file"
+                    "Gagal membaca file."
                 )
             );
 
         };
+
 
         reader.readAsDataURL(file);
 
@@ -822,28 +1472,37 @@ function fileToBase64(file) {
 }
 
 
-/* ================================
-   PROCESS
-================================ */
+/* ==========================================
+   PROCESS IMAGE
+========================================== */
 
 async function processImage() {
 
     const button =
-        document.getElementById("processBtn");
+        document.getElementById(
+            "processBtn"
+        );
 
     const loading =
-        document.getElementById("loading");
+        document.getElementById(
+            "loading"
+        );
 
     const result =
-        document.getElementById("result");
+        document.getElementById(
+            "result"
+        );
 
 
     const textInput =
-        document.getElementById("stampText");
+        document.getElementById(
+            "stampText"
+        );
 
 
     const text =
-        textInput.value.trim() || "LUNAS";
+        textInput.value.trim() ||
+        "LUNAS";
 
 
     button.disabled = true;
@@ -858,14 +1517,19 @@ async function processImage() {
         let requestBody = {};
 
 
-        /* =========================
-           FILE
-        ========================= */
+        /* ==================================
+           BASE64 INPUT
+        ================================== */
 
-        if (currentMode === "file") {
+        if (
+            currentMode === "file"
+        ) {
 
             const input =
-                document.getElementById("imageFile");
+                document.getElementById(
+                    "imageFile"
+                );
+
 
             if (
                 !input.files ||
@@ -873,7 +1537,7 @@ async function processImage() {
             ) {
 
                 throw new Error(
-                    "Pilih gambar terlebih dahulu!"
+                    "Silakan pilih gambar terlebih dahulu."
                 );
 
             }
@@ -883,25 +1547,22 @@ async function processImage() {
                 input.files[0];
 
 
-            /*
-             * Batasi file agar request
-             * tidak terlalu besar.
-             */
-
             if (
                 file.size >
                 8 * 1024 * 1024
             ) {
 
                 throw new Error(
-                    "Ukuran gambar terlalu besar. Maksimal 8MB."
+                    "Ukuran gambar melebihi batas 8MB."
                 );
 
             }
 
 
             originalBase64 =
-                await fileToBase64(file);
+                await fileToBase64(
+                    file
+                );
 
 
             requestBody = {
@@ -914,18 +1575,29 @@ async function processImage() {
 
             };
 
+
+            lastCurlBase64 =
+`curl -X POST "${API_URL}" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "base64": "<BASE64_GAMBAR>",
+    "text": "${text}"
+}'`;
+
         }
 
 
-        /* =========================
-           URL
-        ========================= */
+        /* ==================================
+           URL INPUT
+        ================================== */
 
         else {
 
             const url =
                 document
-                    .getElementById("imageUrl")
+                    .getElementById(
+                        "imageUrl"
+                    )
                     .value
                     .trim();
 
@@ -933,7 +1605,7 @@ async function processImage() {
             if (!url) {
 
                 throw new Error(
-                    "Masukkan URL gambar terlebih dahulu!"
+                    "Silakan masukkan URL gambar."
                 );
 
             }
@@ -946,7 +1618,7 @@ async function processImage() {
             } catch {
 
                 throw new Error(
-                    "URL gambar tidak valid!"
+                    "URL gambar tidak valid."
                 );
 
             }
@@ -962,17 +1634,6 @@ async function processImage() {
 
             };
 
-        }
-
-
-        /* =========================
-           CURL
-        ========================= */
-
-        if (currentMode === "url") {
-
-            const url =
-                requestBody.url;
 
             lastCurlUrl =
 `curl -X POST "${API_URL}" \\
@@ -985,38 +1646,30 @@ async function processImage() {
         }
 
 
-        if (currentMode === "file") {
-
-            lastCurlBase64 =
-`curl -X POST "${API_URL}" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "base64": "<BASE64_GAMBAR>",
-    "text": "${text}"
-}'`;
-
-        }
-
-
-        /* =========================
-           REQUEST API
-        ========================= */
+        /* ==================================
+           API REQUEST
+        ================================== */
 
         const response =
             await fetch(
                 API_URL,
                 {
-                    method: "POST",
+
+                    method:
+                        "POST",
 
                     headers: {
+
                         "Content-Type":
                             "application/json"
+
                     },
 
                     body:
                         JSON.stringify(
                             requestBody
                         )
+
                 }
             );
 
@@ -1032,7 +1685,7 @@ async function processImage() {
         } catch {
 
             throw new Error(
-                "Server tidak mengembalikan JSON."
+                "API tidak mengembalikan response JSON yang valid."
             );
 
         }
@@ -1051,9 +1704,9 @@ async function processImage() {
         }
 
 
-        /* =========================
-           RESULT
-        ========================= */
+        /* ==================================
+           RESULT DATA
+        ================================== */
 
         const imageUrl =
             data?.result?.url_gambar;
@@ -1062,29 +1715,37 @@ async function processImage() {
         if (!imageUrl) {
 
             throw new Error(
-                "API berhasil tetapi URL gambar tidak ditemukan."
+                "Response berhasil diterima, tetapi URL gambar tidak tersedia."
             );
 
         }
 
 
         document
-            .getElementById("resultImage")
+            .getElementById(
+                "resultImage"
+            )
             .src = imageUrl;
 
 
         document
-            .getElementById("resultLink")
+            .getElementById(
+                "resultLink"
+            )
             .value = imageUrl;
 
 
         document
-            .getElementById("openImage")
+            .getElementById(
+                "openImage"
+            )
             .href = imageUrl;
 
 
         document
-            .getElementById("jsonResponse")
+            .getElementById(
+                "jsonResponse"
+            )
             .textContent =
                 JSON.stringify(
                     data,
@@ -1094,35 +1755,41 @@ async function processImage() {
 
 
         document
-            .getElementById("curlUrl")
+            .getElementById(
+                "curlUrl"
+            )
             .textContent =
                 lastCurlUrl ||
-                "Mode URL belum digunakan.";
+                "URL request belum digunakan.";
 
 
         document
-            .getElementById("curlBase64")
+            .getElementById(
+                "curlBase64"
+            )
             .textContent =
                 lastCurlBase64 ||
-                "Mode Upload File belum digunakan.";
+                "Base64 request belum digunakan.";
 
 
         document
-            .getElementById("endpointInfo")
+            .getElementById(
+                "endpointInfo"
+            )
             .textContent =
 `POST ${API_URL}
 
 Content-Type:
 application/json
 
-Parameter:
+Base64 Request:
 
 {
   "base64": "BASE64_GAMBAR",
   "text": "LUNAS"
 }
 
-atau
+URL Request:
 
 {
   "url": "https://example.com/gambar.jpg",
@@ -1130,13 +1797,24 @@ atau
 }`;
 
 
+        const success =
+            document
+                .getElementById(
+                    "successMessage"
+                );
+
+
+        success.className =
+            "success";
+
+
+        success.textContent =
+            "Request processed successfully.";
+
+
         result.style.display =
             "block";
 
-
-        /*
-         * Scroll ke hasil
-         */
 
         setTimeout(() => {
 
@@ -1155,24 +1833,45 @@ atau
 
 
         document
-            .getElementById("resultImage")
-            .removeAttribute("src");
+            .getElementById(
+                "resultImage"
+            )
+            .removeAttribute(
+                "src"
+            );
 
 
         document
-            .getElementById("resultLink")
+            .getElementById(
+                "resultLink"
+            )
             .value = "";
 
 
         document
-            .getElementById("jsonResponse")
+            .getElementById(
+                "openImage"
+            )
+            .href = "#";
+
+
+        document
+            .getElementById(
+                "jsonResponse"
+            )
             .textContent =
                 JSON.stringify(
                     {
-                        status: false,
-                        creator: "Ndra09",
+
+                        status:
+                            false,
+
+                        creator:
+                            "Ndra09",
+
                         error:
                             error.message
+
                     },
                     null,
                     2
@@ -1180,34 +1879,36 @@ atau
 
 
         document
-            .getElementById("curlUrl")
+            .getElementById(
+                "curlUrl"
+            )
             .textContent =
                 lastCurlUrl ||
-                "Tidak tersedia.";
+                "Request tidak tersedia.";
 
 
         document
-            .getElementById("curlBase64")
+            .getElementById(
+                "curlBase64"
+            )
             .textContent =
                 lastCurlBase64 ||
-                "Tidak tersedia.";
+                "Request tidak tersedia.";
 
 
-        const success =
+        const message =
             document
                 .getElementById(
                     "successMessage"
                 );
 
 
-        success.className =
+        message.className =
             "error";
 
 
-        success.textContent =
-            "❌ " +
+        message.textContent =
             error.message;
-
 
     } finally {
 
@@ -1222,17 +1923,16 @@ atau
 }
 
 
-/* ================================
-   COPY RESULT LINK
-================================ */
+/* ==========================================
+   COPY RESULT URL
+========================================== */
 
 async function copyResultLink() {
 
     const input =
-        document
-            .getElementById(
-                "resultLink"
-            );
+        document.getElementById(
+            "resultLink"
+        );
 
 
     if (!input.value) {
@@ -1250,8 +1950,9 @@ async function copyResultLink() {
                 input.value
             );
 
+
         alert(
-            "✅ Link berhasil disalin!"
+            "Result URL copied."
         );
 
     } catch {
@@ -1263,7 +1964,7 @@ async function copyResultLink() {
         );
 
         alert(
-            "✅ Link berhasil disalin!"
+            "Result URL copied."
         );
 
     }
@@ -1271,14 +1972,15 @@ async function copyResultLink() {
 }
 
 
-/* ================================
+/* ==========================================
    COPY CODE
-================================ */
+========================================== */
 
 async function copyCode(id) {
 
     const element =
         document.getElementById(id);
+
 
     const text =
         element.textContent;
@@ -1288,16 +1990,19 @@ async function copyCode(id) {
 
         await navigator
             .clipboard
-            .writeText(text);
+            .writeText(
+                text
+            );
+
 
         alert(
-            "✅ cURL berhasil disalin!"
+            "Request copied."
         );
 
     } catch {
 
         alert(
-            "Gagal menyalin cURL."
+            "Unable to copy request."
         );
 
     }
@@ -1305,9 +2010,9 @@ async function copyCode(id) {
 }
 
 
-/* ================================
-   SHOW API ENDPOINT
-================================ */
+/* ==========================================
+   INITIAL ENDPOINT
+========================================== */
 
 document
     .getElementById(
@@ -1318,18 +2023,19 @@ document
 
 Content-Type: application/json
 
+Base64 Request:
+
 {
   "base64": "BASE64_GAMBAR",
   "text": "LUNAS"
 }
 
-atau
+URL Request:
 
 {
   "url": "https://example.com/gambar.jpg",
   "text": "LUNAS"
 }`;
-
 
 </script>
 
