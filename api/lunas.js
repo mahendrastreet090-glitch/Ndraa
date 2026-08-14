@@ -1,6 +1,6 @@
 import sharp from 'sharp';
 
-// Helper fungsi untuk sanitasi/escape karakter khusus pada teks SVG
+// Helper fungsi untuk sanitasi karakter khusus pada teks SVG
 function escapeXml(unsafe) {
   return String(unsafe).replace(/[<>&"']/g, (c) => {
     switch (c) {
@@ -17,7 +17,8 @@ function escapeXml(unsafe) {
 // === UPLOADER UTAMA: Termai (c.termai.cc) ===
 async function uploadTermai(imageBuffer) {
   const formData = new FormData();
-  formData.append('file', new File([imageBuffer], 'stamped_image.jpg', { type: 'image/jpeg' }));
+  const blob = new Blob([imageBuffer], { type: 'image/jpeg' });
+  formData.append('file', blob, 'stamped_image.jpg');
 
   const res = await fetch('https://c.termai.cc/api/upload?key=AIzaBj7z2z3xBjsk', {
     method: 'POST',
@@ -40,7 +41,8 @@ async function uploadTermai(imageBuffer) {
 async function uploadCatbox(imageBuffer) {
   const formData = new FormData();
   formData.append('reqtype', 'fileupload');
-  formData.append('fileToUpload', new File([imageBuffer], 'stamped_image.jpg', { type: 'image/jpeg' }));
+  const blob = new Blob([imageBuffer], { type: 'image/jpeg' });
+  formData.append('fileToUpload', blob, 'stamped_image.jpg');
 
   const res = await fetch('https://catbox.moe/user/api.php', {
     method: 'POST',
@@ -62,7 +64,8 @@ async function uploadCatbox(imageBuffer) {
 // === UPLOADER CADANGAN 2: TmpFiles ===
 async function uploadTmpFiles(imageBuffer) {
   const formData = new FormData();
-  formData.append('file', new File([imageBuffer], 'stamped_image.jpg', { type: 'image/jpeg' }));
+  const blob = new Blob([imageBuffer], { type: 'image/jpeg' });
+  formData.append('file', blob, 'stamped_image.jpg');
 
   const res = await fetch('https://tmpfiles.org/api/v1/upload', {
     method: 'POST',
@@ -125,7 +128,7 @@ export default async function handler(req, res) {
         }
 
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
 
         const response = await fetch(url, { signal: controller.signal });
         clearTimeout(timeoutId);
@@ -169,60 +172,91 @@ export default async function handler(req, res) {
     const imgWidth = metadata.width || 800;
     const imgHeight = metadata.height || 600;
 
-    const stampText = String(text).trim() || "LUNAS";
+    const stampText = String(text).trim().toUpperCase() || "LUNAS";
     const safeText = escapeXml(stampText);
 
-    // Ukuran Stempel Responsif
+    // 5. Kalkulasi Desain Stempel Responsif & Presisi
     const minDim = Math.min(imgWidth, imgHeight);
-    const boxWidth = Math.round(minDim * 0.65);
-    const boxHeight = Math.round(boxWidth * 0.38);
-    const fontSize = Math.round(boxHeight * 0.42);
-    const strokeWidth = Math.max(3, Math.round(minDim * 0.012));
-    const borderRadius = Math.round(minDim * 0.02);
+    
+    // Dimensi Kotak Stempel
+    const boxWidth = Math.round(minDim * 0.55);
+    const boxHeight = Math.round(boxWidth * 0.35);
 
-    // Overlay SVG
+    // Kalkulasi Ukuran Font Otomatis (Agar Teks Panjang Tetap Muat)
+    const maxFontByHeight = boxHeight * 0.48;
+    const maxFontByWidth = (boxWidth * 0.82) / Math.max(1, stampText.length * 0.65);
+    const fontSize = Math.max(14, Math.round(Math.min(maxFontByHeight, maxFontByWidth)));
+
+    // Ketebalan Garis Bingkai
+    const outerStroke = Math.max(3, Math.round(boxWidth * 0.025));
+    const innerStroke = Math.max(1, Math.round(boxWidth * 0.012));
+    const borderRadius = Math.round(boxWidth * 0.04);
+    const innerInset = Math.round(boxWidth * 0.035);
+
+    // Overlay SVG Stempel Merah Khas Cap Resmi
     const svgOverlay = `
-      <svg width="${boxWidth}" height="${boxHeight}" xmlns="http://www.w3.org/2000/svg">
+      <svg width="${boxWidth}" height="${boxHeight}" viewBox="0 0 ${boxWidth} ${boxHeight}" xmlns="http://www.w3.org/2000/svg">
         <style>
-          .stamp-box {
-            fill: rgba(220, 38, 38, 0.08);
-            stroke: #dc2626;
-            stroke-width: ${strokeWidth}px;
-            rx: ${borderRadius}px;
-            ry: ${borderRadius}px;
+          .outer-border {
+            fill: rgba(211, 47, 47, 0.08);
+            stroke: #d32f2f;
+            stroke-width: ${outerStroke}px;
           }
-          .stamp-inner-border {
+          .inner-border {
             fill: none;
-            stroke: #dc2626;
-            stroke-width: ${Math.max(1, Math.round(strokeWidth / 2))}px;
-            stroke-dasharray: 6,4;
+            stroke: #d32f2f;
+            stroke-width: ${innerStroke}px;
           }
           .stamp-text {
-            font-family: Arial, sans-serif, Impact;
+            font-family: 'DejaVu Sans', 'Arial Black', 'Impact', sans-serif;
             font-weight: 900;
             font-size: ${fontSize}px;
-            fill: #dc2626;
+            fill: #d32f2f;
             text-anchor: middle;
             dominant-baseline: central;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
           }
         </style>
-        <rect x="${strokeWidth}" y="${strokeWidth}" width="${boxWidth - strokeWidth * 2}" height="${boxHeight - strokeWidth * 2}" class="stamp-box" />
-        <rect x="${strokeWidth * 2.5}" y="${strokeWidth * 2.5}" width="${boxWidth - strokeWidth * 5}" height="${boxHeight - strokeWidth * 5}" class="stamp-inner-border" rx="${Math.max(2, borderRadius - 2)}" />
+
+        <!-- Garis Luar Tebal (Outer Box) -->
+        <rect 
+          x="${outerStroke / 2}" 
+          y="${outerStroke / 2}" 
+          width="${boxWidth - outerStroke}" 
+          height="${boxHeight - outerStroke}" 
+          rx="${borderRadius}" 
+          ry="${borderRadius}" 
+          class="outer-border" 
+        />
+
+        <!-- Garis Dalam Tipis Solid (Inner Box) -->
+        <rect 
+          x="${outerStroke + innerInset}" 
+          y="${outerStroke + innerInset}" 
+          width="${boxWidth - (outerStroke + innerInset) * 2}" 
+          height="${boxHeight - (outerStroke + innerInset) * 2}" 
+          rx="${Math.max(2, borderRadius - 2)}" 
+          ry="${Math.max(2, borderRadius - 2)}" 
+          class="inner-border" 
+        />
+
+        <!-- Teks Stempel -->
         <text x="50%" y="50%" class="stamp-text">${safeText}</text>
       </svg>
     `;
 
+    // Rotasi Stempel -12 Derajat (Miring Alami)
     const rotatedStamp = await sharp(Buffer.from(svgOverlay))
       .rotate(-12, { background: { r: 0, g: 0, b: 0, alpha: 0 } })
       .toBuffer();
 
+    // Tempelkan Stempel ke Tengah Gambar Utama
     const processedImageBuffer = await sharp(imageBuffer)
       .composite([{ input: rotatedStamp, gravity: 'center' }])
       .jpeg({ quality: 90 })
       .toBuffer();
 
-    // 5. Upload Gambar (Utama: Termai -> Cadangan 1: Catbox -> Cadangan 2: TmpFiles)
+    // 6. Upload Gambar Hasil Composite
     let imageUrl;
     try {
       imageUrl = await uploadTermai(processedImageBuffer);
@@ -244,7 +278,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // 6. Response Sukses
+    // 7. Response Sukses
     return res.status(200).json({
       status: true,
       creator: "Ndra09",
@@ -255,6 +289,7 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
+    console.error("Internal Server Error:", error);
     return res.status(500).json({
       status: false,
       creator: "Ndra09",
