@@ -21,24 +21,23 @@ export default async function handler(req, res) {
     const cleanBase64 = base64.replace(/^data:image\/\w+;base64,/, '').trim()
     const imgBuffer = Buffer.from(cleanBase64, 'base64')
 
-    // Upload Gambar Berstempel ke tmpfiles.org
+    // Upload Gambar ke Catbox.moe
     const formData = new FormData()
     const blob = new Blob([imgBuffer], { type: 'image/jpeg' })
-    formData.append('file', blob, 'stamped_image.jpg')
+    
+    formData.append('reqtype', 'fileupload')
+    formData.append('fileToUpload', blob, 'stamped_image.jpg')
 
-    const uploadRes = await fetch('https://tmpfiles.org/api/v1/upload', {
+    const uploadRes = await fetch('https://catbox.moe/user/api.php', {
       method: 'POST',
       body: formData
     })
 
-    const uploadData = await uploadRes.json()
+    const directUrl = (await uploadRes.text()).trim()
 
-    if (!uploadData || !uploadData.data || !uploadData.data.url) {
-      throw new Error("Gagal mengunggah gambar ke tmpfiles")
+    if (!directUrl || !directUrl.startsWith('http')) {
+      throw new Error("Gagal mengunggah gambar ke Catbox")
     }
-
-    const rawUrl = uploadData.data.url
-    const directUrl = rawUrl.replace('tmpfiles.org/', 'tmpfiles.org/dl/')
 
     return res.status(200).json({
       status: true,
