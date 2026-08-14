@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>NDRA OFFICIAL API — Image Processing API</title>
+<title>NDRA OFFICIAL API</title>
 
 <style>
 * {
@@ -16,18 +16,15 @@
 :root {
     --bg: #020604;
     --panel: #050b08;
-    --panel-2: #07110c;
+    --panel2: #07110c;
     --border: #153522;
-    --border-light: #1d4930;
-
+    --border2: #1e4930;
     --green: #00ff88;
-    --green-soft: #00c96b;
+    --green2: #00c96b;
     --green-dark: #07301c;
-
     --text: #d9fbe8;
-    --muted: #72917f;
-    --muted-2: #466453;
-
+    --muted: #6f8e7b;
+    --muted2: #3e5b49;
     --danger: #ff5c5c;
 }
 
@@ -37,184 +34,112 @@ html {
 
 body {
     min-height: 100vh;
-    padding: 24px 14px 60px;
-
     background:
         radial-gradient(
-            circle at 50% -15%,
-            rgba(0, 255, 136, .11),
-            transparent 38%
+            circle at 50% -10%,
+            rgba(0,255,136,.09),
+            transparent 40%
         ),
-        linear-gradient(
-            180deg,
-            #020604 0%,
-            #030806 50%,
-            #010302 100%
-        );
+        #020604;
 
     color: var(--text);
 
     font-family:
         "JetBrains Mono",
         "Fira Code",
-        "SFMono-Regular",
         Consolas,
-        "Courier New",
         monospace;
 
     overflow-x: hidden;
 }
 
 /* ==========================================
-   BACKGROUND GRID
+   GRID BACKGROUND
 ========================================== */
 
 body::before {
     content: "";
     position: fixed;
     inset: 0;
-
     pointer-events: none;
 
     background-image:
         linear-gradient(
-            rgba(0, 255, 136, .018) 1px,
+            rgba(0,255,136,.018) 1px,
             transparent 1px
         ),
         linear-gradient(
             90deg,
-            rgba(0, 255, 136, .018) 1px,
+            rgba(0,255,136,.018) 1px,
             transparent 1px
         );
 
     background-size: 35px 35px;
+}
 
-    mask-image:
+/* ==========================================
+   LAYOUT
+========================================== */
+
+.app {
+    min-height: 100vh;
+    display: flex;
+}
+
+/* ==========================================
+   SIDEBAR
+========================================== */
+
+.sidebar {
+    width: 245px;
+    min-height: 100vh;
+
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+
+    z-index: 100;
+
+    background:
         linear-gradient(
-            to bottom,
-            black,
-            transparent 85%
+            180deg,
+            #030a06,
+            #020604
         );
+
+    border-right: 1px solid var(--border);
+
+    padding: 22px 14px;
+
+    display: flex;
+    flex-direction: column;
 }
 
-/* ==========================================
-   MAIN
-========================================== */
+.sidebar-brand {
+    padding: 5px 10px 24px;
 
-.container {
-    width: 100%;
-    max-width: 920px;
-    margin: auto;
-    position: relative;
-    z-index: 2;
-}
-
-/* ==========================================
-   HEADER
-========================================== */
-
-.header {
-    text-align: center;
-    padding: 38px 10px 30px;
-}
-
-.brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
-
-    padding: 7px 13px;
-
-    border: 1px solid rgba(0,255,136,.25);
-    background: rgba(0,255,136,.035);
-
-    color: var(--green);
-
-    font-size: 11px;
-    font-weight: 700;
-
-    letter-spacing: 1.5px;
+    border-bottom: 1px solid #10291b;
 
     margin-bottom: 20px;
 }
 
-.brand-dot {
-    width: 6px;
-    height: 6px;
+.brand-title {
+    display: flex;
+    align-items: center;
+    gap: 9px;
 
-    background: var(--green);
-    border-radius: 50%;
+    color: var(--green);
 
-    box-shadow:
-        0 0 10px var(--green);
-
-    animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: .3;
-    }
-}
-
-.header h1 {
-    font-size: clamp(27px, 6vw, 48px);
-
-    line-height: 1.15;
-
+    font-size: 14px;
     font-weight: 900;
 
-    color: #effff6;
-
-    letter-spacing: -1px;
-
-    margin-bottom: 14px;
-
-    text-shadow:
-        0 0 25px rgba(0,255,136,.08);
+    letter-spacing: 1px;
 }
 
-.header h1 span {
-    color: var(--green);
-}
-
-.header p {
-    max-width: 650px;
-
-    margin: auto;
-
-    color: var(--muted);
-
-    font-size: 12px;
-
-    line-height: 1.8;
-}
-
-.system-status {
-    display: inline-flex;
-
-    align-items: center;
-
-    gap: 8px;
-
-    margin-top: 18px;
-
-    color: var(--muted-2);
-
-    font-size: 10px;
-
-    letter-spacing: .8px;
-}
-
-.system-status::before {
-    content: "";
-
-    width: 6px;
-    height: 6px;
+.brand-dot {
+    width: 7px;
+    height: 7px;
 
     border-radius: 50%;
 
@@ -222,6 +147,277 @@ body::before {
 
     box-shadow:
         0 0 12px var(--green);
+}
+
+.brand-subtitle {
+    margin-top: 8px;
+
+    color: var(--muted2);
+
+    font-size: 8px;
+
+    letter-spacing: 1px;
+}
+
+/* ==========================================
+   NAVIGATION
+========================================== */
+
+.nav-label {
+    color: #3c5b49;
+
+    font-size: 8px;
+
+    font-weight: 700;
+
+    letter-spacing: 1.5px;
+
+    padding: 0 10px 9px;
+}
+
+.nav {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.nav-item {
+    width: 100%;
+
+    border: 1px solid transparent;
+
+    background: transparent;
+
+    color: #668371;
+
+    padding: 12px 11px;
+
+    border-radius: 5px;
+
+    cursor: pointer;
+
+    font-family: inherit;
+
+    font-size: 10px;
+
+    font-weight: 700;
+
+    text-align: left;
+
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    transition: .2s;
+}
+
+.nav-item:hover {
+    color: var(--green);
+
+    background: rgba(0,255,136,.025);
+}
+
+.nav-item.active {
+    color: var(--green);
+
+    background: var(--green-dark);
+
+    border-color: #185232;
+
+    box-shadow:
+        inset 2px 0 0 var(--green);
+}
+
+.nav-icon {
+    width: 24px;
+    height: 24px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #07140d;
+
+    border: 1px solid #173b28;
+
+    border-radius: 4px;
+
+    font-size: 11px;
+}
+
+.nav-item.active .nav-icon {
+    border-color: #267447;
+
+    background: #0a3a21;
+}
+
+.sidebar-bottom {
+    margin-top: auto;
+
+    padding: 15px 10px 3px;
+
+    border-top: 1px solid #10291b;
+
+    color: #304b3a;
+
+    font-size: 8px;
+
+    line-height: 1.7;
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    color: #4d795e;
+
+    margin-bottom: 5px;
+}
+
+.status-dot {
+    width: 5px;
+    height: 5px;
+
+    background: var(--green);
+
+    border-radius: 50%;
+
+    box-shadow:
+        0 0 8px var(--green);
+}
+
+/* ==========================================
+   MAIN
+========================================== */
+
+.main {
+    width: 100%;
+
+    margin-left: 245px;
+
+    min-height: 100vh;
+
+    padding: 35px 25px 60px;
+}
+
+.content {
+    width: 100%;
+    max-width: 900px;
+
+    margin: auto;
+}
+
+/* ==========================================
+   MOBILE TOPBAR
+========================================== */
+
+.mobile-topbar {
+    display: none;
+
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 18px;
+
+    padding: 12px;
+
+    background: #030a06;
+
+    border: 1px solid var(--border);
+
+    border-radius: 5px;
+}
+
+.mobile-brand {
+    color: var(--green);
+
+    font-size: 11px;
+
+    font-weight: 900;
+}
+
+.menu-toggle {
+    border: 1px solid #1b5032;
+
+    background: #07140d;
+
+    color: var(--green);
+
+    border-radius: 4px;
+
+    padding: 7px 10px;
+
+    cursor: pointer;
+
+    font-family: inherit;
+}
+
+/* ==========================================
+   PAGE
+========================================== */
+
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+}
+
+/* ==========================================
+   PAGE HEADER
+========================================== */
+
+.page-header {
+    margin-bottom: 25px;
+}
+
+.page-badge {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+    padding: 6px 10px;
+
+    background: rgba(0,255,136,.035);
+
+    border: 1px solid rgba(0,255,136,.2);
+
+    color: var(--green);
+
+    font-size: 8px;
+
+    letter-spacing: 1px;
+
+    margin-bottom: 13px;
+}
+
+.page-header h1 {
+    font-size: clamp(26px, 5vw, 43px);
+
+    line-height: 1.15;
+
+    color: #effff6;
+
+    margin-bottom: 10px;
+}
+
+.page-header h1 span {
+    color: var(--green);
+}
+
+.page-header p {
+    max-width: 650px;
+
+    color: var(--muted);
+
+    font-size: 10px;
+
+    line-height: 1.8;
 }
 
 /* ==========================================
@@ -234,21 +430,20 @@ body::before {
     background:
         linear-gradient(
             145deg,
-            rgba(5,15,10,.96),
-            rgba(2,8,6,.96)
+            rgba(5,15,10,.97),
+            rgba(2,8,6,.97)
         );
 
     border: 1px solid var(--border);
 
-    border-radius: 7px;
+    border-radius: 6px;
 
-    padding: 24px;
+    padding: 22px;
 
-    margin-bottom: 18px;
+    margin-bottom: 17px;
 
     box-shadow:
-        0 20px 55px rgba(0,0,0,.35),
-        inset 0 0 35px rgba(0,255,136,.012);
+        0 20px 50px rgba(0,0,0,.3);
 
     overflow: hidden;
 }
@@ -268,38 +463,37 @@ body::before {
         linear-gradient(
             90deg,
             transparent,
-            rgba(0,255,136,.6),
+            rgba(0,255,136,.55),
             transparent
         );
 }
 
 .window-bar {
     display: flex;
-
     align-items: center;
 
-    gap: 7px;
+    gap: 6px;
 
-    padding: 9px 12px;
+    padding: 8px 11px;
 
-    margin: -24px -24px 22px;
+    margin: -22px -22px 21px;
 
     background: #020604;
 
     border-bottom: 1px solid #10291b;
 
-    color: #4c6d59;
+    color: #466553;
 
-    font-size: 10px;
+    font-size: 8px;
 }
 
 .window-dot {
-    width: 7px;
-    height: 7px;
-
-    border-radius: 50%;
+    width: 6px;
+    height: 6px;
 
     background: #254331;
+
+    border-radius: 50%;
 }
 
 .window-title {
@@ -312,89 +506,32 @@ body::before {
 
 .section-title {
     display: flex;
-
     align-items: center;
 
-    gap: 10px;
+    gap: 9px;
+
+    margin-bottom: 20px;
 
     color: var(--text);
 
-    font-size: 15px;
+    font-size: 14px;
 
     font-weight: 800;
-
-    margin-bottom: 20px;
 }
 
 .section-title::before {
     content: "";
 
     width: 3px;
-    height: 18px;
+    height: 17px;
 
     background: var(--green);
 
     box-shadow:
-        0 0 12px rgba(0,255,136,.35);
+        0 0 10px rgba(0,255,136,.35);
 }
 
 .section-title span {
-    color: var(--green);
-}
-
-/* ==========================================
-   REQUEST MODE
-========================================== */
-
-.mode-switch {
-    display: flex;
-
-    gap: 4px;
-
-    padding: 4px;
-
-    margin-bottom: 22px;
-
-    background: #010403;
-
-    border: 1px solid var(--border);
-
-    border-radius: 5px;
-}
-
-.mode-btn {
-    flex: 1;
-
-    border: 1px solid transparent;
-
-    background: transparent;
-
-    color: var(--muted);
-
-    padding: 11px;
-
-    border-radius: 3px;
-
-    cursor: pointer;
-
-    font-family: inherit;
-
-    font-size: 11px;
-
-    font-weight: 700;
-
-    transition: .2s;
-}
-
-.mode-btn:hover {
-    color: var(--green);
-}
-
-.mode-btn.active {
-    background: var(--green-dark);
-
-    border-color: var(--border-light);
-
     color: var(--green);
 }
 
@@ -409,9 +546,9 @@ body::before {
 label {
     display: block;
 
-    color: #7fa18d;
+    color: #789683;
 
-    font-size: 10px;
+    font-size: 9px;
 
     font-weight: 700;
 
@@ -433,19 +570,19 @@ input[type="url"] {
 
     padding: 13px;
 
+    background: #010604;
+
     border: 1px solid #173b28;
 
     border-radius: 4px;
 
     outline: none;
 
-    background: #010604;
-
     color: var(--text);
 
     font-family: inherit;
 
-    font-size: 12px;
+    font-size: 11px;
 
     transition: .2s;
 }
@@ -455,11 +592,10 @@ input::placeholder {
 }
 
 input:focus {
-    border-color: rgba(0,255,136,.65);
+    border-color: rgba(0,255,136,.6);
 
     box-shadow:
-        0 0 0 2px rgba(0,255,136,.035),
-        0 0 20px rgba(0,255,136,.05);
+        0 0 0 2px rgba(0,255,136,.03);
 }
 
 input[type="file"] {
@@ -467,17 +603,17 @@ input[type="file"] {
 }
 
 input[type="file"]::file-selector-button {
+    padding: 8px 12px;
+
+    margin-right: 9px;
+
     border: 1px solid #1c6640;
+
+    border-radius: 3px;
 
     background: #062315;
 
     color: var(--green);
-
-    padding: 8px 13px;
-
-    margin-right: 10px;
-
-    border-radius: 3px;
 
     cursor: pointer;
 
@@ -487,13 +623,63 @@ input[type="file"]::file-selector-button {
 }
 
 /* ==========================================
-   SUBMIT
+   TABS
+========================================== */
+
+.input-tabs {
+    display: flex;
+
+    gap: 4px;
+
+    padding: 4px;
+
+    margin-bottom: 20px;
+
+    background: #010403;
+
+    border: 1px solid var(--border);
+
+    border-radius: 4px;
+}
+
+.input-tab {
+    flex: 1;
+
+    padding: 10px;
+
+    border: 1px solid transparent;
+
+    border-radius: 3px;
+
+    background: transparent;
+
+    color: var(--muted);
+
+    cursor: pointer;
+
+    font-family: inherit;
+
+    font-size: 9px;
+
+    font-weight: 700;
+}
+
+.input-tab.active {
+    color: var(--green);
+
+    background: var(--green-dark);
+
+    border-color: #185232;
+}
+
+/* ==========================================
+   BUTTON
 ========================================== */
 
 .process-btn {
     width: 100%;
 
-    padding: 14px 18px;
+    padding: 14px;
 
     border: 1px solid #1d7447;
 
@@ -511,11 +697,11 @@ input[type="file"]::file-selector-button {
 
     font-family: inherit;
 
-    font-size: 12px;
+    font-size: 11px;
 
     font-weight: 800;
 
-    letter-spacing: .7px;
+    letter-spacing: .8px;
 
     cursor: pointer;
 
@@ -528,7 +714,7 @@ input[type="file"]::file-selector-button {
     border-color: var(--green);
 
     box-shadow:
-        0 0 25px rgba(0,255,136,.08);
+        0 0 22px rgba(0,255,136,.08);
 }
 
 .process-btn:disabled {
@@ -544,16 +730,16 @@ input[type="file"]::file-selector-button {
 .loading {
     display: none;
 
-    text-align: center;
+    padding: 25px 10px 5px;
 
-    padding: 28px 10px 5px;
+    text-align: center;
 }
 
 .spinner {
-    width: 34px;
-    height: 34px;
+    width: 31px;
+    height: 31px;
 
-    margin: auto auto 13px;
+    margin: auto auto 12px;
 
     border: 2px solid #163523;
 
@@ -575,9 +761,9 @@ input[type="file"]::file-selector-button {
 .loading p {
     color: var(--muted);
 
-    font-size: 10px;
+    font-size: 9px;
 
-    line-height: 1.8;
+    line-height: 1.7;
 }
 
 /* ==========================================
@@ -587,62 +773,61 @@ input[type="file"]::file-selector-button {
 .result {
     display: none;
 
-    margin-top: 22px;
+    margin-top: 21px;
 
     padding-top: 20px;
 
     border-top: 1px dashed #173b28;
 }
 
-.success,
-.error {
-    padding: 12px 14px;
-
-    margin-bottom: 18px;
+.message {
+    padding: 12px;
 
     border-radius: 4px;
 
-    font-size: 11px;
+    margin-bottom: 17px;
+
+    font-size: 10px;
 
     font-weight: 700;
 }
 
-.success {
-    background: rgba(0,255,136,.045);
-
-    border: 1px solid rgba(0,255,136,.22);
-
+.message.success {
     color: var(--green);
+
+    background: rgba(0,255,136,.04);
+
+    border: 1px solid rgba(0,255,136,.2);
 }
 
-.error {
-    background: rgba(255,60,60,.045);
-
-    border: 1px solid rgba(255,60,60,.22);
-
+.message.error {
     color: var(--danger);
+
+    background: rgba(255,70,70,.04);
+
+    border: 1px solid rgba(255,70,70,.2);
 }
 
 /* ==========================================
-   IMAGE PREVIEW
+   IMAGE
 ========================================== */
 
 .preview {
-    padding: 12px;
-
-    margin-bottom: 18px;
+    padding: 11px;
 
     background: #010403;
 
     border: 1px solid var(--border);
 
     border-radius: 4px;
+
+    margin-bottom: 18px;
 }
 
-.preview-header {
-    color: #456553;
+.preview-title {
+    color: #466553;
 
-    font-size: 9px;
+    font-size: 8px;
 
     letter-spacing: 1px;
 
@@ -654,11 +839,9 @@ input[type="file"]::file-selector-button {
 
     max-width: 100%;
 
-    max-height: 600px;
+    max-height: 650px;
 
     margin: auto;
-
-    border-radius: 2px;
 }
 
 /* ==========================================
@@ -680,7 +863,7 @@ input[type="file"]::file-selector-button {
 .small-btn {
     min-height: 40px;
 
-    padding: 0 15px;
+    padding: 0 14px;
 
     border: 1px solid #234735;
 
@@ -688,21 +871,21 @@ input[type="file"]::file-selector-button {
 
     background: #07140d;
 
-    color: #b9e9cc;
+    color: #a5d3b5;
 
     cursor: pointer;
 
     font-family: inherit;
 
-    font-size: 10px;
+    font-size: 9px;
 
     font-weight: 700;
 }
 
 .small-btn:hover {
-    color: var(--green);
-
     border-color: var(--green);
+
+    color: var(--green);
 }
 
 .open-btn {
@@ -712,15 +895,15 @@ input[type="file"]::file-selector-button {
 
     justify-content: center;
 
-    background: #07301c;
-
-    border-color: #1c7447;
-
-    color: var(--green);
-
     text-decoration: none;
 
     white-space: nowrap;
+
+    color: var(--green);
+
+    background: #07301c;
+
+    border-color: #1c7447;
 }
 
 /* ==========================================
@@ -728,13 +911,13 @@ input[type="file"]::file-selector-button {
 ========================================== */
 
 .code-title {
-    color: #6c8d79;
+    margin: 19px 0 8px;
 
-    font-size: 10px;
+    color: #698a76;
+
+    font-size: 9px;
 
     font-weight: 700;
-
-    margin: 20px 0 8px;
 
     letter-spacing: .6px;
 }
@@ -746,7 +929,7 @@ input[type="file"]::file-selector-button {
 }
 
 pre {
-    padding: 14px;
+    padding: 13px;
 
     background: #010403;
 
@@ -760,7 +943,7 @@ pre {
 
     font-family: inherit;
 
-    font-size: 10px;
+    font-size: 9px;
 
     line-height: 1.7;
 
@@ -772,7 +955,7 @@ pre {
 .copy-code {
     margin-top: 7px;
 
-    padding: 8px 12px;
+    padding: 8px 11px;
 
     border: 1px solid #234735;
 
@@ -786,7 +969,7 @@ pre {
 
     font-family: inherit;
 
-    font-size: 9px;
+    font-size: 8px;
 
     font-weight: 700;
 }
@@ -798,7 +981,7 @@ pre {
 }
 
 /* ==========================================
-   API DOCUMENTATION
+   API INFO
 ========================================== */
 
 .info-row {
@@ -808,11 +991,11 @@ pre {
 
     gap: 20px;
 
-    padding: 13px 0;
+    padding: 12px 0;
 
     border-bottom: 1px dashed #153323;
 
-    font-size: 11px;
+    font-size: 10px;
 }
 
 .info-row:last-child {
@@ -823,23 +1006,48 @@ pre {
     color: #537360;
 }
 
-.info-label::before {
-    content: ">";
-    color: var(--green);
-
-    margin-right: 7px;
-}
-
 .info-value {
-    max-width: 70%;
-
-    text-align: right;
-
     color: #b9e9ca;
 
     font-weight: 700;
 
+    text-align: right;
+
     word-break: break-all;
+}
+
+/* ==========================================
+   PATRICK PREVIEW
+========================================== */
+
+.patrick-card {
+    text-align: center;
+
+    margin-bottom: 20px;
+}
+
+.patrick-card img {
+    width: 100%;
+
+    max-width: 430px;
+
+    border: 1px solid var(--border);
+
+    border-radius: 5px;
+
+    display: block;
+
+    margin: auto;
+}
+
+.patrick-info {
+    color: var(--muted);
+
+    font-size: 9px;
+
+    margin-top: 12px;
+
+    line-height: 1.7;
 }
 
 /* ==========================================
@@ -847,43 +1055,47 @@ pre {
 ========================================== */
 
 .footer {
-    padding: 22px;
-
     text-align: center;
+
+    padding: 22px;
 
     color: #304c3c;
 
-    font-size: 9px;
+    font-size: 8px;
 
     line-height: 1.8;
-
-    letter-spacing: .5px;
 }
 
 .footer b {
-    color: var(--green-soft);
+    color: var(--green2);
 }
 
 /* ==========================================
    MOBILE
 ========================================== */
 
-@media (max-width: 600px) {
+@media (max-width: 700px) {
 
-    body {
-        padding: 8px 7px 35px;
+    .sidebar {
+        width: 245px;
+
+        transform: translateX(-100%);
+
+        transition: .25s;
     }
 
-    .header {
-        padding: 28px 7px 24px;
+    .sidebar.open {
+        transform: translateX(0);
     }
 
-    .header h1 {
-        font-size: 28px;
+    .main {
+        margin-left: 0;
+
+        padding: 15px 10px 45px;
     }
 
-    .header p {
-        font-size: 10px;
+    .mobile-topbar {
+        display: flex;
     }
 
     .card {
@@ -892,14 +1104,6 @@ pre {
 
     .window-bar {
         margin: -17px -17px 19px;
-    }
-
-    .mode-switch {
-        flex-direction: column;
-    }
-
-    .mode-btn {
-        padding: 12px;
     }
 
     .link-box {
@@ -917,13 +1121,7 @@ pre {
     }
 
     .info-value {
-        max-width: 100%;
-
         text-align: left;
-    }
-
-    pre {
-        font-size: 9px;
     }
 }
 </style>
@@ -931,41 +1129,163 @@ pre {
 
 <body>
 
-<div class="container">
+<div class="app">
 
-    <!-- HEADER -->
+<!-- ==========================================
+     SIDEBAR
+========================================== -->
 
-    <header class="header">
+<aside
+    class="sidebar"
+    id="sidebar">
 
-        <div class="brand">
+    <div class="sidebar-brand">
+
+        <div class="brand-title">
 
             <span class="brand-dot"></span>
 
-            NDRA OFFICIAL API
+            NDRA OFFICIAL
 
+        </div>
+
+        <div class="brand-subtitle">
+
+            DEVELOPER API CONSOLE
+
+        </div>
+
+    </div>
+
+
+    <div class="nav-label">
+        TOOLS
+    </div>
+
+
+    <nav class="nav">
+
+        <button
+            class="nav-item active"
+            onclick="openPage('image', this)">
+
+            <span class="nav-icon">
+                IMG
+            </span>
+
+            <span>
+                Image
+            </span>
+
+        </button>
+
+
+        <button
+            class="nav-item"
+            onclick="openPage('lunas', this)">
+
+            <span class="nav-icon">
+                ✓
+            </span>
+
+            <span>
+                Lunas Maker
+            </span>
+
+        </button>
+
+
+        <button
+            class="nav-item"
+            onclick="openPage('patrick', this)">
+
+            <span class="nav-icon">
+                ✦
+            </span>
+
+            <span>
+                Brat Patrick
+            </span>
+
+        </button>
+
+    </nav>
+
+
+    <div class="sidebar-bottom">
+
+        <div class="status">
+
+            <span class="status-dot"></span>
+
+            API SERVICE ONLINE
+
+        </div>
+
+        NDRA OFFICIAL API
+
+        <br>
+
+        Developer Interface
+
+    </div>
+
+</aside>
+
+
+<!-- ==========================================
+     MAIN
+========================================== -->
+
+<main class="main">
+
+    <div class="mobile-topbar">
+
+        <div class="mobile-brand">
+            NDRA OFFICIAL API
+        </div>
+
+        <button
+            class="menu-toggle"
+            onclick="toggleSidebar()">
+
+            MENU
+
+        </button>
+
+    </div>
+
+
+    <div class="content">
+
+
+<!-- ==========================================
+     IMAGE PAGE
+========================================== -->
+
+<section
+    class="page active"
+    id="page-image">
+
+    <div class="page-header">
+
+        <div class="page-badge">
+            IMAGE TOOLS
         </div>
 
         <h1>
-            IMAGE <span>PROCESSING</span> API
+            Image <span>Tools</span>
         </h1>
 
         <p>
-            Developer interface untuk memproses gambar
-            menggunakan NDRA OFFICIAL API.
-            Mendukung input <b>Base64</b> dan
-            <b>Image URL</b> dengan custom text.
+            Image processing tools dari NDRA OFFICIAL API.
+            Pilih salah satu generator dari menu di sebelah kiri.
         </p>
 
-        <div class="system-status">
-            API SERVICE OPERATIONAL
-        </div>
-
-    </header>
+    </div>
 
 
-    <!-- API CONSOLE -->
-
-    <section class="card">
+    <div class="card">
 
         <div class="window-bar">
 
@@ -974,7 +1294,99 @@ pre {
             <span class="window-dot"></span>
 
             <span class="window-title">
-                api-console / image-processing
+                image-tools
+            </span>
+
+        </div>
+
+
+        <div class="section-title">
+
+            Available
+            <span>Tools</span>
+
+        </div>
+
+
+        <div class="info-row">
+
+            <span class="info-label">
+                Lunas Maker
+            </span>
+
+            <span class="info-value">
+                Image Stamp Generator
+            </span>
+
+        </div>
+
+
+        <div class="info-row">
+
+            <span class="info-label">
+                Brat Patrick
+            </span>
+
+            <span class="info-value">
+                Patrick Text Generator
+            </span>
+
+        </div>
+
+
+        <div class="info-row">
+
+            <span class="info-label">
+                API Format
+            </span>
+
+            <span class="info-value">
+                JSON / REST
+            </span>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ==========================================
+     LUNAS PAGE
+========================================== -->
+
+<section
+    class="page"
+    id="page-lunas">
+
+    <div class="page-header">
+
+        <div class="page-badge">
+            IMAGE PROCESSING
+        </div>
+
+        <h1>
+            Lunas <span>Maker</span>
+        </h1>
+
+        <p>
+            Tambahkan stempel LUNAS atau custom text
+            ke dalam gambar melalui NDRA OFFICIAL API.
+        </p>
+
+    </div>
+
+
+    <div class="card">
+
+        <div class="window-bar">
+
+            <span class="window-dot"></span>
+            <span class="window-dot"></span>
+            <span class="window-dot"></span>
+
+            <span class="window-title">
+                lunas-maker / console
             </span>
 
         </div>
@@ -988,23 +1400,21 @@ pre {
         </div>
 
 
-        <!-- INPUT MODE -->
-
-        <div class="mode-switch">
+        <div class="input-tabs">
 
             <button
-                class="mode-btn active"
-                id="fileTab"
-                onclick="switchMode('file')">
+                class="input-tab active"
+                id="lunasFileTab"
+                onclick="switchLunasMode('file')">
 
                 Upload
 
             </button>
 
             <button
-                class="mode-btn"
-                id="urlTab"
-                onclick="switchMode('url')">
+                class="input-tab"
+                id="lunasUrlTab"
+                onclick="switchLunasMode('url')">
 
                 Image URL
 
@@ -1013,9 +1423,10 @@ pre {
         </div>
 
 
-        <!-- FILE INPUT -->
+        <!-- FILE -->
 
-        <div id="fileMode">
+        <div
+            id="lunasFileMode">
 
             <div class="form-group">
 
@@ -1026,7 +1437,7 @@ pre {
 
                 <input
                     type="file"
-                    id="imageFile"
+                    id="lunasImageFile"
                     accept="image/*">
 
             </div>
@@ -1034,10 +1445,10 @@ pre {
         </div>
 
 
-        <!-- URL INPUT -->
+        <!-- URL -->
 
         <div
-            id="urlMode"
+            id="lunasUrlMode"
             style="display:none">
 
             <div class="form-group">
@@ -1049,15 +1460,13 @@ pre {
 
                 <input
                     type="url"
-                    id="imageUrl"
+                    id="lunasImageUrl"
                     placeholder="https://example.com/image.jpg">
 
             </div>
 
         </div>
 
-
-        <!-- TEXT -->
 
         <div class="form-group">
 
@@ -1068,35 +1477,31 @@ pre {
 
             <input
                 type="text"
-                id="stampText"
+                id="lunasText"
                 value="LUNAS"
                 placeholder="LUNAS">
 
         </div>
 
 
-        <!-- PROCESS -->
-
         <button
             class="process-btn"
-            id="processBtn"
-            onclick="processImage()">
+            id="lunasProcessBtn"
+            onclick="processLunas()">
 
             PROCESS IMAGE
 
         </button>
 
 
-        <!-- LOADING -->
-
         <div
             class="loading"
-            id="loading">
+            id="lunasLoading">
 
             <div class="spinner"></div>
 
             <p>
-                Processing request...
+                Processing image...
                 <br>
                 Waiting for API response.
             </p>
@@ -1104,64 +1509,56 @@ pre {
         </div>
 
 
-        <!-- RESULT -->
-
         <div
             class="result"
-            id="result">
-
+            id="lunasResult">
 
             <div
-                class="success"
-                id="successMessage">
+                class="message"
+                id="lunasMessage">
 
                 Request processed successfully.
 
             </div>
 
 
-            <!-- PREVIEW -->
-
             <div class="preview">
 
-                <div class="preview-header">
+                <div class="preview-title">
                     RESPONSE IMAGE
                 </div>
 
                 <img
-                    id="resultImage"
-                    src=""
-                    alt="Processed Image">
+                    id="lunasResultImage"
+                    alt="Lunas Result">
 
             </div>
 
-
-            <!-- RESULT URL -->
 
             <label>
                 <span>03</span>
                 RESULT URL
             </label>
 
+
             <div class="link-box">
 
                 <input
+                    id="lunasResultLink"
                     type="text"
-                    id="resultLink"
                     readonly>
 
                 <button
                     class="small-btn"
-                    onclick="copyResultLink()">
+                    onclick="copyText('lunasResultLink')">
 
                     COPY
 
                 </button>
 
                 <a
-                    id="openImage"
+                    id="lunasOpenImage"
                     class="small-btn open-btn"
-                    href="#"
                     target="_blank">
 
                     OPEN
@@ -1171,65 +1568,25 @@ pre {
             </div>
 
 
-            <!-- JSON -->
-
             <div class="code-title">
                 Response JSON
             </div>
 
-            <pre id="jsonResponse"></pre>
+            <pre id="lunasJson"></pre>
 
-
-            <!-- CURL URL -->
-
-            <div class="code-title">
-                cURL — URL
-            </div>
-
-            <pre id="curlUrl"></pre>
-
-            <button
-                class="copy-code"
-                onclick="copyCode('curlUrl')">
-
-                COPY REQUEST
-
-            </button>
-
-
-            <!-- CURL BASE64 -->
-
-            <div class="code-title">
-                cURL — Base64
-            </div>
-
-            <pre id="curlBase64"></pre>
-
-            <button
-                class="copy-code"
-                onclick="copyCode('curlBase64')">
-
-                COPY REQUEST
-
-            </button>
-
-
-            <!-- ENDPOINT -->
 
             <div class="code-title">
                 Endpoint
             </div>
 
-            <pre id="endpointInfo"></pre>
+            <pre id="lunasEndpoint"></pre>
 
         </div>
 
-    </section>
+    </div>
 
 
-    <!-- API REFERENCE -->
-
-    <section class="card">
+    <div class="card">
 
         <div class="window-bar">
 
@@ -1272,20 +1629,7 @@ pre {
             </span>
 
             <span class="info-value">
-                https://api-ndraaofficial.vercel.app/api/lunas
-            </span>
-
-        </div>
-
-
-        <div class="info-row">
-
-            <span class="info-label">
-                Content-Type
-            </span>
-
-            <span class="info-value">
-                application/json
+                /api/lunas
             </span>
 
         </div>
@@ -1316,12 +1660,40 @@ pre {
 
         </div>
 
-    </section>
+    </div>
+
+</section>
 
 
-    <!-- RESPONSE -->
+<!-- ==========================================
+     BRAT PATRICK PAGE
+========================================== -->
 
-    <section class="card">
+<section
+    class="page"
+    id="page-patrick">
+
+    <div class="page-header">
+
+        <div class="page-badge">
+            TEXT GENERATOR
+        </div>
+
+        <h1>
+            Brat <span>Patrick</span>
+        </h1>
+
+        <p>
+            Generate gambar Patrick dengan teks
+            custom pada kertas yang sedang dipegang.
+        </p>
+
+    </div>
+
+
+    <!-- PREVIEW -->
+
+    <div class="card patrick-card">
 
         <div class="window-bar">
 
@@ -1330,7 +1702,7 @@ pre {
             <span class="window-dot"></span>
 
             <span class="window-title">
-                response.json
+                bratpatrick / preview
             </span>
 
         </div>
@@ -1338,97 +1710,452 @@ pre {
 
         <div class="section-title">
 
-            Response
-            <span>Schema</span>
+            Patrick
+            <span>Template</span>
 
         </div>
 
 
+        <img
+            src="/assets/bratpatrick.png"
+            alt="Brat Patrick">
+
+        <div class="patrick-info">
+
+            Text akan ditempatkan otomatis
+            pada area kertas Patrick.
+
+        </div>
+
+    </div>
+
+
+    <!-- GENERATOR -->
+
+    <div class="card">
+
+        <div class="window-bar">
+
+            <span class="window-dot"></span>
+            <span class="window-dot"></span>
+            <span class="window-dot"></span>
+
+            <span class="window-title">
+                bratpatrick / generator
+            </span>
+
+        </div>
+
+
+        <div class="section-title">
+
+            Text
+            <span>Generator</span>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                <span>01</span>
+                MESSAGE
+            </label>
+
+            <input
+                type="text"
+                id="patrickText"
+                placeholder="Tulis teks untuk Patrick..."
+                maxlength="500">
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                <span>02</span>
+                FONT SIZE
+            </label>
+
+            <input
+                type="text"
+                id="patrickFontSize"
+                value="62"
+                placeholder="62">
+
+        </div>
+
+
+        <button
+            class="process-btn"
+            id="patrickProcessBtn"
+            onclick="processPatrick()">
+
+            GENERATE IMAGE
+
+        </button>
+
+
+        <div
+            class="loading"
+            id="patrickLoading">
+
+            <div class="spinner"></div>
+
+            <p>
+                Generating Patrick image...
+                <br>
+                Waiting for API response.
+            </p>
+
+        </div>
+
+
+        <div
+            class="result"
+            id="patrickResult">
+
+            <div
+                class="message"
+                id="patrickMessage">
+
+                Image generated successfully.
+
+            </div>
+
+
+            <div class="preview">
+
+                <div class="preview-title">
+                    GENERATED IMAGE
+                </div>
+
+                <img
+                    id="patrickResultImage"
+                    alt="Patrick Result">
+
+            </div>
+
+
+            <label>
+                <span>03</span>
+                RESULT URL
+            </label>
+
+
+            <div class="link-box">
+
+                <input
+                    id="patrickResultLink"
+                    type="text"
+                    readonly>
+
+                <button
+                    class="small-btn"
+                    onclick="copyText('patrickResultLink')">
+
+                    COPY
+
+                </button>
+
+                <a
+                    id="patrickOpenImage"
+                    class="small-btn open-btn"
+                    target="_blank">
+
+                    OPEN
+
+                </a>
+
+            </div>
+
+
+            <div class="code-title">
+                Response JSON
+            </div>
+
+            <pre id="patrickJson"></pre>
+
+
+            <button
+                class="copy-code"
+                onclick="copyCode('patrickJson')">
+
+                COPY RESPONSE
+
+            </button>
+
+
+            <div class="code-title">
+                Endpoint
+            </div>
+
+            <pre id="patrickEndpoint"></pre>
+
+        </div>
+
+    </div>
+
+
+    <!-- API INFO -->
+
+    <div class="card">
+
+        <div class="window-bar">
+
+            <span class="window-dot"></span>
+            <span class="window-dot"></span>
+            <span class="window-dot"></span>
+
+            <span class="window-title">
+                api-reference
+            </span>
+
+        </div>
+
+
+        <div class="section-title">
+
+            API
+            <span>Reference</span>
+
+        </div>
+
+
+        <div class="info-row">
+
+            <span class="info-label">
+                Method
+            </span>
+
+            <span class="info-value">
+                POST
+            </span>
+
+        </div>
+
+
+        <div class="info-row">
+
+            <span class="info-label">
+                Endpoint
+            </span>
+
+            <span class="info-value">
+                /api/bratpatrick
+            </span>
+
+        </div>
+
+
+        <div class="info-row">
+
+            <span class="info-label">
+                Parameter
+            </span>
+
+            <span class="info-value">
+                text
+            </span>
+
+        </div>
+
+
+        <div class="info-row">
+
+            <span class="info-label">
+                Optional
+            </span>
+
+            <span class="info-value">
+                fontSize
+            </span>
+
+        </div>
+
+
+        <div class="code-title">
+            JSON Request
+        </div>
+
 <pre>{
-  "status": true,
-  "creator": "Ndra09",
-  "result": {
-    "text": "LUNAS",
-    "url_gambar": "https://..."
-  }
+  "text": "HALO DUNIA",
+  "fontSize": 62
 }</pre>
 
-    </section>
+    </div>
+
+</section>
 
 
-    <!-- FOOTER -->
+<footer class="footer">
 
-    <footer class="footer">
+    NDRA OFFICIAL API
 
-        NDRA OFFICIAL API
+    <br>
 
-        <br>
+    <b>Developer Image Processing Service</b>
 
-        <b>Image Processing Service</b>
+</footer>
 
-        <br>
 
-        Developer Interface
+    </div>
 
-    </footer>
+</main>
 
 </div>
 
 
 <script>
 
-const API_URL =
+/* ==========================================
+   API CONFIG
+========================================== */
+
+const LUNAS_API =
     "https://api-ndraaofficial.vercel.app/api/lunas";
 
-let currentMode = "file";
-
-let originalBase64 = "";
-
-let lastCurlUrl = "";
-
-let lastCurlBase64 = "";
+const PATRICK_API =
+    "https://api-ndraaofficial.vercel.app/api/bratpatrick";
 
 
 /* ==========================================
-   SWITCH INPUT MODE
+   SIDEBAR
 ========================================== */
 
-function switchMode(mode) {
+function toggleSidebar() {
 
-    currentMode = mode;
+    document
+        .getElementById("sidebar")
+        .classList.toggle("open");
+
+}
+
+
+function openPage(
+    page,
+    button
+) {
+
+    document
+        .querySelectorAll(".page")
+        .forEach(
+            element => {
+
+                element.classList.remove(
+                    "active"
+                );
+
+            }
+        );
+
+
+    document
+        .getElementById(
+            "page-" + page
+        )
+        .classList.add(
+            "active"
+        );
+
+
+    document
+        .querySelectorAll(".nav-item")
+        .forEach(
+            element => {
+
+                element.classList.remove(
+                    "active"
+                );
+
+            }
+        );
+
+
+    button.classList.add("active");
+
+
+    document
+        .getElementById("sidebar")
+        .classList.remove("open");
+
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+}
+
+
+/* ==========================================
+   LUNAS MODE
+========================================== */
+
+let lunasMode = "file";
+
+
+function switchLunasMode(
+    mode
+) {
+
+    lunasMode = mode;
+
 
     const fileMode =
-        document.getElementById("fileMode");
+        document.getElementById(
+            "lunasFileMode"
+        );
 
     const urlMode =
-        document.getElementById("urlMode");
+        document.getElementById(
+            "lunasUrlMode"
+        );
+
 
     const fileTab =
-        document.getElementById("fileTab");
+        document.getElementById(
+            "lunasFileTab"
+        );
 
     const urlTab =
-        document.getElementById("urlTab");
+        document.getElementById(
+            "lunasUrlTab"
+        );
 
 
     if (mode === "file") {
 
-        fileMode.style.display = "block";
+        fileMode.style.display =
+            "block";
 
-        urlMode.style.display = "none";
+        urlMode.style.display =
+            "none";
 
-        fileTab.classList.add("active");
+        fileTab.classList.add(
+            "active"
+        );
 
-        urlTab.classList.remove("active");
+        urlTab.classList.remove(
+            "active"
+        );
 
     } else {
 
-        fileMode.style.display = "none";
+        fileMode.style.display =
+            "none";
 
-        urlMode.style.display = "block";
+        urlMode.style.display =
+            "block";
 
-        fileTab.classList.remove("active");
+        fileTab.classList.remove(
+            "active"
+        );
 
-        urlTab.classList.add("active");
+        urlTab.classList.add(
+            "active"
+        );
 
     }
 
@@ -1436,72 +2163,84 @@ function switchMode(mode) {
 
 
 /* ==========================================
-   FILE TO BASE64
+   FILE BASE64
 ========================================== */
 
 function fileToBase64(file) {
 
-    return new Promise((resolve, reject) => {
+    return new Promise(
+        (resolve, reject) => {
 
-        const reader =
-            new FileReader();
-
-
-        reader.onload = () => {
-
-            resolve(reader.result);
-
-        };
+            const reader =
+                new FileReader();
 
 
-        reader.onerror = () => {
+            reader.onload =
+                () => {
 
-            reject(
-                new Error(
-                    "Gagal membaca file."
-                )
+                    resolve(
+                        reader.result
+                    );
+
+                };
+
+
+            reader.onerror =
+                () => {
+
+                    reject(
+                        new Error(
+                            "Gagal membaca file."
+                        )
+                    );
+
+                };
+
+
+            reader.readAsDataURL(
+                file
             );
 
-        };
-
-
-        reader.readAsDataURL(file);
-
-    });
+        }
+    );
 
 }
 
 
 /* ==========================================
-   PROCESS IMAGE
+   LUNAS PROCESS
 ========================================== */
 
-async function processImage() {
+async function processLunas() {
 
     const button =
         document.getElementById(
-            "processBtn"
+            "lunasProcessBtn"
         );
 
     const loading =
         document.getElementById(
-            "loading"
+            "lunasLoading"
         );
 
     const result =
         document.getElementById(
-            "result"
+            "lunasResult"
         );
 
-
-    const textInput =
+    const message =
         document.getElementById(
-            "stampText"
+            "lunasMessage"
         );
 
 
     const text =
-        textInput.value.trim() ||
+        document
+            .getElementById(
+                "lunasText"
+            )
+            .value
+            .trim() ||
         "LUNAS";
 
 
@@ -1514,20 +2253,16 @@ async function processImage() {
 
     try {
 
-        let requestBody = {};
+        let body = {};
 
-
-        /* ==================================
-           BASE64 INPUT
-        ================================== */
 
         if (
-            currentMode === "file"
+            lunasMode === "file"
         ) {
 
             const input =
                 document.getElementById(
-                    "imageFile"
+                    "lunasImageFile"
                 );
 
 
@@ -1553,491 +2288,34 @@ async function processImage() {
             ) {
 
                 throw new Error(
-                    "Ukuran gambar melebihi batas 8MB."
+                    "Ukuran gambar maksimal 8MB."
                 );
 
             }
 
 
-            originalBase64 =
+            const base64 =
                 await fileToBase64(
                     file
                 );
 
 
-            requestBody = {
+            body = {
 
                 base64:
-                    originalBase64,
+                    base64,
 
                 text:
                     text
 
             };
 
-
-            lastCurlBase64 =
-`curl -X POST "${API_URL}" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "base64": "<BASE64_GAMBAR>",
-    "text": "${text}"
-}'`;
-
-        }
-
-
-        /* ==================================
-           URL INPUT
-        ================================== */
-
-        else {
+        } else {
 
             const url =
                 document
                     .getElementById(
-                        "imageUrl"
+                        "lunasImageUrl"
                     )
                     .value
-                    .trim();
-
-
-            if (!url) {
-
-                throw new Error(
-                    "Silakan masukkan URL gambar."
-                );
-
-            }
-
-
-            try {
-
-                new URL(url);
-
-            } catch {
-
-                throw new Error(
-                    "URL gambar tidak valid."
-                );
-
-            }
-
-
-            requestBody = {
-
-                url:
-                    url,
-
-                text:
-                    text
-
-            };
-
-
-            lastCurlUrl =
-`curl -X POST "${API_URL}" \\
-  -H "Content-Type: application/json" \\
-  -d '${JSON.stringify({
-        url: url,
-        text: text
-    })}'`;
-
-        }
-
-
-        /* ==================================
-           API REQUEST
-        ================================== */
-
-        const response =
-            await fetch(
-                API_URL,
-                {
-
-                    method:
-                        "POST",
-
-                    headers: {
-
-                        "Content-Type":
-                            "application/json"
-
-                    },
-
-                    body:
-                        JSON.stringify(
-                            requestBody
-                        )
-
-                }
-            );
-
-
-        let data;
-
-
-        try {
-
-            data =
-                await response.json();
-
-        } catch {
-
-            throw new Error(
-                "API tidak mengembalikan response JSON yang valid."
-            );
-
-        }
-
-
-        if (
-            !response.ok ||
-            !data.status
-        ) {
-
-            throw new Error(
-                data.error ||
-                `HTTP Error ${response.status}`
-            );
-
-        }
-
-
-        /* ==================================
-           RESULT DATA
-        ================================== */
-
-        const imageUrl =
-            data?.result?.url_gambar;
-
-
-        if (!imageUrl) {
-
-            throw new Error(
-                "Response berhasil diterima, tetapi URL gambar tidak tersedia."
-            );
-
-        }
-
-
-        document
-            .getElementById(
-                "resultImage"
-            )
-            .src = imageUrl;
-
-
-        document
-            .getElementById(
-                "resultLink"
-            )
-            .value = imageUrl;
-
-
-        document
-            .getElementById(
-                "openImage"
-            )
-            .href = imageUrl;
-
-
-        document
-            .getElementById(
-                "jsonResponse"
-            )
-            .textContent =
-                JSON.stringify(
-                    data,
-                    null,
-                    2
-                );
-
-
-        document
-            .getElementById(
-                "curlUrl"
-            )
-            .textContent =
-                lastCurlUrl ||
-                "URL request belum digunakan.";
-
-
-        document
-            .getElementById(
-                "curlBase64"
-            )
-            .textContent =
-                lastCurlBase64 ||
-                "Base64 request belum digunakan.";
-
-
-        document
-            .getElementById(
-                "endpointInfo"
-            )
-            .textContent =
-`POST ${API_URL}
-
-Content-Type:
-application/json
-
-Base64 Request:
-
-{
-  "base64": "BASE64_GAMBAR",
-  "text": "LUNAS"
-}
-
-URL Request:
-
-{
-  "url": "https://example.com/gambar.jpg",
-  "text": "LUNAS"
-}`;
-
-
-        const success =
-            document
-                .getElementById(
-                    "successMessage"
-                );
-
-
-        success.className =
-            "success";
-
-
-        success.textContent =
-            "Request processed successfully.";
-
-
-        result.style.display =
-            "block";
-
-
-        setTimeout(() => {
-
-            result.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
-
-        }, 100);
-
-
-    } catch (error) {
-
-        result.style.display =
-            "block";
-
-
-        document
-            .getElementById(
-                "resultImage"
-            )
-            .removeAttribute(
-                "src"
-            );
-
-
-        document
-            .getElementById(
-                "resultLink"
-            )
-            .value = "";
-
-
-        document
-            .getElementById(
-                "openImage"
-            )
-            .href = "#";
-
-
-        document
-            .getElementById(
-                "jsonResponse"
-            )
-            .textContent =
-                JSON.stringify(
-                    {
-
-                        status:
-                            false,
-
-                        creator:
-                            "Ndra09",
-
-                        error:
-                            error.message
-
-                    },
-                    null,
-                    2
-                );
-
-
-        document
-            .getElementById(
-                "curlUrl"
-            )
-            .textContent =
-                lastCurlUrl ||
-                "Request tidak tersedia.";
-
-
-        document
-            .getElementById(
-                "curlBase64"
-            )
-            .textContent =
-                lastCurlBase64 ||
-                "Request tidak tersedia.";
-
-
-        const message =
-            document
-                .getElementById(
-                    "successMessage"
-                );
-
-
-        message.className =
-            "error";
-
-
-        message.textContent =
-            error.message;
-
-    } finally {
-
-        loading.style.display =
-            "none";
-
-        button.disabled =
-            false;
-
-    }
-
-}
-
-
-/* ==========================================
-   COPY RESULT URL
-========================================== */
-
-async function copyResultLink() {
-
-    const input =
-        document.getElementById(
-            "resultLink"
-        );
-
-
-    if (!input.value) {
-
-        return;
-
-    }
-
-
-    try {
-
-        await navigator
-            .clipboard
-            .writeText(
-                input.value
-            );
-
-
-        alert(
-            "Result URL copied."
-        );
-
-    } catch {
-
-        input.select();
-
-        document.execCommand(
-            "copy"
-        );
-
-        alert(
-            "Result URL copied."
-        );
-
-    }
-
-}
-
-
-/* ==========================================
-   COPY CODE
-========================================== */
-
-async function copyCode(id) {
-
-    const element =
-        document.getElementById(id);
-
-
-    const text =
-        element.textContent;
-
-
-    try {
-
-        await navigator
-            .clipboard
-            .writeText(
-                text
-            );
-
-
-        alert(
-            "Request copied."
-        );
-
-    } catch {
-
-        alert(
-            "Unable to copy request."
-        );
-
-    }
-
-}
-
-
-/* ==========================================
-   INITIAL ENDPOINT
-========================================== */
-
-document
-    .getElementById(
-        "endpointInfo"
-    )
-    .textContent =
-`POST ${API_URL}
-
-Content-Type: application/json
-
-Base64 Request:
-
-{
-  "base64": "BASE64_GAMBAR",
-  "text": "LUNAS"
-}
-
-URL Request:
-
-{
-  "url": "https://example.com/gambar.jpg",
-  "text": "LUNAS"
-}`;
-
-</script>
-
-</body>
-</html>
+                    .
