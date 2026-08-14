@@ -1,333 +1,1337 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NDRA OFFICIAL API - Image Stempel Generator</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>NDRA OFFICIAL API - Image Stempel Generator</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background:
+        radial-gradient(circle at top, #172554 0%, #020617 55%);
+    color: #e5e7eb;
+    min-height: 100vh;
+    padding: 25px 15px 50px;
+}
+
+.container {
+    width: 100%;
+    max-width: 850px;
+    margin: auto;
+}
+
+/* HEADER */
+
+.header {
+    text-align: center;
+    padding: 30px 15px;
+}
+
+.logo {
+    display: inline-block;
+    padding: 8px 18px;
+    border-radius: 30px;
+    background: rgba(220, 38, 38, .12);
+    border: 1px solid rgba(220, 38, 38, .25);
+    color: #f87171;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+.header h1 {
+    font-size: clamp(30px, 7vw, 52px);
+    font-weight: 800;
+    margin-bottom: 12px;
+    color: #f8fafc;
+}
+
+.header p {
+    color: #94a3b8;
+    line-height: 1.7;
+    font-size: 15px;
+}
+
+/* CARD */
+
+.card {
+    background: rgba(15, 23, 42, .88);
+    border: 1px solid #1e293b;
+    border-radius: 20px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,.25);
+}
+
+.card-title {
+    font-size: 21px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #f8fafc;
+}
+
+.card-title span {
+    color: #ef4444;
+}
+
+/* TABS */
+
+.tabs {
+    display: flex;
+    gap: 5px;
+    padding: 5px;
+    background: #020617;
+    border: 1px solid #1e293b;
+    border-radius: 14px;
+    margin-bottom: 20px;
+}
+
+.tab {
+    flex: 1;
+    border: 0;
+    background: transparent;
+    color: #94a3b8;
+    padding: 13px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.tab.active {
+    background: #dc2626;
+    color: white;
+}
+
+/* FORM */
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+label {
+    display: block;
+    color: #cbd5e1;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+input[type="file"],
+input[type="text"],
+input[type="url"] {
+    width: 100%;
+    background: #020617;
+    color: #f8fafc;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 13px;
+    outline: none;
+    font-size: 14px;
+}
+
+input:focus {
+    border-color: #ef4444;
+}
+
+input[type="file"] {
+    padding: 9px;
+}
+
+input[type="file"]::file-selector-button {
+    border: none;
+    background: #dc2626;
+    color: white;
+    padding: 9px 15px;
+    border-radius: 8px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+/* BUTTON */
+
+.process-btn {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.process-btn:hover {
+    transform: translateY(-1px);
+}
+
+.process-btn:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* LOADING */
+
+.loading {
+    display: none;
+    text-align: center;
+    padding: 30px 10px;
+}
+
+.spinner {
+    width: 42px;
+    height: 42px;
+    border: 4px solid #334155;
+    border-top-color: #ef4444;
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+    margin: auto auto 15px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loading p {
+    color: #94a3b8;
+}
+
+/* RESULT */
+
+.result {
+    display: none;
+}
+
+.success {
+    background: rgba(16, 185, 129, .08);
+    border: 1px solid rgba(16, 185, 129, .25);
+    color: #34d399;
+    padding: 12px 15px;
+    border-radius: 10px;
+    margin-bottom: 18px;
+    font-weight: 600;
+}
+
+.error {
+    background: rgba(239, 68, 68, .08);
+    border: 1px solid rgba(239, 68, 68, .25);
+    color: #f87171;
+    padding: 12px 15px;
+    border-radius: 10px;
+    margin-bottom: 18px;
+}
+
+/* IMAGE */
+
+.preview {
+    background: #020617;
+    border: 1px solid #1e293b;
+    border-radius: 15px;
+    padding: 15px;
+    text-align: center;
+    margin-bottom: 18px;
+}
+
+.preview img {
+    max-width: 100%;
+    max-height: 600px;
+    border-radius: 10px;
+    display: block;
+    margin: auto;
+}
+
+/* LINK */
+
+.link-box {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.link-box input {
+    flex: 1;
+}
+
+.small-btn {
+    border: none;
+    padding: 0 17px;
+    border-radius: 10px;
+    color: white;
+    background: #334155;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.open-btn {
+    background: #16a34a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+/* CODE */
+
+.code-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #cbd5e1;
+    margin: 20px 0 8px;
+}
+
+pre {
+    background: #020617;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    padding: 15px;
+    overflow-x: auto;
+    color: #93c5fd;
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.copy-code {
+    margin-top: 8px;
+    padding: 9px 13px;
+    background: #334155;
+    border: none;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* API INFO */
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 13px 0;
+    border-bottom: 1px solid #1e293b;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    color: #94a3b8;
+}
+
+.info-value {
+    color: #f8fafc;
+    font-weight: 600;
+    text-align: right;
+    word-break: break-all;
+}
+
+/* FOOTER */
+
+.footer {
+    text-align: center;
+    color: #64748b;
+    font-size: 13px;
+    padding: 20px;
+}
+
+.footer b {
+    color: #ef4444;
+}
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+
     body {
-      background-color: #0f172a;
-      color: #f8fafc;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        padding: 10px 8px 40px;
     }
-    .glass-card {
-      background: rgba(30, 41, 59, 0.7);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+
+    .card {
+        padding: 17px;
+        border-radius: 16px;
     }
-  </style>
+
+    .header {
+        padding: 25px 8px;
+    }
+
+    .link-box {
+        flex-direction: column;
+    }
+
+    .small-btn {
+        padding: 12px;
+    }
+
+    .info-row {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .info-value {
+        text-align: left;
+    }
+}
+</style>
 </head>
-<body class="min-h-screen py-10 px-4">
-  <div class="max-w-4xl mx-auto space-y-8">
-    
-    <!-- Header -->
-    <header class="text-center space-y-2">
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 text-red-400 text-xs font-semibold tracking-wider uppercase border border-red-500/20">
-        <i class="fa-solid fa-stamp"></i> NDRA OFFICIAL API
-      </div>
-      <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
-        Image Stempel Generator
-      </h1>
-      <p class="text-slate-400 text-sm md:text-base max-w-xl mx-auto">
-        REST API untuk menambahkan stempel "LUNAS" atau teks kustom secara otomatis ke gambar melalui server.
-      </p>
-    </header>
 
-    <!-- Interactive Tester Card -->
-    <div class="glass-card rounded-2xl p-6 md:p-8 shadow-2xl space-y-6">
-      <h2 class="text-xl font-bold flex items-center gap-2 text-slate-100">
-        <i class="fa-solid fa-flask text-red-500"></i> Uji Coba API
-      </h2>
+<body>
 
-      <!-- Input Type Selector -->
-      <div class="flex gap-2 p-1 bg-slate-800/80 rounded-xl border border-slate-700">
-        <button id="tabFileBtn" onclick="switchInputType('file')" class="flex-1 py-2 text-sm font-medium rounded-lg bg-red-600 text-white transition-all">
-          <i class="fa-solid fa-upload mr-1"></i> Upload File
-        </button>
-        <button id="tabUrlBtn" onclick="switchInputType('url')" class="flex-1 py-2 text-sm font-medium rounded-lg text-slate-400 hover:text-white transition-all">
-          <i class="fa-solid fa-link mr-1"></i> URL Gambar
-        </button>
-      </div>
+<div class="container">
 
-      <form id="apiForm" onsubmit="processImage(event)" class="space-y-4">
-        <!-- File Input Container -->
-        <div id="fileInputContainer" class="space-y-2">
-          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300">Pilih Gambar</label>
-          <input type="file" id="imageFileInput" accept="image/*" class="w-full text-sm text-slate-300 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-slate-700 file:text-white hover:file:bg-slate-600 cursor-pointer bg-slate-900/50 rounded-xl border border-slate-700 p-2">
+    <!-- HEADER -->
+
+    <div class="header">
+
+        <div class="logo">
+            🧪 NDRA OFFICIAL API
         </div>
 
-        <!-- URL Input Container -->
-        <div id="urlInputContainer" class="space-y-2 hidden">
-          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300">URL Gambar</label>
-          <input type="url" id="imageUrlInput" placeholder="https://example.com/gambar.jpg" class="w-full px-4 py-2.5 bg-slate-900/50 rounded-xl border border-slate-700 text-sm text-slate-200 focus:outline-none focus:border-red-500 transition-colors">
-        </div>
+        <h1>Image Stempel Generator</h1>
 
-        <!-- Stamp Text Input -->
-        <div class="space-y-2">
-          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300">Teks Stempel (Optional)</label>
-          <input type="text" id="stampTextInput" value="LUNAS" placeholder="LUNAS" class="w-full px-4 py-2.5 bg-slate-900/50 rounded-xl border border-slate-700 text-sm text-slate-200 focus:outline-none focus:border-red-500 transition-colors">
-        </div>
+        <p>
+            REST API untuk menambahkan stempel
+            <b>"LUNAS"</b> atau teks custom
+            secara otomatis ke gambar.
+        </p>
 
-        <!-- Submit Button -->
-        <button type="submit" id="submitBtn" class="w-full py-3 bg-red-600 hover:bg-red-500 font-semibold rounded-xl text-white transition-colors flex items-center justify-center gap-2">
-          <i class="fa-solid fa-bolt"></i> Proses Gambar
-        </button>
-      </form>
-
-      <!-- Loading State -->
-      <div id="loadingState" class="hidden text-center py-6 space-y-3">
-        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-red-500 border-t-transparent"></div>
-        <p class="text-sm text-slate-400">Memproses gambar & menempelkan stempel di server...</p>
-      </div>
-
-      <!-- Result Section -->
-      <div id="resultSection" class="hidden space-y-4 border-t border-slate-700/60 pt-6">
-        <div class="flex items-center justify-between">
-          <span class="text-sm font-semibold text-emerald-400 flex items-center gap-2">
-            <i class="fa-solid fa-circle-check"></i> Berhasil Diproses!
-          </span>
-        </div>
-
-        <!-- Preview Image -->
-        <div class="rounded-xl overflow-hidden border border-slate-700 bg-slate-900 flex justify-center p-2">
-          <img id="resultImage" src="" alt="Hasil Stempel" class="max-h-96 object-contain rounded-lg">
-        </div>
-
-        <!-- Result URL Actions -->
-        <div class="flex gap-2">
-          <input type="text" id="resultUrlInput" readonly class="flex-1 px-4 py-2 bg-slate-900 rounded-xl border border-slate-700 text-xs text-slate-300 focus:outline-none">
-          <button onclick="copyResultUrl()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold rounded-xl transition-colors flex items-center gap-1.5">
-            <i class="fa-solid fa-copy"></i> Salin
-          </button>
-          <a id="openImgBtn" href="#" target="_blank" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-xs font-semibold rounded-xl transition-colors flex items-center gap-1.5 text-white">
-            <i class="fa-solid fa-arrow-up-right-from-square"></i> Buka
-          </a>
-        </div>
-
-        <!-- Raw JSON Response -->
-        <div class="space-y-1">
-          <label class="text-xs text-slate-400 font-semibold">Response JSON API:</label>
-          <pre id="jsonResponse" class="p-4 bg-slate-950 rounded-xl border border-slate-800 text-xs text-emerald-400 font-mono overflow-x-auto"></pre>
-        </div>
-      </div>
     </div>
 
-    <!-- cURL Examples Card -->
-    <div class="glass-card rounded-2xl p-6 md:p-8 space-y-4">
-      <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
-        <i class="fa-solid fa-terminal text-slate-400"></i> cURL Request
-      </h2>
 
-      <!-- cURL URL Example -->
-      <div class="space-y-2">
-        <div class="flex justify-between items-center text-xs text-slate-400">
-          <span>Opsi 1: Menggunakan URL Gambar</span>
-          <button onclick="copyToClipboard('curlUrlCode')" class="hover:text-white transition-colors"><i class="fa-solid fa-copy"></i> Copy cURL</button>
-        </div>
-        <pre id="curlUrlCode" class="p-4 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-300 font-mono overflow-x-auto">curl -X POST "https://DOMAIN-VERCEL-ANDA.vercel.app/api/lunas" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "url": "https://example.com/gambar.jpg",
-    "text": "LUNAS"
-  }'</pre>
-      </div>
+    <!-- TEST API -->
 
-      <!-- cURL Base64 Example -->
-      <div class="space-y-2">
-        <div class="flex justify-between items-center text-xs text-slate-400">
-          <span>Opsi 2: Menggunakan Base64</span>
-          <button onclick="copyToClipboard('curlBase64Code')" class="hover:text-white transition-colors"><i class="fa-solid fa-copy"></i> Copy cURL</button>
+    <div class="card">
+
+        <div class="card-title">
+            🧪 <span>Uji Coba</span> API
         </div>
-        <pre id="curlBase64Code" class="p-4 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-300 font-mono overflow-x-auto">curl -X POST "https://DOMAIN-VERCEL-ANDA.vercel.app/api/lunas" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "base64": "data:image/jpeg;base64,/9j/4AAQSkZJRg...",
-    "text": "LUNAS"
-  }'</pre>
-      </div>
+
+
+        <div class="tabs">
+
+            <button
+                class="tab active"
+                id="fileTab"
+                onclick="switchMode('file')">
+                📤 Upload File
+            </button>
+
+            <button
+                class="tab"
+                id="urlTab"
+                onclick="switchMode('url')">
+                🔗 URL Gambar
+            </button>
+
+        </div>
+
+
+        <!-- FILE MODE -->
+
+        <div id="fileMode">
+
+            <div class="form-group">
+
+                <label>
+                    PILIH GAMBAR
+                </label>
+
+                <input
+                    type="file"
+                    id="imageFile"
+                    accept="image/*">
+
+            </div>
+
+        </div>
+
+
+        <!-- URL MODE -->
+
+        <div id="urlMode" style="display:none">
+
+            <div class="form-group">
+
+                <label>
+                    URL GAMBAR
+                </label>
+
+                <input
+                    type="url"
+                    id="imageUrl"
+                    placeholder="https://example.com/gambar.jpg">
+
+            </div>
+
+        </div>
+
+
+        <!-- TEXT -->
+
+        <div class="form-group">
+
+            <label>
+                TEKS STEMPEL
+            </label>
+
+            <input
+                type="text"
+                id="stampText"
+                value="LUNAS"
+                placeholder="Contoh: LUNAS">
+
+        </div>
+
+
+        <button
+            class="process-btn"
+            id="processBtn"
+            onclick="processImage()">
+
+            ⚡ Proses Gambar
+
+        </button>
+
+
+        <!-- LOADING -->
+
+        <div
+            class="loading"
+            id="loading">
+
+            <div class="spinner"></div>
+
+            <p>
+                Memproses gambar & menempelkan stempel di server...
+            </p>
+
+        </div>
+
+
+        <!-- RESULT -->
+
+        <div
+            class="result"
+            id="result">
+
+            <div
+                class="success"
+                id="successMessage">
+
+                ✅ Berhasil! Gambar berhasil diproses.
+
+            </div>
+
+
+            <!-- IMAGE PREVIEW -->
+
+            <div class="preview">
+
+                <img
+                    id="resultImage"
+                    src=""
+                    alt="Hasil Stempel">
+
+            </div>
+
+
+            <!-- LINK -->
+
+            <label>
+                LINK GAMBAR HASIL
+            </label>
+
+            <div class="link-box">
+
+                <input
+                    type="text"
+                    id="resultLink"
+                    readonly>
+
+                <button
+                    class="small-btn"
+                    onclick="copyResultLink()">
+
+                    📋 Salin
+
+                </button>
+
+                <a
+                    id="openImage"
+                    class="small-btn open-btn"
+                    href="#"
+                    target="_blank">
+
+                    🔗 Buka
+
+                </a>
+
+            </div>
+
+
+            <!-- API INFO -->
+
+            <div class="code-title">
+                📡 Response JSON API
+            </div>
+
+            <pre id="jsonResponse"></pre>
+
+
+            <!-- CURL URL -->
+
+            <div class="code-title">
+                💻 cURL Request — URL
+            </div>
+
+            <pre id="curlUrl"></pre>
+
+            <button
+                class="copy-code"
+                onclick="copyCode('curlUrl')">
+
+                📋 Salin cURL
+
+            </button>
+
+
+            <!-- CURL BASE64 -->
+
+            <div class="code-title">
+                💻 cURL Request — Base64
+            </div>
+
+            <pre id="curlBase64"></pre>
+
+            <button
+                class="copy-code"
+                onclick="copyCode('curlBase64')">
+
+                📋 Salin cURL
+
+            </button>
+
+
+            <!-- REQUEST -->
+
+            <div class="code-title">
+                📡 Endpoint
+            </div>
+
+            <pre id="endpointInfo"></pre>
+
+        </div>
+
     </div>
 
-    <!-- Documentation Card -->
-    <div class="glass-card rounded-2xl p-6 md:p-8 space-y-4">
-      <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
-        <i class="fa-solid fa-book text-slate-400"></i> Dokumentasi API
-      </h2>
 
-      <div class="space-y-2">
-        <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Endpoint</p>
-        <div class="inline-block px-3 py-1 bg-slate-900 border border-slate-700 rounded-lg text-sm font-mono text-red-400">
-          POST /api/lunas
+    <!-- API DOCUMENTATION -->
+
+    <div class="card">
+
+        <div class="card-title">
+            &gt;_ cURL Request
         </div>
-      </div>
 
-      <div class="space-y-2">
-        <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Parameter Request (JSON)</p>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-300 border-collapse">
-            <thead>
-              <tr class="border-b border-slate-700 text-slate-400 uppercase font-semibold">
-                <th class="py-2 px-3">Parameter</th>
-                <th class="py-2 px-3">Type</th>
-                <th class="py-2 px-3">Required</th>
-                <th class="py-2 px-3">Keterangan</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-800">
-              <tr>
-                <td class="py-2 px-3 font-mono text-slate-200">base64</td>
-                <td class="py-2 px-3">string</td>
-                <td class="py-2 px-3 text-amber-400 font-medium">conditional</td>
-                <td class="py-2 px-3">Base64 string gambar (dengan/tanpa data URI prefix)</td>
-              </tr>
-              <tr>
-                <td class="py-2 px-3 font-mono text-slate-200">url</td>
-                <td class="py-2 px-3">string</td>
-                <td class="py-2 px-3 text-amber-400 font-medium">conditional</td>
-                <td class="py-2 px-3">Direct URL file gambar publik</td>
-              </tr>
-              <tr>
-                <td class="py-2 px-3 font-mono text-slate-200">text</td>
-                <td class="py-2 px-3">string</td>
-                <td class="py-2 px-3 text-slate-500">no</td>
-                <td class="py-2 px-3">Teks stempel custom (default: "LUNAS")</td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="info-row">
+
+            <span class="info-label">
+                Method
+            </span>
+
+            <span class="info-value">
+                POST
+            </span>
+
         </div>
-        <p class="text-xs text-slate-500 italic">* Catatan: Harus menyertakan salah satu antara <code>base64</code> atau <code>url</code>.</p>
-      </div>
 
-      <div class="space-y-2 pt-2">
-        <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Contoh Response Sukses (200 OK)</p>
-        <pre class="p-4 bg-slate-950 rounded-xl border border-slate-800 text-xs text-emerald-400 font-mono overflow-x-auto">{
+        <div class="info-row">
+
+            <span class="info-label">
+                Endpoint
+            </span>
+
+            <span class="info-value">
+                https://api-ndraaofficial.vercel.app/api/lunas
+            </span>
+
+        </div>
+
+        <div class="info-row">
+
+            <span class="info-label">
+                Parameter
+            </span>
+
+            <span class="info-value">
+                base64 / url / text
+            </span>
+
+        </div>
+
+        <div class="info-row">
+
+            <span class="info-label">
+                Default Text
+            </span>
+
+            <span class="info-value">
+                LUNAS
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- RESPONSE EXAMPLE -->
+
+    <div class="card">
+
+        <div class="card-title">
+            📋 Contoh Response
+        </div>
+
+<pre>{
   "status": true,
   "creator": "Ndra09",
   "result": {
     "text": "LUNAS",
-    "url_gambar": "https://files.catbox.moe/example.jpg"
+    "url_gambar": "https://..."
   }
 }</pre>
-      </div>
+
     </div>
 
-  </div>
 
-  <script>
-    let activeInputType = 'file';
+    <div class="footer">
 
-    function switchInputType(type) {
-      activeInputType = type;
-      const tabFileBtn = document.getElementById('tabFileBtn');
-      const tabUrlBtn = document.getElementById('tabUrlBtn');
-      const fileContainer = document.getElementById('fileInputContainer');
-      const urlContainer = document.getElementById('urlInputContainer');
+        NDRA OFFICIAL API<br>
 
-      if (type === 'file') {
-        tabFileBtn.className = "flex-1 py-2 text-sm font-medium rounded-lg bg-red-600 text-white transition-all";
-        tabUrlBtn.className = "flex-1 py-2 text-sm font-medium rounded-lg text-slate-400 hover:text-white transition-all";
-        fileContainer.classList.remove('hidden');
-        urlContainer.classList.add('hidden');
-      } else {
-        tabUrlBtn.className = "flex-1 py-2 text-sm font-medium rounded-lg bg-red-600 text-white transition-all";
-        tabFileBtn.className = "flex-1 py-2 text-sm font-medium rounded-lg text-slate-400 hover:text-white transition-all";
-        urlContainer.classList.remove('hidden');
-        fileContainer.classList.add('hidden');
-      }
+        <b>By Ndra Store</b>
+
+    </div>
+
+</div>
+
+
+<script>
+
+const API_URL =
+    "https://api-ndraaofficial.vercel.app/api/lunas";
+
+let currentMode = "file";
+
+let originalBase64 = "";
+
+let lastCurlUrl = "";
+
+let lastCurlBase64 = "";
+
+
+/* ================================
+   SWITCH MODE
+================================ */
+
+function switchMode(mode) {
+
+    currentMode = mode;
+
+    const fileMode =
+        document.getElementById("fileMode");
+
+    const urlMode =
+        document.getElementById("urlMode");
+
+    const fileTab =
+        document.getElementById("fileTab");
+
+    const urlTab =
+        document.getElementById("urlTab");
+
+
+    if (mode === "file") {
+
+        fileMode.style.display = "block";
+        urlMode.style.display = "none";
+
+        fileTab.classList.add("active");
+        urlTab.classList.remove("active");
+
+    } else {
+
+        fileMode.style.display = "none";
+        urlMode.style.display = "block";
+
+        fileTab.classList.remove("active");
+        urlTab.classList.add("active");
+
     }
 
-    function fileToBase64(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
+}
+
+
+/* ================================
+   FILE -> BASE64
+================================ */
+
+function fileToBase64(file) {
+
+    return new Promise((resolve, reject) => {
+
+        const reader =
+            new FileReader();
+
+        reader.onload = () => {
+
+            resolve(reader.result);
+
+        };
+
+        reader.onerror = () => {
+
+            reject(
+                new Error(
+                    "Gagal membaca file"
+                )
+            );
+
+        };
+
         reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = error => reject(error);
-      });
-    }
 
-    async function processImage(event) {
-      event.preventDefault();
+    });
 
-      const submitBtn = document.getElementById('submitBtn');
-      const loadingState = document.getElementById('loadingState');
-      const resultSection = document.getElementById('resultSection');
-      const stampText = document.getElementById('stampTextInput').value.trim() || 'LUNAS';
+}
 
-      let payload = { text: stampText };
 
-      if (activeInputType === 'file') {
-        const fileInput = document.getElementById('imageFileInput');
-        if (!fileInput.files || fileInput.files.length === 0) {
-          alert('Pilih file gambar terlebih dahulu!');
-          return;
+/* ================================
+   PROCESS
+================================ */
+
+async function processImage() {
+
+    const button =
+        document.getElementById("processBtn");
+
+    const loading =
+        document.getElementById("loading");
+
+    const result =
+        document.getElementById("result");
+
+
+    const textInput =
+        document.getElementById("stampText");
+
+
+    const text =
+        textInput.value.trim() || "LUNAS";
+
+
+    button.disabled = true;
+
+    result.style.display = "none";
+
+    loading.style.display = "block";
+
+
+    try {
+
+        let requestBody = {};
+
+
+        /* =========================
+           FILE
+        ========================= */
+
+        if (currentMode === "file") {
+
+            const input =
+                document.getElementById("imageFile");
+
+            if (
+                !input.files ||
+                !input.files.length
+            ) {
+
+                throw new Error(
+                    "Pilih gambar terlebih dahulu!"
+                );
+
+            }
+
+
+            const file =
+                input.files[0];
+
+
+            /*
+             * Batasi file agar request
+             * tidak terlalu besar.
+             */
+
+            if (
+                file.size >
+                8 * 1024 * 1024
+            ) {
+
+                throw new Error(
+                    "Ukuran gambar terlalu besar. Maksimal 8MB."
+                );
+
+            }
+
+
+            originalBase64 =
+                await fileToBase64(file);
+
+
+            requestBody = {
+
+                base64:
+                    originalBase64,
+
+                text:
+                    text
+
+            };
+
         }
+
+
+        /* =========================
+           URL
+        ========================= */
+
+        else {
+
+            const url =
+                document
+                    .getElementById("imageUrl")
+                    .value
+                    .trim();
+
+
+            if (!url) {
+
+                throw new Error(
+                    "Masukkan URL gambar terlebih dahulu!"
+                );
+
+            }
+
+
+            try {
+
+                new URL(url);
+
+            } catch {
+
+                throw new Error(
+                    "URL gambar tidak valid!"
+                );
+
+            }
+
+
+            requestBody = {
+
+                url:
+                    url,
+
+                text:
+                    text
+
+            };
+
+        }
+
+
+        /* =========================
+           CURL
+        ========================= */
+
+        if (currentMode === "url") {
+
+            const url =
+                requestBody.url;
+
+            lastCurlUrl =
+`curl -X POST "${API_URL}" \\
+  -H "Content-Type: application/json" \\
+  -d '${JSON.stringify({
+        url: url,
+        text: text
+    })}'`;
+
+        }
+
+
+        if (currentMode === "file") {
+
+            lastCurlBase64 =
+`curl -X POST "${API_URL}" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "base64": "<BASE64_GAMBAR>",
+    "text": "${text}"
+}'`;
+
+        }
+
+
+        /* =========================
+           REQUEST API
+        ========================= */
+
+        const response =
+            await fetch(
+                API_URL,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify(
+                            requestBody
+                        )
+                }
+            );
+
+
+        let data;
+
+
         try {
-          const base64String = await fileToBase64(fileInput.files[0]);
-          payload.base64 = base64String;
-        } catch (e) {
-          alert('Gagal membaca file gambar!');
-          return;
+
+            data =
+                await response.json();
+
+        } catch {
+
+            throw new Error(
+                "Server tidak mengembalikan JSON."
+            );
+
         }
-      } else {
-        const imageUrl = document.getElementById('imageUrlInput').value.trim();
+
+
+        if (
+            !response.ok ||
+            !data.status
+        ) {
+
+            throw new Error(
+                data.error ||
+                `HTTP Error ${response.status}`
+            );
+
+        }
+
+
+        /* =========================
+           RESULT
+        ========================= */
+
+        const imageUrl =
+            data?.result?.url_gambar;
+
+
         if (!imageUrl) {
-          alert('Masukkan URL gambar!');
-          return;
+
+            throw new Error(
+                "API berhasil tetapi URL gambar tidak ditemukan."
+            );
+
         }
-        payload.url = imageUrl;
-      }
 
-      // UI State: Loading
-      submitBtn.disabled = true;
-      submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
-      loadingState.classList.remove('hidden');
-      resultSection.classList.add('hidden');
 
-      try {
-        const response = await fetch('/api/lunas', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        });
+        document
+            .getElementById("resultImage")
+            .src = imageUrl;
 
-        const data = await response.json();
 
-        // Display JSON Response
-        document.getElementById('jsonResponse').textContent = JSON.stringify(data, null, 2);
+        document
+            .getElementById("resultLink")
+            .value = imageUrl;
 
-        if (response.ok && data.status) {
-          document.getElementById('resultImage').src = data.result.url_gambar;
-          document.getElementById('resultUrlInput').value = data.result.url_gambar;
-          document.getElementById('openImgBtn').href = data.result.url_gambar;
-          resultSection.classList.remove('hidden');
-        } else {
-          alert('Error: ' + (data.error || 'Gagal memproses gambar'));
-          resultSection.classList.remove('hidden');
-        }
-      } catch (err) {
-        alert('Terjadi kesalahan jaringan/server.');
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-        loadingState.classList.add('hidden');
-      }
+
+        document
+            .getElementById("openImage")
+            .href = imageUrl;
+
+
+        document
+            .getElementById("jsonResponse")
+            .textContent =
+                JSON.stringify(
+                    data,
+                    null,
+                    2
+                );
+
+
+        document
+            .getElementById("curlUrl")
+            .textContent =
+                lastCurlUrl ||
+                "Mode URL belum digunakan.";
+
+
+        document
+            .getElementById("curlBase64")
+            .textContent =
+                lastCurlBase64 ||
+                "Mode Upload File belum digunakan.";
+
+
+        document
+            .getElementById("endpointInfo")
+            .textContent =
+`POST ${API_URL}
+
+Content-Type:
+application/json
+
+Parameter:
+
+{
+  "base64": "BASE64_GAMBAR",
+  "text": "LUNAS"
+}
+
+atau
+
+{
+  "url": "https://example.com/gambar.jpg",
+  "text": "LUNAS"
+}`;
+
+
+        result.style.display =
+            "block";
+
+
+        /*
+         * Scroll ke hasil
+         */
+
+        setTimeout(() => {
+
+            result.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+
+        }, 100);
+
+
+    } catch (error) {
+
+        result.style.display =
+            "block";
+
+
+        document
+            .getElementById("resultImage")
+            .removeAttribute("src");
+
+
+        document
+            .getElementById("resultLink")
+            .value = "";
+
+
+        document
+            .getElementById("jsonResponse")
+            .textContent =
+                JSON.stringify(
+                    {
+                        status: false,
+                        creator: "Ndra09",
+                        error:
+                            error.message
+                    },
+                    null,
+                    2
+                );
+
+
+        document
+            .getElementById("curlUrl")
+            .textContent =
+                lastCurlUrl ||
+                "Tidak tersedia.";
+
+
+        document
+            .getElementById("curlBase64")
+            .textContent =
+                lastCurlBase64 ||
+                "Tidak tersedia.";
+
+
+        const success =
+            document
+                .getElementById(
+                    "successMessage"
+                );
+
+
+        success.className =
+            "error";
+
+
+        success.textContent =
+            "❌ " +
+            error.message;
+
+
+    } finally {
+
+        loading.style.display =
+            "none";
+
+        button.disabled =
+            false;
+
     }
 
-    function copyResultUrl() {
-      const urlInput = document.getElementById('resultUrlInput');
-      urlInput.select();
-      navigator.clipboard.writeText(urlInput.value);
-      alert('URL Gambar berhasil disalin!');
+}
+
+
+/* ================================
+   COPY RESULT LINK
+================================ */
+
+async function copyResultLink() {
+
+    const input =
+        document
+            .getElementById(
+                "resultLink"
+            );
+
+
+    if (!input.value) {
+
+        return;
+
     }
 
-    function copyToClipboard(elementId) {
-      const text = document.getElementById(elementId).textContent;
-      navigator.clipboard.writeText(text);
-      alert('Command cURL berhasil disalin!');
+
+    try {
+
+        await navigator
+            .clipboard
+            .writeText(
+                input.value
+            );
+
+        alert(
+            "✅ Link berhasil disalin!"
+        );
+
+    } catch {
+
+        input.select();
+
+        document.execCommand(
+            "copy"
+        );
+
+        alert(
+            "✅ Link berhasil disalin!"
+        );
+
     }
-  </script>
+
+}
+
+
+/* ================================
+   COPY CODE
+================================ */
+
+async function copyCode(id) {
+
+    const element =
+        document.getElementById(id);
+
+    const text =
+        element.textContent;
+
+
+    try {
+
+        await navigator
+            .clipboard
+            .writeText(text);
+
+        alert(
+            "✅ cURL berhasil disalin!"
+        );
+
+    } catch {
+
+        alert(
+            "Gagal menyalin cURL."
+        );
+
+    }
+
+}
+
+
+/* ================================
+   SHOW API ENDPOINT
+================================ */
+
+document
+    .getElementById(
+        "endpointInfo"
+    )
+    .textContent =
+`POST ${API_URL}
+
+Content-Type: application/json
+
+{
+  "base64": "BASE64_GAMBAR",
+  "text": "LUNAS"
+}
+
+atau
+
+{
+  "url": "https://example.com/gambar.jpg",
+  "text": "LUNAS"
+}`;
+
+
+</script>
+
 </body>
 </html>
