@@ -3,195 +3,330 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NDRA OFFICIAL API - Stempel Generator</title>
+  <title>NDRA OFFICIAL API - Image Stempel Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-    .card { background-color: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 24px; width: 100%; max-width: 480px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); }
-    h1 { font-size: 1.5rem; font-weight: 700; color: #38bdf8; text-align: center; margin-bottom: 8px; }
-    p.subtitle { font-size: 0.875rem; color: #94a3b8; text-align: center; margin-bottom: 24px; }
-    .form-group { margin-bottom: 16px; }
-    label { display: block; font-size: 0.875rem; margin-bottom: 6px; color: #cbd5e1; }
-    input[type="file"], input[type="text"] { width: 100%; padding: 10px; background-color: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #fff; font-size: 0.875rem; outline: none; }
-    input[type="file"]::file-selector-button { background-color: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-right: 10px; }
-    button.btn-submit { width: 100%; padding: 12px; background-color: #0284c7; color: white; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
-    button.btn-submit:hover { background-color: #0369a1; }
-    button.btn-submit:disabled { background-color: #475569; cursor: not-allowed; }
-    .result-box { margin-top: 24px; display: none; background-color: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 16px; }
-    .status-badge { display: inline-block; padding: 4px 8px; font-size: 0.75rem; font-weight: bold; border-radius: 4px; margin-bottom: 12px; }
-    .status-true { background-color: #059669; color: #ecfdf5; }
-    .status-false { background-color: #dc2626; color: #fef2f2; }
-    pre { font-family: monospace; font-size: 0.8rem; color: #38bdf8; white-space: pre-wrap; word-break: break-all; background-color: #1e293b; padding: 10px; border-radius: 6px; margin-bottom: 12px; }
-    .action-btns { display: flex; gap: 8px; }
-    .btn-action { flex: 1; padding: 8px; font-size: 0.8rem; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; text-align: center; text-decoration: none; }
-    .btn-copy { background-color: #334155; color: white; }
-    .btn-open { background-color: #16a34a; color: white; }
-    canvas { display: none; }
+    body {
+      background-color: #0f172a;
+      color: #f8fafc;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
   </style>
 </head>
-<body>
+<body class="min-h-screen py-10 px-4">
+  <div class="max-w-4xl mx-auto space-y-8">
+    
+    <!-- Header -->
+    <header class="text-center space-y-2">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 text-red-400 text-xs font-semibold tracking-wider uppercase border border-red-500/20">
+        <i class="fa-solid fa-stamp"></i> NDRA OFFICIAL API
+      </div>
+      <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+        Image Stempel Generator
+      </h1>
+      <p class="text-slate-400 text-sm md:text-base max-w-xl mx-auto">
+        REST API untuk menambahkan stempel "LUNAS" atau teks kustom secara otomatis ke gambar melalui server.
+      </p>
+    </header>
 
-  <div class="card">
-    <h1>NDRA OFFICIAL API</h1>
-    <p class="subtitle">Image Uploader & Stempel Generator</p>
+    <!-- Interactive Tester Card -->
+    <div class="glass-card rounded-2xl p-6 md:p-8 shadow-2xl space-y-6">
+      <h2 class="text-xl font-bold flex items-center gap-2 text-slate-100">
+        <i class="fa-solid fa-flask text-red-500"></i> Uji Coba API
+      </h2>
 
-    <div class="form-group">
-      <label for="imageInput">Pilih Gambar:</label>
-      <input type="file" id="imageInput" accept="image/*">
-    </div>
-
-    <div class="form-group">
-      <label for="textInput">Teks Stempel:</label>
-      <input type="text" id="textInput" value="LUNAS">
-    </div>
-
-    <button class="btn-submit" id="submitBtn" onclick="processUpload()">Proses & Upload</button>
-
-    <div class="result-box" id="resultBox">
-      <span class="status-badge" id="statusBadge">STATUS</span>
-      
-      <div style="font-size: 0.85rem; margin-bottom: 6px; color: #94a3b8;">
-        Creator: <strong id="creatorText" style="color: #fff;">-</strong>
+      <!-- Input Type Selector -->
+      <div class="flex gap-2 p-1 bg-slate-800/80 rounded-xl border border-slate-700">
+        <button id="tabFileBtn" onclick="switchInputType('file')" class="flex-1 py-2 text-sm font-medium rounded-lg bg-red-600 text-white transition-all">
+          <i class="fa-solid fa-upload mr-1"></i> Upload File
+        </button>
+        <button id="tabUrlBtn" onclick="switchInputType('url')" class="flex-1 py-2 text-sm font-medium rounded-lg text-slate-400 hover:text-white transition-all">
+          <i class="fa-solid fa-link mr-1"></i> URL Gambar
+        </button>
       </div>
 
-      <pre id="jsonOutput">// Output JSON akan muncul di sini</pre>
+      <form id="apiForm" onsubmit="processImage(event)" class="space-y-4">
+        <!-- File Input Container -->
+        <div id="fileInputContainer" class="space-y-2">
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300">Pilih Gambar</label>
+          <input type="file" id="imageFileInput" accept="image/*" class="w-full text-sm text-slate-300 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-slate-700 file:text-white hover:file:bg-slate-600 cursor-pointer bg-slate-900/50 rounded-xl border border-slate-700 p-2">
+        </div>
 
-      <div class="action-btns" id="actionBtns" style="display: none;">
-        <button class="btn-action btn-copy" onclick="copyLink()">📋 Salin Link</button>
-        <a id="openBtn" href="#" target="_blank" class="btn-action btn-open">🔗 Buka Gambar</a>
+        <!-- URL Input Container -->
+        <div id="urlInputContainer" class="space-y-2 hidden">
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300">URL Gambar</label>
+          <input type="url" id="imageUrlInput" placeholder="https://example.com/gambar.jpg" class="w-full px-4 py-2.5 bg-slate-900/50 rounded-xl border border-slate-700 text-sm text-slate-200 focus:outline-none focus:border-red-500 transition-colors">
+        </div>
+
+        <!-- Stamp Text Input -->
+        <div class="space-y-2">
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300">Teks Stempel (Optional)</label>
+          <input type="text" id="stampTextInput" value="LUNAS" placeholder="LUNAS" class="w-full px-4 py-2.5 bg-slate-900/50 rounded-xl border border-slate-700 text-sm text-slate-200 focus:outline-none focus:border-red-500 transition-colors">
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" id="submitBtn" class="w-full py-3 bg-red-600 hover:bg-red-500 font-semibold rounded-xl text-white transition-colors flex items-center justify-center gap-2">
+          <i class="fa-solid fa-bolt"></i> Proses Gambar
+        </button>
+      </form>
+
+      <!-- Loading State -->
+      <div id="loadingState" class="hidden text-center py-6 space-y-3">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-red-500 border-t-transparent"></div>
+        <p class="text-sm text-slate-400">Memproses gambar & menempelkan stempel di server...</p>
+      </div>
+
+      <!-- Result Section -->
+      <div id="resultSection" class="hidden space-y-4 border-t border-slate-700/60 pt-6">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-semibold text-emerald-400 flex items-center gap-2">
+            <i class="fa-solid fa-circle-check"></i> Berhasil Diproses!
+          </span>
+        </div>
+
+        <!-- Preview Image -->
+        <div class="rounded-xl overflow-hidden border border-slate-700 bg-slate-900 flex justify-center p-2">
+          <img id="resultImage" src="" alt="Hasil Stempel" class="max-h-96 object-contain rounded-lg">
+        </div>
+
+        <!-- Result URL Actions -->
+        <div class="flex gap-2">
+          <input type="text" id="resultUrlInput" readonly class="flex-1 px-4 py-2 bg-slate-900 rounded-xl border border-slate-700 text-xs text-slate-300 focus:outline-none">
+          <button onclick="copyResultUrl()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold rounded-xl transition-colors flex items-center gap-1.5">
+            <i class="fa-solid fa-copy"></i> Salin
+          </button>
+          <a id="openImgBtn" href="#" target="_blank" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-xs font-semibold rounded-xl transition-colors flex items-center gap-1.5 text-white">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> Buka
+          </a>
+        </div>
+
+        <!-- Raw JSON Response -->
+        <div class="space-y-1">
+          <label class="text-xs text-slate-400 font-semibold">Response JSON API:</label>
+          <pre id="jsonResponse" class="p-4 bg-slate-950 rounded-xl border border-slate-800 text-xs text-emerald-400 font-mono overflow-x-auto"></pre>
+        </div>
       </div>
     </div>
+
+    <!-- cURL Examples Card -->
+    <div class="glass-card rounded-2xl p-6 md:p-8 space-y-4">
+      <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+        <i class="fa-solid fa-terminal text-slate-400"></i> cURL Request
+      </h2>
+
+      <!-- cURL URL Example -->
+      <div class="space-y-2">
+        <div class="flex justify-between items-center text-xs text-slate-400">
+          <span>Opsi 1: Menggunakan URL Gambar</span>
+          <button onclick="copyToClipboard('curlUrlCode')" class="hover:text-white transition-colors"><i class="fa-solid fa-copy"></i> Copy cURL</button>
+        </div>
+        <pre id="curlUrlCode" class="p-4 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-300 font-mono overflow-x-auto">curl -X POST "https://DOMAIN-VERCEL-ANDA.vercel.app/api/lunas" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com/gambar.jpg",
+    "text": "LUNAS"
+  }'</pre>
+      </div>
+
+      <!-- cURL Base64 Example -->
+      <div class="space-y-2">
+        <div class="flex justify-between items-center text-xs text-slate-400">
+          <span>Opsi 2: Menggunakan Base64</span>
+          <button onclick="copyToClipboard('curlBase64Code')" class="hover:text-white transition-colors"><i class="fa-solid fa-copy"></i> Copy cURL</button>
+        </div>
+        <pre id="curlBase64Code" class="p-4 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-300 font-mono overflow-x-auto">curl -X POST "https://DOMAIN-VERCEL-ANDA.vercel.app/api/lunas" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "base64": "data:image/jpeg;base64,/9j/4AAQSkZJRg...",
+    "text": "LUNAS"
+  }'</pre>
+      </div>
+    </div>
+
+    <!-- Documentation Card -->
+    <div class="glass-card rounded-2xl p-6 md:p-8 space-y-4">
+      <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+        <i class="fa-solid fa-book text-slate-400"></i> Dokumentasi API
+      </h2>
+
+      <div class="space-y-2">
+        <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Endpoint</p>
+        <div class="inline-block px-3 py-1 bg-slate-900 border border-slate-700 rounded-lg text-sm font-mono text-red-400">
+          POST /api/lunas
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Parameter Request (JSON)</p>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-300 border-collapse">
+            <thead>
+              <tr class="border-b border-slate-700 text-slate-400 uppercase font-semibold">
+                <th class="py-2 px-3">Parameter</th>
+                <th class="py-2 px-3">Type</th>
+                <th class="py-2 px-3">Required</th>
+                <th class="py-2 px-3">Keterangan</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800">
+              <tr>
+                <td class="py-2 px-3 font-mono text-slate-200">base64</td>
+                <td class="py-2 px-3">string</td>
+                <td class="py-2 px-3 text-amber-400 font-medium">conditional</td>
+                <td class="py-2 px-3">Base64 string gambar (dengan/tanpa data URI prefix)</td>
+              </tr>
+              <tr>
+                <td class="py-2 px-3 font-mono text-slate-200">url</td>
+                <td class="py-2 px-3">string</td>
+                <td class="py-2 px-3 text-amber-400 font-medium">conditional</td>
+                <td class="py-2 px-3">Direct URL file gambar publik</td>
+              </tr>
+              <tr>
+                <td class="py-2 px-3 font-mono text-slate-200">text</td>
+                <td class="py-2 px-3">string</td>
+                <td class="py-2 px-3 text-slate-500">no</td>
+                <td class="py-2 px-3">Teks stempel custom (default: "LUNAS")</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="text-xs text-slate-500 italic">* Catatan: Harus menyertakan salah satu antara <code>base64</code> atau <code>url</code>.</p>
+      </div>
+
+      <div class="space-y-2 pt-2">
+        <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Contoh Response Sukses (200 OK)</p>
+        <pre class="p-4 bg-slate-950 rounded-xl border border-slate-800 text-xs text-emerald-400 font-mono overflow-x-auto">{
+  "status": true,
+  "creator": "Ndra09",
+  "result": {
+    "text": "LUNAS",
+    "url_gambar": "https://files.catbox.moe/example.jpg"
+  }
+}</pre>
+      </div>
+    </div>
+
   </div>
 
-  <canvas id="processCanvas"></canvas>
-
   <script>
-    let uploadedUrl = ""
+    let activeInputType = 'file';
 
-    function createStampedBase64(file, text) {
-      return new Promise((resolve, reject) => {
-        const img = new Image()
-        img.crossOrigin = "anonymous"
-        img.onload = () => {
-          const canvas = document.getElementById('processCanvas')
-          const ctx = canvas.getContext('2d')
+    function switchInputType(type) {
+      activeInputType = type;
+      const tabFileBtn = document.getElementById('tabFileBtn');
+      const tabUrlBtn = document.getElementById('tabUrlBtn');
+      const fileContainer = document.getElementById('fileInputContainer');
+      const urlContainer = document.getElementById('urlInputContainer');
 
-          canvas.width = img.width
-          canvas.height = img.height
-
-          // Gambar latar belakang
-          ctx.drawImage(img, 0, 0)
-
-          // Konfigurasi Stempel
-          const width = img.width
-          const height = img.height
-          const fontSize = Math.max(24, Math.floor(width * 0.1))
-
-          ctx.save()
-          ctx.translate(width / 2, height / 2)
-          ctx.rotate(-15 * Math.PI / 180)
-
-          // Frame Kotak Stempel
-          const textMetrics = ctx.measureText(text)
-          const stampWidth = Math.max(fontSize * text.length * 0.7, fontSize * 3)
-          const stampHeight = fontSize * 1.6
-
-          ctx.strokeStyle = "rgba(220, 38, 38, 0.9)"
-          ctx.lineWidth = Math.max(4, Math.floor(fontSize * 0.1))
-          ctx.strokeRect(-stampWidth / 2, -stampHeight / 2, stampWidth, stampHeight)
-
-          // Teks Stempel
-          ctx.font = `bold ${fontSize}px sans-serif`
-          ctx.fillStyle = "rgba(220, 38, 38, 0.9)"
-          ctx.textAlign = "center"
-          ctx.textBaseline = "middle"
-          ctx.fillText(text, 0, 0)
-
-          ctx.restore()
-
-          resolve(canvas.toDataURL('image/jpeg', 0.85))
-        }
-        img.onerror = (err) => reject(err)
-        img.src = URL.createObjectURL(file)
-      })
+      if (type === 'file') {
+        tabFileBtn.className = "flex-1 py-2 text-sm font-medium rounded-lg bg-red-600 text-white transition-all";
+        tabUrlBtn.className = "flex-1 py-2 text-sm font-medium rounded-lg text-slate-400 hover:text-white transition-all";
+        fileContainer.classList.remove('hidden');
+        urlContainer.classList.add('hidden');
+      } else {
+        tabUrlBtn.className = "flex-1 py-2 text-sm font-medium rounded-lg bg-red-600 text-white transition-all";
+        tabFileBtn.className = "flex-1 py-2 text-sm font-medium rounded-lg text-slate-400 hover:text-white transition-all";
+        urlContainer.classList.remove('hidden');
+        fileContainer.classList.add('hidden');
+      }
     }
 
-    async function processUpload() {
-      const fileInput = document.getElementById('imageInput')
-      const textInput = document.getElementById('textInput')
-      const submitBtn = document.getElementById('submitBtn')
-      const resultBox = document.getElementById('resultBox')
-      const statusBadge = document.getElementById('statusBadge')
-      const creatorText = document.getElementById('creatorText')
-      const jsonOutput = document.getElementById('jsonOutput')
-      const actionBtns = document.getElementById('actionBtns')
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+      });
+    }
 
-      if (!fileInput.files || fileInput.files.length === 0) {
-        alert("Pilih gambar terlebih dahulu!")
-        return
+    async function processImage(event) {
+      event.preventDefault();
+
+      const submitBtn = document.getElementById('submitBtn');
+      const loadingState = document.getElementById('loadingState');
+      const resultSection = document.getElementById('resultSection');
+      const stampText = document.getElementById('stampTextInput').value.trim() || 'LUNAS';
+
+      let payload = { text: stampText };
+
+      if (activeInputType === 'file') {
+        const fileInput = document.getElementById('imageFileInput');
+        if (!fileInput.files || fileInput.files.length === 0) {
+          alert('Pilih file gambar terlebih dahulu!');
+          return;
+        }
+        try {
+          const base64String = await fileToBase64(fileInput.files[0]);
+          payload.base64 = base64String;
+        } catch (e) {
+          alert('Gagal membaca file gambar!');
+          return;
+        }
+      } else {
+        const imageUrl = document.getElementById('imageUrlInput').value.trim();
+        if (!imageUrl) {
+          alert('Masukkan URL gambar!');
+          return;
+        }
+        payload.url = imageUrl;
       }
 
-      const file = fileInput.files[0]
-      const textStamp = textInput.value || "LUNAS"
-
-      submitBtn.disabled = true
-      submitBtn.innerText = "Menempelkan Stempel..."
-      resultBox.style.display = "none"
+      // UI State: Loading
+      submitBtn.disabled = true;
+      submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      loadingState.classList.remove('hidden');
+      resultSection.classList.add('hidden');
 
       try {
-        // 1. Tempelkan stempel di browser
-        const stampedBase64 = await createStampedBase64(file, textStamp)
-
-        submitBtn.innerText = "Mengunggah ke Server..."
-
-        // 2. Kirim gambar berstempel ke Vercel
         const response = await fetch('/api/lunas', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            base64: stampedBase64,
-            text: textStamp
-          })
-        })
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
 
-        const data = await response.json()
+        const data = await response.json();
 
-        resultBox.style.display = "block"
-        jsonOutput.innerText = JSON.stringify(data, null, 2)
-        creatorText.innerText = data.creator || "Ndra09"
+        // Display JSON Response
+        document.getElementById('jsonResponse').textContent = JSON.stringify(data, null, 2);
 
-        if (data.status) {
-          statusBadge.className = "status-badge status-true"
-          statusBadge.innerText = "STATUS: TRUE (200)"
-          
-          if (data.result && data.result.url_gambar) {
-            uploadedUrl = data.result.url_gambar
-            document.getElementById('openBtn').href = uploadedUrl
-            actionBtns.style.display = "flex"
-          }
+        if (response.ok && data.status) {
+          document.getElementById('resultImage').src = data.result.url_gambar;
+          document.getElementById('resultUrlInput').value = data.result.url_gambar;
+          document.getElementById('openImgBtn').href = data.result.url_gambar;
+          resultSection.classList.remove('hidden');
         } else {
-          statusBadge.className = "status-badge status-false"
-          statusBadge.innerText = "STATUS: FALSE"
-          actionBtns.style.display = "none"
+          alert('Error: ' + (data.error || 'Gagal memproses gambar'));
+          resultSection.classList.remove('hidden');
         }
-
       } catch (err) {
-        resultBox.style.display = "block"
-        statusBadge.className = "status-badge status-false"
-        statusBadge.innerText = "STATUS: ERROR"
-        jsonOutput.innerText = JSON.stringify({ status: false, error: err.message }, null, 2)
-        actionBtns.style.display = "none"
+        alert('Terjadi kesalahan jaringan/server.');
       } finally {
-        submitBtn.disabled = false
-        submitBtn.innerText = "Proses & Upload"
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        loadingState.classList.add('hidden');
       }
     }
 
-    function copyLink() {
-      if (uploadedUrl) {
-        navigator.clipboard.writeText(uploadedUrl)
-        alert("Link gambar berhasil disalin!")
-      }
+    function copyResultUrl() {
+      const urlInput = document.getElementById('resultUrlInput');
+      urlInput.select();
+      navigator.clipboard.writeText(urlInput.value);
+      alert('URL Gambar berhasil disalin!');
+    }
+
+    function copyToClipboard(elementId) {
+      const text = document.getElementById(elementId).textContent;
+      navigator.clipboard.writeText(text);
+      alert('Command cURL berhasil disalin!');
     }
   </script>
 </body>

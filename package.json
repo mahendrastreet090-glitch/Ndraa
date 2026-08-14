@@ -1,7 +1,16 @@
 {
   "name": "ndra09-api",
   "version": "1.0.0",
-  "description": "Rest API by Ndra09",
+  "description": "NDRA OFFICIAL API - Image Stempel Generator REST API for Vercel",
   "type": "module",
-  "author": "Ndra09"
+  "main": "api/lunas.js",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "sharp": "^0.33.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }
