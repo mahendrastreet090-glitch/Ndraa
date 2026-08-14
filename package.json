@@ -4,8 +4,5 @@
   "description": "Rest API by Ndra09",
   "main": "index.js",
   "type": "module",
-  "author": "Ndra09",
-  "dependencies": {
-    "pure-image": "^0.4.10"
-  }
+  "author": "Ndra09"
 }
