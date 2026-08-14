@@ -1,24 +1,15 @@
 import sharp from 'sharp';
 
-// Variable cache font di memory Vercel
-let cachedFontBase64 = null;
-
-// Fungsi untuk mengambil font tebal (Roboto 900) dari CDN & disimpan di memory
-async function getFontBase64() {
-  if (cachedFontBase64) return cachedFontBase64;
-  try {
-    const res = await fetch('https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-900-normal.ttf');
-    if (!res.ok) throw new Error('Gagal unduh font');
-    const buffer = await res.arrayBuffer();
-    cachedFontBase64 = Buffer.from(buffer).toString('base64');
-    return cachedFontBase64;
-  } catch (err) {
-    console.error("Gagal load font CDN:", err.message);
-    return null;
+// Konfigurasi size limit Vercel untuk memproses Base64 berukuran besar
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb'
+    }
   }
-}
+};
 
-// Helper sanitasi karakter khusus pada teks SVG
+// Fungsi Escape XML yang benar
 function escapeXml(unsafe) {
   return String(unsafe).replace(/[<>&"']/g, (c) => {
     switch (c) {
@@ -32,7 +23,7 @@ function escapeXml(unsafe) {
   });
 }
 
-// === UPLOADER UTAMA: Termai (c.termai.cc) ===
+// === UPLOADER 1: Termai ===
 async function uploadTermai(imageBuffer) {
   const formData = new FormData();
   const blob = new Blob([imageBuffer], { type: 'image/jpeg' });
@@ -55,7 +46,7 @@ async function uploadTermai(imageBuffer) {
   return fileUrl;
 }
 
-// === UPLOADER CADANGAN 1: Catbox ===
+// === UPLOADER 2: Catbox ===
 async function uploadCatbox(imageBuffer) {
   const formData = new FormData();
   formData.append('reqtype', 'fileupload');
@@ -79,7 +70,7 @@ async function uploadCatbox(imageBuffer) {
   return text;
 }
 
-// === UPLOADER CADANGAN 2: TmpFiles ===
+// === UPLOADER 3: TmpFiles ===
 async function uploadTmpFiles(imageBuffer) {
   const formData = new FormData();
   const blob = new Blob([imageBuffer], { type: 'image/jpeg' });
@@ -103,6 +94,7 @@ async function uploadTmpFiles(imageBuffer) {
 }
 
 export default async function handler(req, res) {
+  // 1. Validasi Method
   if (req.method !== 'POST') {
     return res.status(405).json({
       status: false,
@@ -114,6 +106,7 @@ export default async function handler(req, res) {
   try {
     const { base64, url, text = "LUNAS" } = req.body || {};
 
+    // 2. Validasi Parameter Input
     if (!base64 && !url) {
       return res.status(400).json({
         status: false,
@@ -124,10 +117,12 @@ export default async function handler(req, res) {
 
     let imageBuffer;
 
+    // 3. Ambil Image Buffer dari Base64 atau URL
     if (base64) {
       try {
-        const cleanBase64 = base64.replace(/^data:image\/[a-zA-Z+-]+;base64,/, '');
+        const cleanBase64 = String(base64).replace(/^data:image\/[a-zA-Z+-]+;base64,/, '');
         imageBuffer = Buffer.from(cleanBase64, 'base64');
+        if (imageBuffer.length === 0) throw new Error("Buffer kosong");
       } catch (err) {
         return res.status(400).json({
           status: false,
@@ -139,7 +134,7 @@ export default async function handler(req, res) {
       try {
         const parsedUrl = new URL(url);
         if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
-          throw new Error('Protokol tidak valid');
+          throw new Error('Protokol harus HTTP/HTTPS');
         }
 
         const controller = new AbortController();
@@ -149,7 +144,7 @@ export default async function handler(req, res) {
         clearTimeout(timeoutId);
 
         if (!response.ok) {
-          throw new Error('Gagal mengunduh gambar');
+          throw new Error(`HTTP Error: ${response.status}`);
         }
 
         const contentType = response.headers.get('content-type') || '';
@@ -157,7 +152,7 @@ export default async function handler(req, res) {
           return res.status(400).json({
             status: false,
             creator: "Ndra09",
-            error: "URL tidak merujuk ke gambar yang valid"
+            error: "Gagal mengambil gambar dari URL"
           });
         }
 
@@ -172,13 +167,11 @@ export default async function handler(req, res) {
       }
     }
 
-    // Ambil metadata & Font Tebal
-    const [metadata, fontBase64] = await Promise.all([
-      sharp(imageBuffer).metadata().catch(() => null),
-      getFontBase64()
-    ]);
-
-    if (!metadata) {
+    // 4. Validasi Metadata Gambar
+    let metadata;
+    try {
+      metadata = await sharp(imageBuffer).metadata();
+    } catch (err) {
       return res.status(400).json({
         status: false,
         creator: "Ndra09",
@@ -189,43 +182,30 @@ export default async function handler(req, res) {
     const imgWidth = metadata.width || 800;
     const imgHeight = metadata.height || 600;
 
-    const stampText = String(text).trim().toUpperCase() || "LUNAS";
+    // Formating Teks Stempel
+    const rawText = String(text || "LUNAS").trim();
+    const stampText = rawText.length > 0 ? rawText.toUpperCase() : "LUNAS";
     const safeText = escapeXml(stampText);
 
-    // Dimensi Cap Jumbo (80% Sisi Terkecil Gambar)
+    // 5. Kalkulasi Dimensi Stempel (Responsive)
     const minDim = Math.min(imgWidth, imgHeight);
-    const boxWidth = Math.round(minDim * 0.80); 
+    const boxWidth = Math.round(minDim * 0.80);
     const boxHeight = Math.round(boxWidth * 0.38);
 
-    // Dynamic Font Size Scaling
-    const maxFontByHeight = boxHeight * 0.52;
+    // Dynamic Font Scaling agar Teks Pendek Maupun Panjang Tetap Muat
+    const maxFontByHeight = boxHeight * 0.50;
     const maxFontByWidth = (boxWidth * 0.82) / Math.max(1, stampText.length * 0.62);
-    const fontSize = Math.max(18, Math.round(Math.min(maxFontByHeight, maxFontByWidth)));
+    const fontSize = Math.max(16, Math.round(Math.min(maxFontByHeight, maxFontByWidth)));
 
     const outerStroke = Math.max(5, Math.round(boxWidth * 0.035));
     const innerStroke = Math.max(2, Math.round(boxWidth * 0.016));
     const borderRadius = Math.round(boxWidth * 0.05);
     const innerInset = Math.round(boxWidth * 0.04);
 
-    // Pengaturan Font SVG
-    const fontDefs = fontBase64 ? `
-      <defs>
-        <style>
-          @font-face {
-            font-family: 'CustomStampFont';
-            src: url('data:font/ttf;charset=utf-8;base64,${fontBase64}');
-          }
-        </style>
-      </defs>
-    ` : '';
-    const fontFamily = fontBase64 ? "'CustomStampFont', sans-serif" : "sans-serif";
-
-    // Overlay SVG Cap Merah
+    // 6. SVG Stempel Merah Kompatibel Pure librsvg (Tanpa @font-face / CDN)
     const svgOverlay = `
       <svg width="${boxWidth}" height="${boxHeight}" viewBox="0 0 ${boxWidth} ${boxHeight}" xmlns="http://www.w3.org/2000/svg">
-        ${fontDefs}
-
-        <!-- Outer Box -->
+        <!-- Border Luar Tebal -->
         <rect 
           x="${outerStroke / 2}" 
           y="${outerStroke / 2}" 
@@ -238,7 +218,7 @@ export default async function handler(req, res) {
           stroke-width="${outerStroke}"
         />
 
-        <!-- Inner Box -->
+        <!-- Border Dalam Tipis -->
         <rect 
           x="${outerStroke + innerInset}" 
           y="${outerStroke + innerInset}" 
@@ -251,48 +231,49 @@ export default async function handler(req, res) {
           stroke-width="${innerStroke}"
         />
 
-        <!-- Teks Cap -->
+        <!-- Teks Stempel Resmi librsvg Alignment -->
         <text 
           x="50%" 
           y="50%" 
-          dy="0.35em"
-          font-family="${fontFamily}" 
+          font-family="DejaVu Sans, sans-serif" 
           font-weight="900" 
           font-size="${fontSize}" 
           fill="#d32f2f" 
           text-anchor="middle"
-          letter-spacing="2"
+          dominant-baseline="central"
         >${safeText}</text>
       </svg>
     `;
 
-    // Watermark "By Ndra Store"
+    // 7. Watermark "By Ndra Store"
     const wmFontSize = Math.max(14, Math.round(minDim * 0.038));
     const wmMargin = Math.round(minDim * 0.03);
 
     const svgWatermark = `
       <svg width="${imgWidth}" height="${imgHeight}" xmlns="http://www.w3.org/2000/svg">
-        ${fontDefs}
         <text 
           x="${imgWidth - wmMargin}" 
           y="${imgHeight - wmMargin}" 
-          font-family="${fontFamily}" 
+          font-family="DejaVu Sans, sans-serif" 
           font-size="${wmFontSize}" 
           font-weight="bold" 
           fill="#ffffff" 
           stroke="#000000" 
           stroke-width="1.8" 
           text-anchor="end"
+          dominant-baseline="auto"
         >By Ndra Store</text>
       </svg>
     `;
 
-    // Rotasi Stempel -12 Derajat
+    // Rotasi Stempel -12 Derajat dengan Background Transparan
     const rotatedStamp = await sharp(Buffer.from(svgOverlay))
-      .rotate(-12, { background: { r: 0, g: 0, b: 0, alpha: 0 } })
+      .rotate(-12, {
+        background: { r: 0, g: 0, b: 0, alpha: 0 }
+      })
       .toBuffer();
 
-    // Composite Gambar
+    // Composite Stempel dan Watermark ke Gambar Utama
     const processedImageBuffer = await sharp(imageBuffer)
       .composite([
         { input: rotatedStamp, gravity: 'center' },
@@ -301,7 +282,7 @@ export default async function handler(req, res) {
       .jpeg({ quality: 92 })
       .toBuffer();
 
-    // Upload Ke Host
+    // 8. Upload Gambar Hasil Composite (Termai -> Catbox -> TmpFiles)
     let imageUrl;
     try {
       imageUrl = await uploadTermai(processedImageBuffer);
@@ -323,6 +304,7 @@ export default async function handler(req, res) {
       }
     }
 
+    // 9. Return Response Sukses
     return res.status(200).json({
       status: true,
       creator: "Ndra09",
