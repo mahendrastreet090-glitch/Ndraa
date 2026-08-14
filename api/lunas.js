@@ -25,55 +25,67 @@ export default async function handler(req, res) {
     }
 
     // Decode Base64 ke Buffer
-    const imgBuffer = Buffer.from(base64.replace(/^data:image\/\w+;base64,/, ""), 'base64')
+    const cleanBase64 = base64.replace(/^data:image\/\w+;base64,/, '')
+    const imgBuffer = Buffer.from(cleanBase64, 'base64')
+    
+    // Read Image dengan Jimp
     const image = await Jimp.read(imgBuffer)
-
-    // Ukuran gambar
     const width = image.bitmap.width
     const height = image.bitmap.height
 
-    // Pilih Font berdasarkan skala gambar
-    const fontSize = Math.floor(width * 0.1)
+    // Pilih ukuran Font berdasarkan lebar gambar
     let font = Jimp.FONT_SANS_64_WHITE
-    if (fontSize < 32) font = Jimp.FONT_SANS_32_WHITE
-    else if (fontSize > 100) font = Jimp.FONT_SANS_128_WHITE
+    if (width < 500) font = Jimp.FONT_SANS_32_WHITE
+    else if (width > 1200) font = Jimp.FONT_SANS_128_WHITE
 
     const loadedFont = await Jimp.loadFont(font)
 
-    // Buat layer teks/stempel baru
-    const stamp = new Jimp(width, height, 0x00000000)
-
-    // Tulis teks merah di tengah
+    // Tentukan dimensi teks
     const textWidth = Jimp.measureText(loadedFont, text)
     const textHeight = Jimp.measureTextHeight(loadedFont, text, width)
-    
-    // Warnai teks jadi merah & cetak
-    const redText = new Jimp(textWidth + 40, textHeight + 20, 0x00000000)
-    redText.print(loadedFont, 20, 10, text)
-    redText.color([{ apply: 'xor', params: ['#DC2626'] }]) // Warna merah
 
-    // Gambar Bingkai Kotak Stempel
-    const borderWidth = Math.max(4, Math.floor(fontSize * 0.08))
-    redText.scan(0, 0, redText.bitmap.width, redText.bitmap.height, function(x, y, idx) {
-      const isBorder = x < borderWidth || x >= redText.bitmap.width - borderWidth ||
-                       y < borderWidth || y >= redText.bitmap.height - borderWidth;
+    // Buat Layer Stempel
+    const padX = 30
+    const padY = 15
+    const stampWidth = textWidth + padX * 2
+    const stampHeight = textHeight + padY * 2
+
+    const stamp = new Jimp(stampWidth, stampHeight, 0x00000000)
+
+    // Tulis Teks Stempel
+    stamp.print(loadedFont, padX, padY, text)
+
+    // Ubah warna teks menjadi merah (#DC2626)
+    stamp.scan(0, 0, stampWidth, stampHeight, function(x, y, idx) {
+      if (this.bitmap.data[idx + 3] > 0) { // Jika piksel berisi teks
+        this.bitmap.data[idx] = 220;     // R
+        this.bitmap.data[idx + 1] = 38;  // G
+        this.bitmap.data[idx + 2] = 38;  // B
+      }
+    })
+
+    // Buat Bingkai/Kotak Merah
+    const border = Math.max(4, Math.floor(stampHeight * 0.08))
+    stamp.scan(0, 0, stampWidth, stampHeight, function(x, y, idx) {
+      const isBorder = x < border || x >= stampWidth - border || y < border || y >= stampHeight - border
       if (isBorder) {
         this.bitmap.data[idx] = 220;     // R
         this.bitmap.data[idx + 1] = 38;  // G
         this.bitmap.data[idx + 2] = 38;  // B
-        this.bitmap.data[idx + 3] = 217; // Alpha (85%)
+        this.bitmap.data[idx + 3] = 220; // Opasitas
       }
-    });
+    })
 
-    // Miringkan stempel -20 derajat
-    redText.rotate(20, false)
+    // Rotasi Stempel (-20 Derajat)
+    stamp.rotate(20, false)
 
-    // Tempelkan stempel ke tengah gambar utama
-    const xPos = (width - redText.bitmap.width) / 2
-    const yPos = (height - redText.bitmap.height) / 2
-    image.composite(redText, xPos, yPos)
+    // Posisi Tempel di Tengah
+    const xPos = (width - stamp.bitmap.width) / 2
+    const yPos = (height - stamp.bitmap.height) / 2
 
-    // Convert hasil ke Base64
+    image.composite(stamp, xPos, yPos)
+
+    // Export Hasil
     const resultBuffer = await image.getBufferAsync(Jimp.MIME_JPEG)
     const resultBase64 = resultBuffer.toString('base64')
 
@@ -93,4 +105,13 @@ export default async function handler(req, res) {
       error: err.message || "Failed to process image."
     })
   }
+}
+
+// Izinkan payload berukuran hingga 10MB dari Bot WhatsApp
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb',
+    },
+  },
 }
