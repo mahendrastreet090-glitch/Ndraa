@@ -157,7 +157,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // 4. Deteksi & Validasi Metadata Gambar dengan Sharp
+    // 4. Deteksi & Validasi Metadata Gambar
     let metadata;
     try {
       metadata = await sharp(imageBuffer).metadata();
@@ -175,48 +175,26 @@ export default async function handler(req, res) {
     const stampText = String(text).trim().toUpperCase() || "LUNAS";
     const safeText = escapeXml(stampText);
 
-    // 5. KALKULASI CAP GEDEK (85% Lebar Sisi Terkecil Gambar)
+    // 5. KALKULASI UKURAN CAP (80% Sisi Terkecil)
     const minDim = Math.min(imgWidth, imgHeight);
     
-    const boxWidth = Math.round(minDim * 0.85); // Cap jauh lebih besar
+    const boxWidth = Math.round(minDim * 0.80); 
     const boxHeight = Math.round(boxWidth * 0.38);
 
-    // Scaling Font Otomatis Presisi
+    // Ukuran Font Responsif
     const maxFontByHeight = boxHeight * 0.52;
     const maxFontByWidth = (boxWidth * 0.82) / Math.max(1, stampText.length * 0.62);
-    const fontSize = Math.max(20, Math.round(Math.min(maxFontByHeight, maxFontByWidth)));
+    const fontSize = Math.max(18, Math.round(Math.min(maxFontByHeight, maxFontByWidth)));
 
-    // Ketebalan Garis Bingkai Cap (Extra Bold)
-    const outerStroke = Math.max(6, Math.round(boxWidth * 0.038));
-    const innerStroke = Math.max(2, Math.round(boxWidth * 0.018));
+    // Ketebalan Garis Bingkai Cap
+    const outerStroke = Math.max(5, Math.round(boxWidth * 0.035));
+    const innerStroke = Math.max(2, Math.round(boxWidth * 0.016));
     const borderRadius = Math.round(boxWidth * 0.05);
     const innerInset = Math.round(boxWidth * 0.04);
 
-    // Overlay SVG Cap Merah
+    // Overlay SVG Cap Merah (Menggunakan XML Attribute langsung tanpa CSS Class)
     const svgOverlay = `
       <svg width="${boxWidth}" height="${boxHeight}" viewBox="0 0 ${boxWidth} ${boxHeight}" xmlns="http://www.w3.org/2000/svg">
-        <style>
-          .outer-border {
-            fill: rgba(211, 47, 47, 0.12);
-            stroke: #d32f2f;
-            stroke-width: ${outerStroke}px;
-          }
-          .inner-border {
-            fill: none;
-            stroke: #d32f2f;
-            stroke-width: ${innerStroke}px;
-          }
-          .stamp-text {
-            font-family: 'DejaVu Sans', 'Arial Black', 'Impact', sans-serif;
-            font-weight: 900;
-            font-size: ${fontSize}px;
-            fill: #d32f2f;
-            text-anchor: middle;
-            dominant-baseline: central;
-            letter-spacing: 2px;
-          }
-        </style>
-
         <!-- Garis Luar Tebal (Outer Box) -->
         <rect 
           x="${outerStroke / 2}" 
@@ -225,7 +203,9 @@ export default async function handler(req, res) {
           height="${boxHeight - outerStroke}" 
           rx="${borderRadius}" 
           ry="${borderRadius}" 
-          class="outer-border" 
+          fill="rgba(211, 47, 47, 0.10)"
+          stroke="#d32f2f"
+          stroke-width="${outerStroke}"
         />
 
         <!-- Garis Dalam Tipis (Inner Box) -->
@@ -236,11 +216,23 @@ export default async function handler(req, res) {
           height="${boxHeight - (outerStroke + innerInset) * 2}" 
           rx="${Math.max(2, borderRadius - 3)}" 
           ry="${Math.max(2, borderRadius - 3)}" 
-          class="inner-border" 
+          fill="none"
+          stroke="#d32f2f"
+          stroke-width="${innerStroke}"
         />
 
-        <!-- Teks Cap -->
-        <text x="50%" y="50%" class="stamp-text">${safeText}</text>
+        <!-- Teks Cap (Dirender Langsung & Presisi) -->
+        <text 
+          x="50%" 
+          y="50%" 
+          dy="0.35em"
+          font-family="sans-serif" 
+          font-weight="900" 
+          font-size="${fontSize}" 
+          fill="#d32f2f" 
+          text-anchor="middle"
+          letter-spacing="2"
+        >${safeText}</text>
       </svg>
     `;
 
@@ -250,19 +242,17 @@ export default async function handler(req, res) {
 
     const svgWatermark = `
       <svg width="${imgWidth}" height="${imgHeight}" xmlns="http://www.w3.org/2000/svg">
-        <style>
-          .wm-text {
-            font-family: 'DejaVu Sans', Arial, sans-serif;
-            font-size: ${wmFontSize}px;
-            font-weight: bold;
-            fill: #ffffff;
-            stroke: #000000;
-            stroke-width: 1.5px;
-            paint-order: stroke fill;
-            text-anchor: end;
-          }
-        </style>
-        <text x="${imgWidth - wmMargin}" y="${imgHeight - wmMargin}" class="wm-text">By Ndra Store</text>
+        <text 
+          x="${imgWidth - wmMargin}" 
+          y="${imgHeight - wmMargin}" 
+          font-family="sans-serif" 
+          font-size="${wmFontSize}" 
+          font-weight="bold" 
+          fill="#ffffff" 
+          stroke="#000000" 
+          stroke-width="1.5" 
+          text-anchor="end"
+        >By Ndra Store</text>
       </svg>
     `;
 
@@ -271,7 +261,7 @@ export default async function handler(req, res) {
       .rotate(-12, { background: { r: 0, g: 0, b: 0, alpha: 0 } })
       .toBuffer();
 
-    // Composite: Tempelkan Cap Jumbo di Tengah & Watermark di Pojok Kanan Bawah
+    // Composite: Tempelkan Cap di Tengah & Watermark di Pojok Kanan Bawah
     const processedImageBuffer = await sharp(imageBuffer)
       .composite([
         { input: rotatedStamp, gravity: 'center' },
