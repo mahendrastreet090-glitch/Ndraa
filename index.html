@@ -3,155 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NDRA OFFICIAL - Rest API Uploader</title>
+  <title>NDRA OFFICIAL API - Stempel Generator</title>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    body {
-      background-color: #0f172a;
-      color: #f8fafc;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    .card {
-      background-color: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 16px;
-      padding: 24px;
-      width: 100%;
-      max-width: 480px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-    }
-
-    h1 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #38bdf8;
-      text-align: center;
-      margin-bottom: 8px;
-    }
-
-    p.subtitle {
-      font-size: 0.875rem;
-      color: #94a3b8;
-      text-align: center;
-      margin-bottom: 24px;
-    }
-
-    .form-group {
-      margin-bottom: 16px;
-    }
-
-    label {
-      display: block;
-      font-size: 0.875rem;
-      margin-bottom: 6px;
-      color: #cbd5e1;
-    }
-
-    input[type="file"], input[type="text"] {
-      width: 100%;
-      padding: 10px;
-      background-color: #0f172a;
-      border: 1px solid #334155;
-      border-radius: 8px;
-      color: #fff;
-      font-size: 0.875rem;
-      outline: none;
-    }
-
-    input[type="file"]::file-selector-button {
-      background-color: #3b82f6;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-right: 10px;
-    }
-
-    button.btn-submit {
-      width: 100%;
-      padding: 12px;
-      background-color: #0284c7;
-      color: white;
-      font-weight: 600;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    button.btn-submit:hover {
-      background-color: #0369a1;
-    }
-
-    button.btn-submit:disabled {
-      background-color: #475569;
-      cursor: not-allowed;
-    }
-
-    .result-box {
-      margin-top: 24px;
-      display: none;
-      background-color: #0f172a;
-      border: 1px solid #334155;
-      border-radius: 8px;
-      padding: 16px;
-    }
-
-    .status-badge {
-      display: inline-block;
-      padding: 4px 8px;
-      font-size: 0.75rem;
-      font-weight: bold;
-      border-radius: 4px;
-      margin-bottom: 12px;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+    .card { background-color: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 24px; width: 100%; max-width: 480px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); }
+    h1 { font-size: 1.5rem; font-weight: 700; color: #38bdf8; text-align: center; margin-bottom: 8px; }
+    p.subtitle { font-size: 0.875rem; color: #94a3b8; text-align: center; margin-bottom: 24px; }
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 0.875rem; margin-bottom: 6px; color: #cbd5e1; }
+    input[type="file"], input[type="text"] { width: 100%; padding: 10px; background-color: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #fff; font-size: 0.875rem; outline: none; }
+    input[type="file"]::file-selector-button { background-color: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-right: 10px; }
+    button.btn-submit { width: 100%; padding: 12px; background-color: #0284c7; color: white; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
+    button.btn-submit:hover { background-color: #0369a1; }
+    button.btn-submit:disabled { background-color: #475569; cursor: not-allowed; }
+    .result-box { margin-top: 24px; display: none; background-color: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 16px; }
+    .status-badge { display: inline-block; padding: 4px 8px; font-size: 0.75rem; font-weight: bold; border-radius: 4px; margin-bottom: 12px; }
     .status-true { background-color: #059669; color: #ecfdf5; }
     .status-false { background-color: #dc2626; color: #fef2f2; }
-
-    pre {
-      font-family: monospace;
-      font-size: 0.8rem;
-      color: #38bdf8;
-      white-space: pre-wrap;
-      word-break: break-all;
-      background-color: #1e293b;
-      padding: 10px;
-      border-radius: 6px;
-      margin-bottom: 12px;
-    }
-
-    .action-btns {
-      display: flex;
-      gap: 8px;
-    }
-
-    .btn-action {
-      flex: 1;
-      padding: 8px;
-      font-size: 0.8rem;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-      text-align: center;
-      text-decoration: none;
-    }
-
+    pre { font-family: monospace; font-size: 0.8rem; color: #38bdf8; white-space: pre-wrap; word-break: break-all; background-color: #1e293b; padding: 10px; border-radius: 6px; margin-bottom: 12px; }
+    .action-btns { display: flex; gap: 8px; }
+    .btn-action { flex: 1; padding: 8px; font-size: 0.8rem; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; text-align: center; text-decoration: none; }
     .btn-copy { background-color: #334155; color: white; }
     .btn-open { background-color: #16a34a; color: white; }
+    canvas { display: none; }
   </style>
 </head>
 <body>
@@ -188,8 +63,58 @@
     </div>
   </div>
 
+  <canvas id="processCanvas"></canvas>
+
   <script>
     let uploadedUrl = ""
+
+    function createStampedBase64(file, text) {
+      return new Promise((resolve, reject) => {
+        const img = new Image()
+        img.crossOrigin = "anonymous"
+        img.onload = () => {
+          const canvas = document.getElementById('processCanvas')
+          const ctx = canvas.getContext('2d')
+
+          canvas.width = img.width
+          canvas.height = img.height
+
+          // Gambar latar belakang
+          ctx.drawImage(img, 0, 0)
+
+          // Konfigurasi Stempel
+          const width = img.width
+          const height = img.height
+          const fontSize = Math.max(24, Math.floor(width * 0.1))
+
+          ctx.save()
+          ctx.translate(width / 2, height / 2)
+          ctx.rotate(-15 * Math.PI / 180)
+
+          // Frame Kotak Stempel
+          const textMetrics = ctx.measureText(text)
+          const stampWidth = Math.max(fontSize * text.length * 0.7, fontSize * 3)
+          const stampHeight = fontSize * 1.6
+
+          ctx.strokeStyle = "rgba(220, 38, 38, 0.9)"
+          ctx.lineWidth = Math.max(4, Math.floor(fontSize * 0.1))
+          ctx.strokeRect(-stampWidth / 2, -stampHeight / 2, stampWidth, stampHeight)
+
+          // Teks Stempel
+          ctx.font = `bold ${fontSize}px sans-serif`
+          ctx.fillStyle = "rgba(220, 38, 38, 0.9)"
+          ctx.textAlign = "center"
+          ctx.textBaseline = "middle"
+          ctx.fillText(text, 0, 0)
+
+          ctx.restore()
+
+          resolve(canvas.toDataURL('image/jpeg', 0.85))
+        }
+        img.onerror = (err) => reject(err)
+        img.src = URL.createObjectURL(file)
+      })
+    }
 
     async function processUpload() {
       const fileInput = document.getElementById('imageInput')
@@ -207,59 +132,59 @@
       }
 
       const file = fileInput.files[0]
-      const reader = new FileReader()
+      const textStamp = textInput.value || "LUNAS"
 
       submitBtn.disabled = true
-      submitBtn.innerText = "Memproses..."
+      submitBtn.innerText = "Menempelkan Stempel..."
       resultBox.style.display = "none"
 
-      reader.onload = async function (e) {
-        const base64Data = e.target.result
+      try {
+        // 1. Tempelkan stempel di browser
+        const stampedBase64 = await createStampedBase64(file, textStamp)
 
-        try {
-          const response = await fetch('/api/lunas', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              base64: base64Data,
-              text: textInput.value || "LUNAS"
-            })
+        submitBtn.innerText = "Mengunggah ke Server..."
+
+        // 2. Kirim gambar berstempel ke Vercel
+        const response = await fetch('/api/lunas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            base64: stampedBase64,
+            text: textStamp
           })
+        })
 
-          const data = await response.json()
+        const data = await response.json()
 
-          resultBox.style.display = "block"
-          jsonOutput.innerText = JSON.stringify(data, null, 2)
-          creatorText.innerText = data.creator || "Ndra09"
+        resultBox.style.display = "block"
+        jsonOutput.innerText = JSON.stringify(data, null, 2)
+        creatorText.innerText = data.creator || "Ndra09"
 
-          if (data.status) {
-            statusBadge.className = "status-badge status-true"
-            statusBadge.innerText = "STATUS: TRUE (200)"
-            
-            if (data.result && data.result.url_gambar) {
-              uploadedUrl = data.result.url_gambar
-              document.getElementById('openBtn').href = uploadedUrl
-              actionBtns.style.display = "flex"
-            }
-          } else {
-            statusBadge.className = "status-badge status-false"
-            statusBadge.innerText = "STATUS: FALSE"
-            actionBtns.style.display = "none"
+        if (data.status) {
+          statusBadge.className = "status-badge status-true"
+          statusBadge.innerText = "STATUS: TRUE (200)"
+          
+          if (data.result && data.result.url_gambar) {
+            uploadedUrl = data.result.url_gambar
+            document.getElementById('openBtn').href = uploadedUrl
+            actionBtns.style.display = "flex"
           }
-
-        } catch (err) {
-          resultBox.style.display = "block"
+        } else {
           statusBadge.className = "status-badge status-false"
-          statusBadge.innerText = "STATUS: ERROR"
-          jsonOutput.innerText = JSON.stringify({ status: false, error: err.message }, null, 2)
+          statusBadge.innerText = "STATUS: FALSE"
           actionBtns.style.display = "none"
-        } finally {
-          submitBtn.disabled = false
-          submitBtn.innerText = "Proses & Upload"
         }
-      }
 
-      reader.readAsDataURL(file)
+      } catch (err) {
+        resultBox.style.display = "block"
+        statusBadge.className = "status-badge status-false"
+        statusBadge.innerText = "STATUS: ERROR"
+        jsonOutput.innerText = JSON.stringify({ status: false, error: err.message }, null, 2)
+        actionBtns.style.display = "none"
+      } finally {
+        submitBtn.disabled = false
+        submitBtn.innerText = "Proses & Upload"
+      }
     }
 
     function copyLink() {
