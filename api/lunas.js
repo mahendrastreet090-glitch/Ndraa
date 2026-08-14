@@ -21,23 +21,23 @@ export default async function handler(req, res) {
     const cleanBase64 = base64.replace(/^data:image\/\w+;base64,/, '').trim()
     const imgBuffer = Buffer.from(cleanBase64, 'base64')
 
-    // Upload Gambar ke Catbox.moe
+    // Upload ke Qu.ax (mirip fungsi pomf2 di script-mu)
     const formData = new FormData()
     const blob = new Blob([imgBuffer], { type: 'image/jpeg' })
-    
-    formData.append('reqtype', 'fileupload')
-    formData.append('fileToUpload', blob, 'stamped_image.jpg')
+    formData.append('files[]', blob, 'stamped_image.jpg')
 
-    const uploadRes = await fetch('https://catbox.moe/user/api.php', {
+    const uploadRes = await fetch('https://qu.ax/upload.php', {
       method: 'POST',
       body: formData
     })
 
-    const directUrl = (await uploadRes.text()).trim()
+    const uploadData = await uploadRes.json()
 
-    if (!directUrl || !directUrl.startsWith('http')) {
-      throw new Error("Gagal mengunggah gambar ke Catbox")
+    if (!uploadData || !uploadData.files || !uploadData.files[0] || !uploadData.files[0].url) {
+      throw new Error("Gagal mengunggah gambar ke Qu.ax")
     }
+
+    const directUrl = uploadData.files[0].url
 
     return res.status(200).json({
       status: true,
