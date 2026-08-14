@@ -1,0 +1,10 @@
+{
+  "name": "ndra09-api",
+  "version": "1.0.0",
+  "description": "Rest API by Ndra09",
+  "main": "index.js",
+  "author": "Ndra09",
+  "dependencies": {
+    "@napi-rs/canvas": "^0.1.44"
+  }
+}
