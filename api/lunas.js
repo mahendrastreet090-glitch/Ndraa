@@ -1,14 +1,11 @@
-import Jimp from 'jimp'
-import { createRequire } from 'module'
-
-const require = createRequire(import.meta.url)
-const pkg = require('../package.json')
+import PImage from 'pure-image'
+import { Readable } from 'stream'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({
       status: false,
-      creator: pkg.author,
+      creator: "Ndra09",
       error: "Method not allowed. Use POST instead."
     })
   }
@@ -19,7 +16,7 @@ export default async function handler(req, res) {
     if (!base64) {
       return res.status(400).json({
         status: false,
-        creator: pkg.author,
+        creator: "Ndra09",
         error: "Missing 'base64' parameter in request body."
       })
     }
@@ -27,71 +24,61 @@ export default async function handler(req, res) {
     // Decode Base64 ke Buffer
     const cleanBase64 = base64.replace(/^data:image\/\w+;base64,/, '')
     const imgBuffer = Buffer.from(cleanBase64, 'base64')
-    
-    // Read Image dengan Jimp
-    const image = await Jimp.read(imgBuffer)
-    const width = image.bitmap.width
-    const height = image.bitmap.height
 
-    // Pilih ukuran Font berdasarkan lebar gambar
-    let font = Jimp.FONT_SANS_64_WHITE
-    if (width < 500) font = Jimp.FONT_SANS_32_WHITE
-    else if (width > 1200) font = Jimp.FONT_SANS_128_WHITE
+    // Decode Image via Stream
+    const stream = Readable.from(imgBuffer)
+    let img;
+    try {
+      img = await PImage.decodeJPEGFromStream(stream)
+    } catch {
+      const streamPng = Readable.from(imgBuffer)
+      img = await PImage.decodePNGFromStream(streamPng)
+    }
 
-    const loadedFont = await Jimp.loadFont(font)
+    const width = img.width
+    const height = img.height
 
-    // Tentukan dimensi teks
-    const textWidth = Jimp.measureText(loadedFont, text)
-    const textHeight = Jimp.measureTextHeight(loadedFont, text, width)
+    // Buat Canvas Baru
+    const canvas = PImage.make(width, height)
+    const ctx = canvas.getContext('2d')
 
-    // Buat Layer Stempel
-    const padX = 30
-    const padY = 15
-    const stampWidth = textWidth + padX * 2
-    const stampHeight = textHeight + padY * 2
+    // Draw Gambar Asli
+    ctx.drawImage(img, 0, 0, width, height, 0, 0, width, height)
 
-    const stamp = new Jimp(stampWidth, stampHeight, 0x00000000)
+    // Pengaturan Stempel Merah
+    const fontSize = Math.floor(width * 0.12)
+    ctx.fillStyle = 'rgba(220, 38, 38, 0.85)'
+    ctx.strokeStyle = 'rgba(220, 38, 38, 0.85)'
+    ctx.lineWidth = Math.max(4, Math.floor(fontSize * 0.08))
 
-    // Tulis Teks Stempel
-    stamp.print(loadedFont, padX, padY, text)
+    // Buat Stempel di Tengah
+    const padX = fontSize * 0.5
+    const padY = fontSize * 0.25
+    const rectWidth = (text.length * (fontSize * 0.6)) + (padX * 2)
+    const rectHeight = fontSize + (padY * 2)
 
-    // Ubah warna teks menjadi merah (#DC2626)
-    stamp.scan(0, 0, stampWidth, stampHeight, function(x, y, idx) {
-      if (this.bitmap.data[idx + 3] > 0) { // Jika piksel berisi teks
-        this.bitmap.data[idx] = 220;     // R
-        this.bitmap.data[idx + 1] = 38;  // G
-        this.bitmap.data[idx + 2] = 38;  // B
+    const centerX = width / 2
+    const centerY = height / 2
+
+    // Gambarkan Kotak Stempel
+    ctx.strokeRect(centerX - (rectWidth / 2), centerY - (rectHeight / 2), rectWidth, rectHeight)
+
+    // Render ke PNG Buffer
+    const outChunks = []
+    const outStream = new (await import('stream')).Writable({
+      write(chunk, encoding, callback) {
+        outChunks.push(chunk)
+        callback()
       }
     })
 
-    // Buat Bingkai/Kotak Merah
-    const border = Math.max(4, Math.floor(stampHeight * 0.08))
-    stamp.scan(0, 0, stampWidth, stampHeight, function(x, y, idx) {
-      const isBorder = x < border || x >= stampWidth - border || y < border || y >= stampHeight - border
-      if (isBorder) {
-        this.bitmap.data[idx] = 220;     // R
-        this.bitmap.data[idx + 1] = 38;  // G
-        this.bitmap.data[idx + 2] = 38;  // B
-        this.bitmap.data[idx + 3] = 220; // Opasitas
-      }
-    })
-
-    // Rotasi Stempel (-20 Derajat)
-    stamp.rotate(20, false)
-
-    // Posisi Tempel di Tengah
-    const xPos = (width - stamp.bitmap.width) / 2
-    const yPos = (height - stamp.bitmap.height) / 2
-
-    image.composite(stamp, xPos, yPos)
-
-    // Export Hasil
-    const resultBuffer = await image.getBufferAsync(Jimp.MIME_JPEG)
+    await PImage.encodePNGToStream(canvas, outStream)
+    const resultBuffer = Buffer.concat(outChunks)
     const resultBase64 = resultBuffer.toString('base64')
 
     return res.status(200).json({
       status: true,
-      creator: pkg.author,
+      creator: "Ndra09",
       result: {
         text: text,
         base64: resultBase64
@@ -101,13 +88,12 @@ export default async function handler(req, res) {
   } catch (err) {
     return res.status(500).json({
       status: false,
-      creator: pkg.author,
+      creator: "Ndra09",
       error: err.message || "Failed to process image."
     })
   }
 }
 
-// Izinkan payload berukuran hingga 10MB dari Bot WhatsApp
 export const config = {
   api: {
     bodyParser: {
