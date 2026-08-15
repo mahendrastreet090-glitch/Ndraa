@@ -14,18 +14,19 @@
 }
 
 :root {
-    --bg: #020604;
-    --panel: #050b08;
-    --panel2: #07110c;
-    --border: #153522;
-    --border2: #1e4930;
-    --green: #00ff88;
-    --green2: #00c96b;
-    --green-dark: #07301c;
-    --text: #d9fbe8;
-    --muted: #6f8e7b;
-    --muted2: #3e5b49;
-    --danger: #ff5c5c;
+    --bg: #020617;
+    --panel: #0b1120;
+    --panel2: #0f172a;
+    --border: #1e293b;
+    --border2: #334155;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --green: #22c55e;
+    --green2: #16a34a;
+    --cyan: #06b6d4;
+    --blue: #3b82f6;
+    --red: #ef4444;
+    --purple: #a855f7;
 }
 
 html {
@@ -33,111 +34,134 @@ html {
 }
 
 body {
-    min-height: 100vh;
-    background:
-        radial-gradient(
-            circle at 50% -10%,
-            rgba(0,255,136,.09),
-            transparent 40%
-        ),
-        #020604;
-
-    color: var(--text);
-
     font-family:
         "JetBrains Mono",
         "Fira Code",
+        "SFMono-Regular",
         Consolas,
         monospace;
 
-    overflow-x: hidden;
-}
-
-/* ==========================================
-   GRID BACKGROUND
-========================================== */
-
-body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-
-    background-image:
-        linear-gradient(
-            rgba(0,255,136,.018) 1px,
-            transparent 1px
+    background:
+        radial-gradient(
+            circle at 15% 10%,
+            rgba(0, 255, 140, .07),
+            transparent 30%
         ),
-        linear-gradient(
-            90deg,
-            rgba(0,255,136,.018) 1px,
-            transparent 1px
-        );
+        radial-gradient(
+            circle at 85% 20%,
+            rgba(0, 180, 255, .06),
+            transparent 30%
+        ),
+        #020617;
 
-    background-size: 35px 35px;
+    color: var(--text);
+    min-height: 100vh;
 }
 
-/* ==========================================
+/* =========================
    LAYOUT
-========================================== */
+========================= */
 
 .app {
-    min-height: 100vh;
     display: flex;
+    min-height: 100vh;
 }
 
-/* ==========================================
+/* =========================
    SIDEBAR
-========================================== */
+========================= */
 
 .sidebar {
-    width: 245px;
-    min-height: 100vh;
+    width: 260px;
+    min-width: 260px;
 
     position: fixed;
     left: 0;
     top: 0;
     bottom: 0;
 
-    z-index: 100;
-
     background:
         linear-gradient(
             180deg,
-            #030a06,
-            #020604
+            #030712 0%,
+            #020617 100%
         );
 
     border-right: 1px solid var(--border);
 
-    padding: 22px 14px;
+    padding: 22px 15px;
 
-    display: flex;
-    flex-direction: column;
+    z-index: 100;
+
+    overflow-y: auto;
 }
 
-.sidebar-brand {
-    padding: 5px 10px 24px;
-
-    border-bottom: 1px solid #10291b;
-
-    margin-bottom: 20px;
+.brand {
+    padding: 8px 8px 22px;
 }
 
-.brand-title {
+.brand-top {
     display: flex;
     align-items: center;
-    gap: 9px;
+    gap: 10px;
+}
+
+.brand-icon {
+    width: 38px;
+    height: 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background:
+        rgba(34,197,94,.08);
+
+    border:
+        1px solid rgba(34,197,94,.25);
 
     color: var(--green);
 
-    font-size: 14px;
-    font-weight: 900;
-
-    letter-spacing: 1px;
+    font-size: 18px;
 }
 
-.brand-dot {
+.brand-name {
+    font-size: 15px;
+    font-weight: 800;
+    color: #f8fafc;
+}
+
+.brand-sub {
+    margin-top: 5px;
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.terminal-status {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    margin: 0 7px 20px;
+
+    padding: 8px 10px;
+
+    border:
+        1px solid rgba(34,197,94,.15);
+
+    background:
+        rgba(34,197,94,.04);
+
+    border-radius: 8px;
+
+    color: #86efac;
+
+    font-size: 10px;
+}
+
+.status-dot {
     width: 7px;
     height: 7px;
 
@@ -146,398 +170,352 @@ body::before {
     background: var(--green);
 
     box-shadow:
-        0 0 12px var(--green);
+        0 0 10px
+        rgba(34,197,94,.8);
+
+    animation: pulse 1.5s infinite;
 }
 
-.brand-subtitle {
-    margin-top: 8px;
-
-    color: var(--muted2);
-
-    font-size: 8px;
-
-    letter-spacing: 1px;
+@keyframes pulse {
+    50% {
+        opacity: .4;
+    }
 }
 
-/* ==========================================
-   NAVIGATION
-========================================== */
+/* SEARCH */
 
-.nav-label {
-    color: #3c5b49;
+.menu-search {
+    position: relative;
+    margin: 0 4px 18px;
+}
 
-    font-size: 8px;
+.menu-search input {
+    width: 100%;
 
-    font-weight: 700;
+    background: #020617;
+
+    border:
+        1px solid var(--border);
+
+    border-radius: 9px;
+
+    padding: 11px 12px 11px 34px;
+
+    color: #e2e8f0;
+
+    outline: none;
+
+    font-family: inherit;
+
+    font-size: 11px;
+}
+
+.menu-search input:focus {
+    border-color:
+        rgba(34,197,94,.5);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(34,197,94,.05);
+}
+
+.search-icon {
+    position: absolute;
+
+    left: 12px;
+    top: 50%;
+
+    transform:
+        translateY(-50%);
+
+    color: var(--muted);
+
+    font-size: 12px;
+}
+
+/* MENU */
+
+.menu-title {
+    color: #475569;
+
+    font-size: 9px;
+
+    font-weight: 800;
 
     letter-spacing: 1.5px;
 
-    padding: 0 10px 9px;
+    padding: 0 9px 8px;
 }
 
-.nav {
+.menu {
     display: flex;
     flex-direction: column;
     gap: 5px;
 }
 
-.nav-item {
+.menu-item {
     width: 100%;
 
-    border: 1px solid transparent;
-
-    background: transparent;
-
-    color: #668371;
+    display: flex;
+    align-items: center;
+    gap: 11px;
 
     padding: 12px 11px;
 
-    border-radius: 5px;
+    border:
+        1px solid transparent;
+
+    background: transparent;
+
+    color: #94a3b8;
+
+    border-radius: 9px;
 
     cursor: pointer;
 
     font-family: inherit;
 
-    font-size: 10px;
-
-    font-weight: 700;
+    font-size: 11px;
 
     text-align: left;
-
-    display: flex;
-    align-items: center;
-
-    gap: 10px;
 
     transition: .2s;
 }
 
-.nav-item:hover {
-    color: var(--green);
+.menu-item:hover {
+    background:
+        rgba(148,163,184,.05);
 
-    background: rgba(0,255,136,.025);
+    color: #e2e8f0;
+
+    border-color:
+        rgba(148,163,184,.08);
 }
 
-.nav-item.active {
-    color: var(--green);
+.menu-item.active {
+    background:
+        linear-gradient(
+            90deg,
+            rgba(34,197,94,.12),
+            rgba(34,197,94,.025)
+        );
 
-    background: var(--green-dark);
+    color: #86efac;
 
-    border-color: #185232;
-
-    box-shadow:
-        inset 2px 0 0 var(--green);
+    border-color:
+        rgba(34,197,94,.18);
 }
 
-.nav-icon {
-    width: 24px;
-    height: 24px;
+.menu-icon {
+    width: 25px;
+    height: 25px;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    background: #07140d;
+    background: #111827;
 
-    border: 1px solid #173b28;
+    border-radius: 7px;
 
-    border-radius: 4px;
-
-    font-size: 11px;
+    font-size: 13px;
 }
 
-.nav-item.active .nav-icon {
-    border-color: #267447;
+.menu-item.active .menu-icon {
+    background:
+        rgba(34,197,94,.1);
 
-    background: #0a3a21;
+    color: var(--green);
 }
 
-.sidebar-bottom {
-    margin-top: auto;
+.menu-arrow {
+    margin-left: auto;
+    color: #334155;
+}
 
-    padding: 15px 10px 3px;
+.menu-item.active .menu-arrow {
+    color: var(--green);
+}
 
-    border-top: 1px solid #10291b;
+.sidebar-footer {
+    position: absolute;
+    bottom: 18px;
+    left: 20px;
+    right: 20px;
 
-    color: #304b3a;
+    color: #334155;
 
-    font-size: 8px;
+    font-size: 9px;
 
     line-height: 1.7;
 }
 
-.status {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-
-    color: #4d795e;
-
-    margin-bottom: 5px;
-}
-
-.status-dot {
-    width: 5px;
-    height: 5px;
-
-    background: var(--green);
-
-    border-radius: 50%;
-
-    box-shadow:
-        0 0 8px var(--green);
-}
-
-/* ==========================================
+/* =========================
    MAIN
-========================================== */
+========================= */
 
 .main {
-    width: 100%;
+    margin-left: 260px;
 
-    margin-left: 245px;
+    width: calc(100% - 260px);
+
+    padding: 30px;
 
     min-height: 100vh;
-
-    padding: 35px 25px 60px;
 }
 
-.content {
-    width: 100%;
-    max-width: 900px;
+.topbar {
+    max-width: 1000px;
 
-    margin: auto;
-}
+    margin: 0 auto 25px;
 
-/* ==========================================
-   MOBILE TOPBAR
-========================================== */
-
-.mobile-topbar {
-    display: none;
-
+    display: flex;
     align-items: center;
     justify-content: space-between;
 
-    margin-bottom: 18px;
+    padding-bottom: 18px;
 
-    padding: 12px;
-
-    background: #030a06;
-
-    border: 1px solid var(--border);
-
-    border-radius: 5px;
+    border-bottom:
+        1px solid var(--border);
 }
 
-.mobile-brand {
-    color: var(--green);
-
+.breadcrumb {
+    color: var(--muted);
     font-size: 11px;
-
-    font-weight: 900;
 }
 
-.menu-toggle {
-    border: 1px solid #1b5032;
-
-    background: #07140d;
-
+.breadcrumb span {
     color: var(--green);
-
-    border-radius: 4px;
-
-    padding: 7px 10px;
-
-    cursor: pointer;
-
-    font-family: inherit;
 }
 
-/* ==========================================
+.api-version {
+    color: #475569;
+    font-size: 10px;
+}
+
+/* =========================
    PAGE
-========================================== */
+========================= */
 
 .page {
-    display: none;
+    max-width: 1000px;
+    margin: auto;
 }
-
-.page.active {
-    display: block;
-}
-
-/* ==========================================
-   PAGE HEADER
-========================================== */
 
 .page-header {
     margin-bottom: 25px;
 }
 
-.page-badge {
-    display: inline-flex;
-
-    align-items: center;
-
-    gap: 7px;
-
-    padding: 6px 10px;
-
-    background: rgba(0,255,136,.035);
-
-    border: 1px solid rgba(0,255,136,.2);
-
+.terminal-line {
     color: var(--green);
 
-    font-size: 8px;
+    font-size: 11px;
 
-    letter-spacing: 1px;
+    margin-bottom: 12px;
+}
 
-    margin-bottom: 13px;
+.terminal-line::before {
+    content: "> ";
+    color: #475569;
 }
 
 .page-header h1 {
-    font-size: clamp(26px, 5vw, 43px);
+    font-size:
+        clamp(25px, 5vw, 42px);
+
+    color: #f8fafc;
 
     line-height: 1.15;
 
-    color: #effff6;
+    margin-bottom: 12px;
 
-    margin-bottom: 10px;
+    letter-spacing: -1.5px;
 }
 
-.page-header h1 span {
+.page-header h1 .accent {
     color: var(--green);
 }
 
 .page-header p {
-    max-width: 650px;
+    color: #64748b;
 
-    color: var(--muted);
-
-    font-size: 10px;
+    font-size: 12px;
 
     line-height: 1.8;
+
+    max-width: 700px;
 }
 
-/* ==========================================
+/* =========================
    CARD
-========================================== */
+========================= */
 
 .card {
-    position: relative;
-
     background:
-        linear-gradient(
-            145deg,
-            rgba(5,15,10,.97),
-            rgba(2,8,6,.97)
-        );
+        rgba(11,17,32,.88);
 
-    border: 1px solid var(--border);
+    border:
+        1px solid var(--border);
 
-    border-radius: 6px;
+    border-radius: 14px;
 
     padding: 22px;
 
-    margin-bottom: 17px;
+    margin-bottom: 18px;
 
     box-shadow:
-        0 20px 50px rgba(0,0,0,.3);
-
-    overflow: hidden;
+        0 15px 40px
+        rgba(0,0,0,.15);
 }
 
-.card::before {
-    content: "";
-
-    position: absolute;
-
-    top: 0;
-    left: 0;
-    right: 0;
-
-    height: 1px;
-
-    background:
-        linear-gradient(
-            90deg,
-            transparent,
-            rgba(0,255,136,.55),
-            transparent
-        );
-}
-
-.window-bar {
+.card-header {
     display: flex;
     align-items: center;
-
-    gap: 6px;
-
-    padding: 8px 11px;
-
-    margin: -22px -22px 21px;
-
-    background: #020604;
-
-    border-bottom: 1px solid #10291b;
-
-    color: #466553;
-
-    font-size: 8px;
-}
-
-.window-dot {
-    width: 6px;
-    height: 6px;
-
-    background: #254331;
-
-    border-radius: 50%;
-}
-
-.window-title {
-    margin-left: 6px;
-}
-
-/* ==========================================
-   SECTION TITLE
-========================================== */
-
-.section-title {
-    display: flex;
-    align-items: center;
-
-    gap: 9px;
+    justify-content: space-between;
 
     margin-bottom: 20px;
 
-    color: var(--text);
+    padding-bottom: 14px;
 
-    font-size: 14px;
+    border-bottom:
+        1px solid var(--border);
+}
+
+.card-title {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+
+    color: #f8fafc;
+
+    font-size: 13px;
 
     font-weight: 800;
 }
 
-.section-title::before {
-    content: "";
-
-    width: 3px;
-    height: 17px;
-
-    background: var(--green);
-
-    box-shadow:
-        0 0 10px rgba(0,255,136,.35);
-}
-
-.section-title span {
+.card-title .icon {
     color: var(--green);
 }
 
-/* ==========================================
+.card-badge {
+    font-size: 9px;
+
+    padding: 5px 8px;
+
+    border-radius: 6px;
+
+    color: #86efac;
+
+    background:
+        rgba(34,197,94,.06);
+
+    border:
+        1px solid rgba(34,197,94,.15);
+}
+
+/* =========================
    FORM
-========================================== */
+========================= */
 
 .form-group {
     margin-bottom: 18px;
@@ -546,21 +524,15 @@ body::before {
 label {
     display: block;
 
-    color: #789683;
+    color: #94a3b8;
 
-    font-size: 9px;
+    font-size: 10px;
 
-    font-weight: 700;
+    font-weight: 800;
 
-    letter-spacing: 1px;
+    letter-spacing: .8px;
 
     margin-bottom: 8px;
-}
-
-label span {
-    color: var(--green);
-
-    margin-right: 5px;
 }
 
 input[type="file"],
@@ -568,17 +540,18 @@ input[type="text"],
 input[type="url"] {
     width: 100%;
 
-    padding: 13px;
+    background: #020617;
 
-    background: #010604;
+    color: #f8fafc;
 
-    border: 1px solid #173b28;
+    border:
+        1px solid var(--border2);
 
-    border-radius: 4px;
+    border-radius: 9px;
+
+    padding: 12px;
 
     outline: none;
-
-    color: var(--text);
 
     font-family: inherit;
 
@@ -587,15 +560,17 @@ input[type="url"] {
     transition: .2s;
 }
 
-input::placeholder {
-    color: #304b3a;
-}
-
 input:focus {
-    border-color: rgba(0,255,136,.6);
+    border-color:
+        rgba(34,197,94,.55);
 
     box-shadow:
-        0 0 0 2px rgba(0,255,136,.03);
+        0 0 0 3px
+        rgba(34,197,94,.04);
+}
+
+input::placeholder {
+    color: #334155;
 }
 
 input[type="file"] {
@@ -603,97 +578,97 @@ input[type="file"] {
 }
 
 input[type="file"]::file-selector-button {
+    border: none;
+
+    background:
+        #14532d;
+
+    color: #bbf7d0;
+
     padding: 8px 12px;
 
-    margin-right: 9px;
+    border-radius: 7px;
 
-    border: 1px solid #1c6640;
-
-    border-radius: 3px;
-
-    background: #062315;
-
-    color: var(--green);
+    margin-right: 10px;
 
     cursor: pointer;
 
     font-family: inherit;
 
-    font-weight: 700;
+    font-size: 10px;
 }
 
-/* ==========================================
+/* =========================
    TABS
-========================================== */
+========================= */
 
-.input-tabs {
+.tabs {
     display: flex;
+    gap: 5px;
 
-    gap: 4px;
+    background: #020617;
 
-    padding: 4px;
+    border:
+        1px solid var(--border);
+
+    padding: 5px;
+
+    border-radius: 10px;
 
     margin-bottom: 20px;
-
-    background: #010403;
-
-    border: 1px solid var(--border);
-
-    border-radius: 4px;
 }
 
-.input-tab {
+.tab {
     flex: 1;
 
-    padding: 10px;
-
-    border: 1px solid transparent;
-
-    border-radius: 3px;
+    border: none;
 
     background: transparent;
 
-    color: var(--muted);
+    color: #64748b;
+
+    padding: 10px;
+
+    border-radius: 7px;
 
     cursor: pointer;
 
     font-family: inherit;
 
-    font-size: 9px;
+    font-size: 10px;
 
     font-weight: 700;
 }
 
-.input-tab.active {
-    color: var(--green);
+.tab.active {
+    background:
+        rgba(34,197,94,.1);
 
-    background: var(--green-dark);
-
-    border-color: #185232;
+    color: #86efac;
 }
 
-/* ==========================================
+/* =========================
    BUTTON
-========================================== */
+========================= */
 
 .process-btn {
     width: 100%;
 
-    padding: 14px;
+    border: 1px solid
+        rgba(34,197,94,.25);
 
-    border: 1px solid #1d7447;
+    border-radius: 9px;
 
-    border-radius: 4px;
+    padding: 13px;
 
     background:
         linear-gradient(
-            90deg,
-            #052515,
-            #07371f,
-            #052515
+            135deg,
+            #15803d,
+            #166534
         );
 
-    color: var(--green);
+    color: white;
 
     font-family: inherit;
 
@@ -701,55 +676,55 @@ input[type="file"]::file-selector-button {
 
     font-weight: 800;
 
-    letter-spacing: .8px;
-
     cursor: pointer;
 
     transition: .2s;
 }
 
 .process-btn:hover {
-    background: #084526;
-
-    border-color: var(--green);
+    transform: translateY(-1px);
 
     box-shadow:
-        0 0 22px rgba(0,255,136,.08);
+        0 8px 25px
+        rgba(34,197,94,.12);
 }
 
 .process-btn:disabled {
-    opacity: .45;
+    opacity: .5;
 
     cursor: not-allowed;
+
+    transform: none;
 }
 
-/* ==========================================
+/* =========================
    LOADING
-========================================== */
+========================= */
 
 .loading {
     display: none;
 
-    padding: 25px 10px 5px;
-
     text-align: center;
+
+    padding: 30px 10px;
 }
 
 .spinner {
-    width: 31px;
-    height: 31px;
+    width: 32px;
+    height: 32px;
 
-    margin: auto auto 12px;
+    border:
+        3px solid #1e293b;
 
-    border: 2px solid #163523;
-
-    border-top-color: var(--green);
-
-    border-right-color: var(--green);
+    border-top-color:
+        var(--green);
 
     border-radius: 50%;
 
-    animation: spin .7s linear infinite;
+    animation:
+        spin .7s linear infinite;
+
+    margin: auto auto 13px;
 }
 
 @keyframes spin {
@@ -759,79 +734,76 @@ input[type="file"]::file-selector-button {
 }
 
 .loading p {
-    color: var(--muted);
-
-    font-size: 9px;
-
-    line-height: 1.7;
+    color: #64748b;
+    font-size: 10px;
 }
 
-/* ==========================================
+/* =========================
    RESULT
-========================================== */
+========================= */
 
 .result {
     display: none;
 
-    margin-top: 21px;
-
-    padding-top: 20px;
-
-    border-top: 1px dashed #173b28;
+    margin-top: 20px;
 }
 
 .message {
-    padding: 12px;
+    padding: 11px 13px;
 
-    border-radius: 4px;
+    border-radius: 8px;
 
-    margin-bottom: 17px;
+    margin-bottom: 16px;
 
     font-size: 10px;
 
-    font-weight: 700;
+    line-height: 1.6;
 }
 
-.message.success {
-    color: var(--green);
+.success {
+    background:
+        rgba(34,197,94,.05);
 
-    background: rgba(0,255,136,.04);
+    border:
+        1px solid rgba(34,197,94,.16);
 
-    border: 1px solid rgba(0,255,136,.2);
+    color: #86efac;
 }
 
-.message.error {
-    color: var(--danger);
+.error {
+    background:
+        rgba(239,68,68,.05);
 
-    background: rgba(255,70,70,.04);
+    border:
+        1px solid rgba(239,68,68,.16);
 
-    border: 1px solid rgba(255,70,70,.2);
+    color: #fca5a5;
 }
 
-/* ==========================================
-   IMAGE
-========================================== */
+/* =========================
+   IMAGE PREVIEW
+========================= */
 
 .preview {
-    padding: 11px;
+    background:
+        repeating-linear-gradient(
+            45deg,
+            #020617,
+            #020617 10px,
+            #050b16 10px,
+            #050b16 20px
+        );
 
-    background: #010403;
+    border:
+        1px solid var(--border);
 
-    border: 1px solid var(--border);
+    border-radius: 10px;
 
-    border-radius: 4px;
+    padding: 15px;
 
-    margin-bottom: 18px;
-}
+    margin-bottom: 17px;
 
-.preview-title {
-    color: #466553;
-
-    font-size: 8px;
-
-    letter-spacing: 1px;
-
-    margin-bottom: 10px;
+    text-align: center;
 }
 
 .preview img {
@@ -841,17 +813,18 @@ input[type="file"]::file-selector-button {
 
     max-height: 650px;
 
+    border-radius: 7px;
+
     margin: auto;
 }
 
-/* ==========================================
-   LINK
-========================================== */
+/* =========================
+   LINK BOX
+========================= */
 
 .link-box {
     display: flex;
-
-    gap: 6px;
+    gap: 7px;
 
     margin-bottom: 18px;
 }
@@ -861,89 +834,86 @@ input[type="file"]::file-selector-button {
 }
 
 .small-btn {
-    min-height: 40px;
+    border: 1px solid var(--border2);
+
+    background:
+        #111827;
+
+    color: #cbd5e1;
+
+    border-radius: 8px;
 
     padding: 0 14px;
-
-    border: 1px solid #234735;
-
-    border-radius: 4px;
-
-    background: #07140d;
-
-    color: #a5d3b5;
 
     cursor: pointer;
 
     font-family: inherit;
 
-    font-size: 9px;
+    font-size: 10px;
 
     font-weight: 700;
+
+    white-space: nowrap;
 }
 
 .small-btn:hover {
-    border-color: var(--green);
-
-    color: var(--green);
+    background: #1e293b;
 }
 
 .open-btn {
     display: flex;
-
     align-items: center;
-
     justify-content: center;
 
     text-decoration: none;
 
-    white-space: nowrap;
+    background:
+        #14532d;
 
-    color: var(--green);
+    border-color:
+        rgba(34,197,94,.2);
 
-    background: #07301c;
-
-    border-color: #1c7447;
+    color: #bbf7d0;
 }
 
-/* ==========================================
+/* =========================
    CODE
-========================================== */
+========================= */
 
 .code-title {
-    margin: 19px 0 8px;
+    color: #64748b;
 
-    color: #698a76;
+    font-size: 10px;
 
-    font-size: 9px;
+    font-weight: 800;
 
-    font-weight: 700;
+    letter-spacing: .5px;
 
-    letter-spacing: .6px;
-}
-
-.code-title::before {
-    content: "$ ";
-
-    color: var(--green);
+    margin:
+        18px 0 8px;
 }
 
 pre {
-    padding: 13px;
+    background:
+        #010409;
 
-    background: #010403;
+    border:
+        1px solid var(--border);
 
-    border: 1px solid var(--border);
+    border-radius: 9px;
 
-    border-radius: 4px;
+    padding: 14px;
 
     overflow-x: auto;
 
-    color: #8fd5aa;
+    color: #86efac;
 
-    font-family: inherit;
+    font-family:
+        "JetBrains Mono",
+        "Fira Code",
+        monospace;
 
-    font-size: 9px;
+    font-size: 10px;
 
     line-height: 1.7;
 
@@ -955,47 +925,46 @@ pre {
 .copy-code {
     margin-top: 7px;
 
-    padding: 8px 11px;
+    padding: 7px 10px;
 
-    border: 1px solid #234735;
+    border:
+        1px solid var(--border);
 
-    border-radius: 3px;
+    border-radius: 7px;
 
-    background: #07140d;
+    background: #111827;
 
-    color: #8fbda0;
+    color: #94a3b8;
 
     cursor: pointer;
 
     font-family: inherit;
 
-    font-size: 8px;
-
-    font-weight: 700;
+    font-size: 9px;
 }
 
 .copy-code:hover {
-    color: var(--green);
+    color: #86efac;
 
-    border-color: var(--green);
+    border-color:
+        rgba(34,197,94,.2);
 }
 
-/* ==========================================
+/* =========================
    API INFO
-========================================== */
+========================= */
 
 .info-row {
     display: flex;
 
     justify-content: space-between;
 
-    gap: 20px;
+    gap: 15px;
 
     padding: 12px 0;
 
-    border-bottom: 1px dashed #153323;
-
-    font-size: 10px;
+    border-bottom:
+        1px solid var(--border);
 }
 
 .info-row:last-child {
@@ -1003,11 +972,15 @@ pre {
 }
 
 .info-label {
-    color: #537360;
+    color: #64748b;
+
+    font-size: 10px;
 }
 
 .info-value {
-    color: #b9e9ca;
+    color: #cbd5e1;
+
+    font-size: 10px;
 
     font-weight: 700;
 
@@ -1016,94 +989,135 @@ pre {
     word-break: break-all;
 }
 
-/* ==========================================
-   PATRICK PREVIEW
-========================================== */
-
-.patrick-card {
-    text-align: center;
-
-    margin-bottom: 20px;
+.green {
+    color: #86efac;
 }
 
-.patrick-card img {
-    width: 100%;
-
-    max-width: 430px;
-
-    border: 1px solid var(--border);
-
-    border-radius: 5px;
-
-    display: block;
-
-    margin: auto;
-}
-
-.patrick-info {
-    color: var(--muted);
-
-    font-size: 9px;
-
-    margin-top: 12px;
-
-    line-height: 1.7;
-}
-
-/* ==========================================
+/* =========================
    FOOTER
-========================================== */
+========================= */
 
 .footer {
     text-align: center;
 
-    padding: 22px;
+    padding: 25px;
 
-    color: #304c3c;
+    color: #334155;
 
-    font-size: 8px;
+    font-size: 9px;
 
     line-height: 1.8;
 }
 
 .footer b {
-    color: var(--green2);
+    color: #475569;
 }
 
-/* ==========================================
+/* =========================
    MOBILE
-========================================== */
+========================= */
 
-@media (max-width: 700px) {
+.mobile-header {
+    display: none;
+}
+
+@media (max-width: 800px) {
 
     .sidebar {
-        width: 245px;
+        width: 225px;
+        min-width: 225px;
+    }
 
-        transform: translateX(-100%);
+    .main {
+        margin-left: 225px;
+
+        width:
+            calc(100% - 225px);
+
+        padding: 20px;
+    }
+}
+
+@media (max-width: 650px) {
+
+    .mobile-header {
+        display: flex;
+
+        position: fixed;
+
+        top: 0;
+        left: 0;
+        right: 0;
+
+        height: 55px;
+
+        background:
+            rgba(2,6,23,.95);
+
+        border-bottom:
+            1px solid var(--border);
+
+        align-items: center;
+
+        padding: 0 15px;
+
+        z-index: 200;
+    }
+
+    .mobile-header button {
+        border: none;
+
+        background: transparent;
+
+        color: #86efac;
+
+        font-size: 20px;
+
+        cursor: pointer;
+    }
+
+    .mobile-title {
+        margin-left: 12px;
+
+        font-size: 11px;
+
+        color: #e2e8f0;
+
+        font-weight: 800;
+    }
+
+    .sidebar {
+        transform:
+            translateX(-100%);
 
         transition: .25s;
+
+        width: 250px;
+        min-width: 250px;
+
+        z-index: 300;
     }
 
     .sidebar.open {
-        transform: translateX(0);
+        transform:
+            translateX(0);
     }
 
     .main {
         margin-left: 0;
 
-        padding: 15px 10px 45px;
+        width: 100%;
+
+        padding:
+            75px 12px 30px;
     }
 
-    .mobile-topbar {
-        display: flex;
+    .topbar {
+        display: none;
     }
 
     .card {
-        padding: 17px;
-    }
-
-    .window-bar {
-        margin: -17px -17px 19px;
+        padding: 16px;
     }
 
     .link-box {
@@ -1111,7 +1125,7 @@ pre {
     }
 
     .small-btn {
-        width: 100%;
+        min-height: 40px;
     }
 
     .info-row {
@@ -1129,82 +1143,118 @@ pre {
 
 <body>
 
+<div class="mobile-header">
+
+    <button onclick="toggleSidebar()">
+        ☰
+    </button>
+
+    <div class="mobile-title">
+        NDRA OFFICIAL API
+    </div>
+
+</div>
+
+
 <div class="app">
 
-<!-- ==========================================
+<!-- =====================================================
      SIDEBAR
-========================================== -->
+===================================================== -->
 
-<aside
-    class="sidebar"
-    id="sidebar">
+<aside class="sidebar" id="sidebar">
 
-    <div class="sidebar-brand">
+    <div class="brand">
 
-        <div class="brand-title">
+        <div class="brand-top">
 
-            <span class="brand-dot"></span>
+            <div class="brand-icon">
+                &lt;/&gt;
+            </div>
 
-            NDRA OFFICIAL
+            <div>
 
-        </div>
+                <div class="brand-name">
+                    NDRA OFFICIAL
+                </div>
 
-        <div class="brand-subtitle">
+                <div class="brand-sub">
+                    DEVELOPER API SYSTEM
+                </div>
 
-            DEVELOPER API CONSOLE
+            </div>
 
         </div>
 
     </div>
 
 
-    <div class="nav-label">
-        TOOLS
+    <div class="terminal-status">
+
+        <span class="status-dot"></span>
+
+        API SYSTEM ONLINE
+
     </div>
 
 
-    <nav class="nav">
+    <div class="menu-search">
+
+        <span class="search-icon">
+            &gt;_
+        </span>
+
+        <input
+            type="text"
+            id="menuSearch"
+            autocomplete="off"
+            placeholder="ketik menu...">
+
+    </div>
+
+
+    <div class="menu-title">
+        API MODULES
+    </div>
+
+
+    <nav class="menu">
 
         <button
-            class="nav-item active"
-            onclick="openPage('image', this)">
+            class="menu-item active"
+            data-page="stample"
+            onclick="openPage('stample')">
 
-            <span class="nav-icon">
-                IMG
+            <span class="menu-icon">
+                ◉
             </span>
 
             <span>
-                Image
+                STAMPLE
+            </span>
+
+            <span class="menu-arrow">
+                ›
             </span>
 
         </button>
 
 
         <button
-            class="nav-item"
-            onclick="openPage('lunas', this)">
+            class="menu-item"
+            data-page="bratpatrick"
+            onclick="openPage('bratpatrick')">
 
-            <span class="nav-icon">
-                ✓
+            <span class="menu-icon">
+                ★
             </span>
 
             <span>
-                Lunas Maker
+                BRAT PATRICK
             </span>
 
-        </button>
-
-
-        <button
-            class="nav-item"
-            onclick="openPage('patrick', this)">
-
-            <span class="nav-icon">
-                ✦
-            </span>
-
-            <span>
-                Brat Patrick
+            <span class="menu-arrow">
+                ›
             </span>
 
         </button>
@@ -1212,211 +1262,113 @@ pre {
     </nav>
 
 
-    <div class="sidebar-bottom">
+    <div class="sidebar-footer">
 
-        <div class="status">
-
-            <span class="status-dot"></span>
-
-            API SERVICE ONLINE
-
-        </div>
-
-        NDRA OFFICIAL API
-
-        <br>
-
-        Developer Interface
+        NDRA OFFICIAL API<br>
+        SYSTEM / REST / JSON<br>
+        STATUS: ONLINE
 
     </div>
 
 </aside>
 
 
-<!-- ==========================================
+<!-- =====================================================
      MAIN
-========================================== -->
+===================================================== -->
 
 <main class="main">
 
-    <div class="mobile-topbar">
+    <div class="topbar">
 
-        <div class="mobile-brand">
-            NDRA OFFICIAL API
+        <div class="breadcrumb">
+
+            ~/api /
+            <span id="breadcrumb">
+                stample
+            </span>
+
         </div>
 
-        <button
-            class="menu-toggle"
-            onclick="toggleSidebar()">
-
-            MENU
-
-        </button>
+        <div class="api-version">
+            API v1.0
+        </div>
 
     </div>
 
 
-    <div class="content">
+    <div class="page">
 
-
-<!-- ==========================================
-     IMAGE PAGE
-========================================== -->
+<!-- =====================================================
+     STAMPLE PAGE
+===================================================== -->
 
 <section
-    class="page active"
-    id="page-image">
+    id="page-stample"
+    class="page-content">
 
     <div class="page-header">
 
-        <div class="page-badge">
-            IMAGE TOOLS
+        <div class="terminal-line">
+            module.load("stample")
         </div>
 
         <h1>
-            Image <span>Tools</span>
+            Image <span class="accent">Stample</span>
+            Generator
         </h1>
 
         <p>
-            Image processing tools dari NDRA OFFICIAL API.
-            Pilih salah satu generator dari menu di sebelah kiri.
+            Generate image dengan stempel
+            <b>LUNAS</b> atau teks custom
+            melalui REST API.
         </p>
 
     </div>
 
 
-    <div class="card">
-
-        <div class="window-bar">
-
-            <span class="window-dot"></span>
-            <span class="window-dot"></span>
-            <span class="window-dot"></span>
-
-            <span class="window-title">
-                image-tools
-            </span>
-
-        </div>
-
-
-        <div class="section-title">
-
-            Available
-            <span>Tools</span>
-
-        </div>
-
-
-        <div class="info-row">
-
-            <span class="info-label">
-                Lunas Maker
-            </span>
-
-            <span class="info-value">
-                Image Stamp Generator
-            </span>
-
-        </div>
-
-
-        <div class="info-row">
-
-            <span class="info-label">
-                Brat Patrick
-            </span>
-
-            <span class="info-value">
-                Patrick Text Generator
-            </span>
-
-        </div>
-
-
-        <div class="info-row">
-
-            <span class="info-label">
-                API Format
-            </span>
-
-            <span class="info-value">
-                JSON / REST
-            </span>
-
-        </div>
-
-    </div>
-
-</section>
-
-
-<!-- ==========================================
-     LUNAS PAGE
-========================================== -->
-
-<section
-    class="page"
-    id="page-lunas">
-
-    <div class="page-header">
-
-        <div class="page-badge">
-            IMAGE PROCESSING
-        </div>
-
-        <h1>
-            Lunas <span>Maker</span>
-        </h1>
-
-        <p>
-            Tambahkan stempel LUNAS atau custom text
-            ke dalam gambar melalui NDRA OFFICIAL API.
-        </p>
-
-    </div>
-
+    <!-- GENERATOR -->
 
     <div class="card">
 
-        <div class="window-bar">
+        <div class="card-header">
 
-            <span class="window-dot"></span>
-            <span class="window-dot"></span>
-            <span class="window-dot"></span>
+            <div class="card-title">
 
-            <span class="window-title">
-                lunas-maker / console
-            </span>
+                <span class="icon">
+                    $
+                </span>
 
-        </div>
+                STAMPLE GENERATOR
 
+            </div>
 
-        <div class="section-title">
-
-            Image Processing
-            <span>Console</span>
+            <div class="card-badge">
+                POST /api/lunas
+            </div>
 
         </div>
 
 
-        <div class="input-tabs">
+        <!-- INPUT MODE -->
+
+        <div class="tabs">
 
             <button
-                class="input-tab active"
-                id="lunasFileTab"
-                onclick="switchLunasMode('file')">
+                class="tab active"
+                id="fileTab"
+                onclick="switchMode('file')">
 
-                Upload
+                📤 UPLOAD FILE
 
             </button>
 
             <button
-                class="input-tab"
-                id="lunasUrlTab"
-                onclick="switchLunasMode('url')">
+                class="tab"
+                id="urlTab"
+                onclick="switchMode('url')">
 
-                Image URL
+                🔗 IMAGE URL
 
             </button>
 
@@ -1426,18 +1378,17 @@ pre {
         <!-- FILE -->
 
         <div
-            id="lunasFileMode">
+            id="fileMode">
 
             <div class="form-group">
 
                 <label>
-                    <span>01</span>
-                    IMAGE INPUT
+                    IMAGE FILE
                 </label>
 
                 <input
                     type="file"
-                    id="lunasImageFile"
+                    id="imageFile"
                     accept="image/*">
 
             </div>
@@ -1448,19 +1399,18 @@ pre {
         <!-- URL -->
 
         <div
-            id="lunasUrlMode"
+            id="urlMode"
             style="display:none">
 
             <div class="form-group">
 
                 <label>
-                    <span>01</span>
                     IMAGE URL
                 </label>
 
                 <input
                     type="url"
-                    id="lunasImageUrl"
+                    id="imageUrl"
                     placeholder="https://example.com/image.jpg">
 
             </div>
@@ -1468,16 +1418,17 @@ pre {
         </div>
 
 
+        <!-- TEXT -->
+
         <div class="form-group">
 
             <label>
-                <span>02</span>
-                STAMP TEXT
+                STAMPLE TEXT
             </label>
 
             <input
                 type="text"
-                id="lunasText"
+                id="stampText"
                 value="LUNAS"
                 placeholder="LUNAS">
 
@@ -1486,24 +1437,22 @@ pre {
 
         <button
             class="process-btn"
-            id="lunasProcessBtn"
-            onclick="processLunas()">
+            id="processBtn"
+            onclick="processStample()">
 
-            PROCESS IMAGE
+            ⚡ GENERATE IMAGE
 
         </button>
 
 
         <div
             class="loading"
-            id="lunasLoading">
+            id="loading">
 
             <div class="spinner"></div>
 
             <p>
-                Processing image...
-                <br>
-                Waiting for API response.
+                Processing image via API...
             </p>
 
         </div>
@@ -1511,54 +1460,50 @@ pre {
 
         <div
             class="result"
-            id="lunasResult">
+            id="stampleResult">
 
             <div
-                class="message"
-                id="lunasMessage">
+                id="stampleMessage"
+                class="message success">
 
-                Request processed successfully.
+                ✓ Image successfully generated.
 
             </div>
 
 
             <div class="preview">
 
-                <div class="preview-title">
-                    RESPONSE IMAGE
-                </div>
-
                 <img
-                    id="lunasResultImage"
-                    alt="Lunas Result">
+                    id="resultImage"
+                    src=""
+                    alt="Stample Result">
 
             </div>
 
 
             <label>
-                <span>03</span>
-                RESULT URL
+                RESULT IMAGE URL
             </label>
-
 
             <div class="link-box">
 
                 <input
-                    id="lunasResultLink"
                     type="text"
+                    id="resultLink"
                     readonly>
 
                 <button
                     class="small-btn"
-                    onclick="copyText('lunasResultLink')">
+                    onclick="copyText('resultLink')">
 
                     COPY
 
                 </button>
 
                 <a
-                    id="lunasOpenImage"
+                    id="openImage"
                     class="small-btn open-btn"
+                    href="#"
                     target="_blank">
 
                     OPEN
@@ -1569,42 +1514,68 @@ pre {
 
 
             <div class="code-title">
-                Response JSON
+                RESPONSE JSON
             </div>
 
-            <pre id="lunasJson"></pre>
+            <pre id="jsonResponse"></pre>
 
 
             <div class="code-title">
-                Endpoint
+                cURL — URL
             </div>
 
-            <pre id="lunasEndpoint"></pre>
+            <pre id="curlUrl"></pre>
+
+            <button
+                class="copy-code"
+                onclick="copyCode('curlUrl')">
+
+                COPY cURL
+
+            </button>
+
+
+            <div class="code-title">
+                cURL — BASE64
+            </div>
+
+            <pre id="curlBase64"></pre>
+
+            <button
+                class="copy-code"
+                onclick="copyCode('curlBase64')">
+
+                COPY cURL
+
+            </button>
+
+
+            <div class="code-title">
+                REQUEST ENDPOINT
+            </div>
+
+            <pre id="endpointInfo"></pre>
 
         </div>
 
     </div>
 
 
+    <!-- STAMPLE API DOCUMENTATION -->
+
     <div class="card">
 
-        <div class="window-bar">
+        <div class="card-header">
 
-            <span class="window-dot"></span>
-            <span class="window-dot"></span>
-            <span class="window-dot"></span>
+            <div class="card-title">
 
-            <span class="window-title">
-                api-reference
-            </span>
+                <span class="icon">
+                    #
+                </span>
 
-        </div>
+                API PARAMETERS
 
-
-        <div class="section-title">
-
-            API
-            <span>Reference</span>
+            </div>
 
         </div>
 
@@ -1612,10 +1583,10 @@ pre {
         <div class="info-row">
 
             <span class="info-label">
-                Method
+                METHOD
             </span>
 
-            <span class="info-value">
+            <span class="info-value green">
                 POST
             </span>
 
@@ -1625,7 +1596,7 @@ pre {
         <div class="info-row">
 
             <span class="info-label">
-                Endpoint
+                ENDPOINT
             </span>
 
             <span class="info-value">
@@ -1638,7 +1609,20 @@ pre {
         <div class="info-row">
 
             <span class="info-label">
-                Parameters
+                CONTENT-TYPE
+            </span>
+
+            <span class="info-value">
+                application/json
+            </span>
+
+        </div>
+
+
+        <div class="info-row">
+
+            <span class="info-label">
+                PARAMETER
             </span>
 
             <span class="info-value">
@@ -1651,7 +1635,7 @@ pre {
         <div class="info-row">
 
             <span class="info-label">
-                Default Text
+                DEFAULT TEXT
             </span>
 
             <span class="info-value">
@@ -1662,95 +1646,88 @@ pre {
 
     </div>
 
+
+    <!-- RESPONSE -->
+
+    <div class="card">
+
+        <div class="card-header">
+
+            <div class="card-title">
+
+                <span class="icon">
+                    {}
+                </span>
+
+                RESPONSE EXAMPLE
+
+            </div>
+
+        </div>
+
+
+<pre>{
+  "status": true,
+  "creator": "Ndra09",
+  "result": {
+    "text": "LUNAS",
+    "url_gambar": "https://..."
+  }
+}</pre>
+
+    </div>
+
 </section>
 
 
-<!-- ==========================================
+<!-- =====================================================
      BRAT PATRICK PAGE
-========================================== -->
+===================================================== -->
 
 <section
-    class="page"
-    id="page-patrick">
+    id="page-bratpatrick"
+    class="page-content"
+    style="display:none">
 
     <div class="page-header">
 
-        <div class="page-badge">
-            TEXT GENERATOR
+        <div class="terminal-line">
+            module.load("bratpatrick")
         </div>
 
         <h1>
-            Brat <span>Patrick</span>
+            Brat <span class="accent">Patrick</span>
+            Generator
         </h1>
 
         <p>
             Generate gambar Patrick dengan teks
-            custom pada kertas yang sedang dipegang.
+            custom pada kertas menggunakan
+            endpoint Brat Patrick.
         </p>
 
     </div>
 
 
-    <!-- PREVIEW -->
-
-    <div class="card patrick-card">
-
-        <div class="window-bar">
-
-            <span class="window-dot"></span>
-            <span class="window-dot"></span>
-            <span class="window-dot"></span>
-
-            <span class="window-title">
-                bratpatrick / preview
-            </span>
-
-        </div>
-
-
-        <div class="section-title">
-
-            Patrick
-            <span>Template</span>
-
-        </div>
-
-
-        <img
-            src="/assets/bratpatrick.png"
-            alt="Brat Patrick">
-
-        <div class="patrick-info">
-
-            Text akan ditempatkan otomatis
-            pada area kertas Patrick.
-
-        </div>
-
-    </div>
-
-
-    <!-- GENERATOR -->
+    <!-- BRAT GENERATOR -->
 
     <div class="card">
 
-        <div class="window-bar">
+        <div class="card-header">
 
-            <span class="window-dot"></span>
-            <span class="window-dot"></span>
-            <span class="window-dot"></span>
+            <div class="card-title">
 
-            <span class="window-title">
-                bratpatrick / generator
-            </span>
+                <span class="icon">
+                    $
+                </span>
 
-        </div>
+                BRAT PATRICK GENERATOR
 
+            </div>
 
-        <div class="section-title">
-
-            Text
-            <span>Generator</span>
+            <div class="card-badge">
+                POST /api/bratpatrick
+            </div>
 
         </div>
 
@@ -1758,41 +1735,24 @@ pre {
         <div class="form-group">
 
             <label>
-                <span>01</span>
-                MESSAGE
+                TEXT
             </label>
 
             <input
                 type="text"
                 id="patrickText"
                 placeholder="Tulis teks untuk Patrick..."
-                maxlength="500">
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>
-                <span>02</span>
-                FONT SIZE
-            </label>
-
-            <input
-                type="text"
-                id="patrickFontSize"
-                value="62"
-                placeholder="62">
+                autocomplete="off">
 
         </div>
 
 
         <button
             class="process-btn"
-            id="patrickProcessBtn"
+            id="patrickBtn"
             onclick="processPatrick()">
 
-            GENERATE IMAGE
+            ⚡ GENERATE BRAT PATRICK
 
         </button>
 
@@ -1804,9 +1764,7 @@ pre {
             <div class="spinner"></div>
 
             <p>
-                Generating Patrick image...
-                <br>
-                Waiting for API response.
+                Generating Brat Patrick...
             </p>
 
         </div>
@@ -1817,51 +1775,51 @@ pre {
             id="patrickResult">
 
             <div
-                class="message"
-                id="patrickMessage">
+                id="patrickMessage"
+                class="message success">
 
-                Image generated successfully.
+                ✓ Brat Patrick berhasil dibuat.
 
             </div>
 
+
+            <!-- IMAGE -->
 
             <div class="preview">
 
-                <div class="preview-title">
-                    GENERATED IMAGE
-                </div>
-
                 <img
-                    id="patrickResultImage"
-                    alt="Patrick Result">
+                    id="patrickImage"
+                    src=""
+                    alt="Brat Patrick Result">
 
             </div>
 
 
-            <label>
-                <span>03</span>
-                RESULT URL
-            </label>
+            <!-- URL -->
 
+            <label>
+                RESULT IMAGE URL
+            </label>
 
             <div class="link-box">
 
                 <input
-                    id="patrickResultLink"
                     type="text"
+                    id="patrickLink"
                     readonly>
 
                 <button
                     class="small-btn"
-                    onclick="copyText('patrickResultLink')">
+                    onclick="copyText('patrickLink')">
 
                     COPY
 
                 </button>
 
                 <a
-                    id="patrickOpenImage"
+                    id="patrickOpen"
                     class="small-btn open-btn"
+                    href="#"
                     target="_blank">
 
                     OPEN
@@ -1871,24 +1829,45 @@ pre {
             </div>
 
 
+            <!-- UPLOAD STATUS -->
+
             <div class="code-title">
-                Response JSON
+                IMAGE / CDN RESULT
+            </div>
+
+            <pre id="patrickUploadInfo"></pre>
+
+
+            <!-- JSON -->
+
+            <div class="code-title">
+                RESPONSE JSON
             </div>
 
             <pre id="patrickJson"></pre>
 
 
+            <!-- CURL -->
+
+            <div class="code-title">
+                cURL REQUEST
+            </div>
+
+            <pre id="patrickCurl"></pre>
+
             <button
                 class="copy-code"
-                onclick="copyCode('patrickJson')">
+                onclick="copyCode('patrickCurl')">
 
-                COPY RESPONSE
+                COPY cURL
 
             </button>
 
 
+            <!-- ENDPOINT -->
+
             <div class="code-title">
-                Endpoint
+                REQUEST ENDPOINT
             </div>
 
             <pre id="patrickEndpoint"></pre>
@@ -1898,27 +1877,21 @@ pre {
     </div>
 
 
-    <!-- API INFO -->
+    <!-- PARAMETERS -->
 
     <div class="card">
 
-        <div class="window-bar">
+        <div class="card-header">
 
-            <span class="window-dot"></span>
-            <span class="window-dot"></span>
-            <span class="window-dot"></span>
+            <div class="card-title">
 
-            <span class="window-title">
-                api-reference
-            </span>
+                <span class="icon">
+                    #
+                </span>
 
-        </div>
+                API PARAMETERS
 
-
-        <div class="section-title">
-
-            API
-            <span>Reference</span>
+            </div>
 
         </div>
 
@@ -1926,10 +1899,10 @@ pre {
         <div class="info-row">
 
             <span class="info-label">
-                Method
+                METHOD
             </span>
 
-            <span class="info-value">
+            <span class="info-value green">
                 POST
             </span>
 
@@ -1939,7 +1912,7 @@ pre {
         <div class="info-row">
 
             <span class="info-label">
-                Endpoint
+                ENDPOINT
             </span>
 
             <span class="info-value">
@@ -1952,7 +1925,20 @@ pre {
         <div class="info-row">
 
             <span class="info-label">
-                Parameter
+                CONTENT-TYPE
+            </span>
+
+            <span class="info-value">
+                application/json
+            </span>
+
+        </div>
+
+
+        <div class="info-row">
+
+            <span class="info-label">
+                PARAMETER
             </span>
 
             <span class="info-value">
@@ -1965,39 +1951,103 @@ pre {
         <div class="info-row">
 
             <span class="info-label">
-                Optional
+                IMAGE SOURCE
             </span>
 
             <span class="info-value">
-                fontSize
+                assets/bratpatrick.png
             </span>
 
         </div>
 
 
-        <div class="code-title">
-            JSON Request
+        <div class="info-row">
+
+            <span class="info-label">
+                OUTPUT
+            </span>
+
+            <span class="info-value">
+                IMAGE URL / CDN
+            </span>
+
         </div>
 
+    </div>
+
+
+    <!-- RESPONSE EXAMPLE -->
+
+    <div class="card">
+
+        <div class="card-header">
+
+            <div class="card-title">
+
+                <span class="icon">
+                    {}
+                </span>
+
+                RESPONSE EXAMPLE
+
+            </div>
+
+        </div>
+
+
 <pre>{
-  "text": "HALO DUNIA",
-  "fontSize": 62
+  "status": true,
+  "creator": "Ndra09",
+  "result": {
+    "text": "Hello World",
+    "url_gambar": "https://..."
+  }
 }</pre>
+
+    </div>
+
+
+    <!-- CURL EXAMPLE -->
+
+    <div class="card">
+
+        <div class="card-header">
+
+            <div class="card-title">
+
+                <span class="icon">
+                    &gt;_
+                </span>
+
+                cURL EXAMPLE
+
+            </div>
+
+        </div>
+
+
+<pre>curl -X POST "https://domain-kamu.com/api/bratpatrick" \
+-H "Content-Type: application/json" \
+-d '{
+  "text": "Hello World"
+}'</pre>
 
     </div>
 
 </section>
 
 
-<footer class="footer">
+<!-- =====================================================
+     FOOTER
+===================================================== -->
 
-    NDRA OFFICIAL API
+<div class="footer">
 
-    <br>
+    NDRA OFFICIAL API<br>
 
-    <b>Developer Image Processing Service</b>
+    <b>Developer API System</b>
 
-</footer>
+</div>
 
 
     </div>
@@ -2009,71 +2059,109 @@ pre {
 
 <script>
 
-/* ==========================================
-   API CONFIG
-========================================== */
+/* =====================================================
+   API CONFIGURATION
+===================================================== */
 
-const LUNAS_API =
-    "https://api-ndraaofficial.vercel.app/api/lunas";
+/*
+ * Kalau index.html dan API berada di domain yang sama,
+ * otomatis menggunakan domain tersebut.
+ *
+ * Contoh:
+ * https://api-ndraaofficial.vercel.app/api/lunas
+ *
+ * Jika frontend berbeda domain, ubah API_ORIGIN.
+ */
 
-const PATRICK_API =
-    "https://api-ndraaofficial.vercel.app/api/bratpatrick";
-
-
-/* ==========================================
-   SIDEBAR
-========================================== */
-
-function toggleSidebar() {
-
-    document
-        .getElementById("sidebar")
-        .classList.toggle("open");
-
-}
+const API_ORIGIN =
+    window.location.origin;
 
 
-function openPage(
-    page,
-    button
-) {
+/* STAMPLE */
 
-    document
-        .querySelectorAll(".page")
-        .forEach(
-            element => {
+const STAMPLE_API =
+    API_ORIGIN + "/api/lunas";
 
-                element.classList.remove(
-                    "active"
-                );
 
-            }
+/* BRAT PATRICK */
+
+const BRAT_PATRICK_API =
+    API_ORIGIN + "/api/bratpatrick";
+
+
+/* =====================================================
+   PAGE NAVIGATION
+===================================================== */
+
+function openPage(page) {
+
+    const stamplePage =
+        document.getElementById(
+            "page-stample"
+        );
+
+    const patrickPage =
+        document.getElementById(
+            "page-bratpatrick"
         );
 
 
-    document
-        .getElementById(
-            "page-" + page
-        )
-        .classList.add(
+    const menuItems =
+        document.querySelectorAll(
+            ".menu-item"
+        );
+
+
+    if (page === "bratpatrick") {
+
+        stamplePage.style.display =
+            "none";
+
+        patrickPage.style.display =
+            "block";
+
+    } else {
+
+        stamplePage.style.display =
+            "block";
+
+        patrickPage.style.display =
+            "none";
+
+        page = "stample";
+
+    }
+
+
+    menuItems.forEach(item => {
+
+        item.classList.remove(
             "active"
         );
 
+        if (
+            item.dataset.page === page
+        ) {
 
-    document
-        .querySelectorAll(".nav-item")
-        .forEach(
-            element => {
+            item.classList.add(
+                "active"
+            );
 
-                element.classList.remove(
-                    "active"
-                );
+        }
 
-            }
-        );
+    });
 
 
-    button.classList.add("active");
+    document.getElementById(
+        "breadcrumb"
+    ).textContent = page;
+
+
+    history.replaceState(
+        null,
+        "",
+        "#" + page
+    );
 
 
     document
@@ -2089,43 +2177,167 @@ function openPage(
 }
 
 
-/* ==========================================
-   LUNAS MODE
-========================================== */
+/* =====================================================
+   HASH ROUTER
+===================================================== */
 
-let lunasMode = "file";
+function loadHash() {
+
+    const hash =
+        window.location.hash
+            .replace("#", "")
+            .toLowerCase();
 
 
-function switchLunasMode(
-    mode
-) {
+    if (
+        hash === "bratpatrick" ||
+        hash === "brat-patrick"
+    ) {
 
-    lunasMode = mode;
+        openPage("bratpatrick");
+
+    } else {
+
+        openPage("stample");
+
+    }
+
+}
+
+
+window.addEventListener(
+    "load",
+    loadHash
+);
+
+
+/* =====================================================
+   MENU SEARCH
+===================================================== */
+
+const menuSearch =
+    document.getElementById(
+        "menuSearch"
+    );
+
+
+menuSearch.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (
+            event.key !== "Enter"
+        ) {
+
+            return;
+
+        }
+
+
+        const value =
+            this.value
+                .trim()
+                .toLowerCase();
+
+
+        if (
+            value === "bratpatrick" ||
+            value === "brat patrick" ||
+            value === "brat"
+        ) {
+
+            openPage(
+                "bratpatrick"
+            );
+
+            this.value = "";
+
+            return;
+
+        }
+
+
+        if (
+            value === "stample" ||
+            value === "stamp"
+        ) {
+
+            openPage(
+                "stample"
+            );
+
+            this.value = "";
+
+            return;
+
+        }
+
+    }
+);
+
+
+/* =====================================================
+   SIDEBAR MOBILE
+===================================================== */
+
+function toggleSidebar() {
+
+    document
+        .getElementById("sidebar")
+        .classList.toggle("open");
+
+}
+
+
+/* =====================================================
+   STAMPLE MODE
+===================================================== */
+
+let currentMode =
+    "file";
+
+
+let originalBase64 =
+    "";
+
+
+let lastCurlUrl =
+    "";
+
+
+let lastCurlBase64 =
+    "";
+
+
+function switchMode(mode) {
+
+    currentMode = mode;
 
 
     const fileMode =
         document.getElementById(
-            "lunasFileMode"
+            "fileMode"
         );
 
     const urlMode =
         document.getElementById(
-            "lunasUrlMode"
+            "urlMode"
         );
-
 
     const fileTab =
         document.getElementById(
-            "lunasFileTab"
+            "fileTab"
         );
 
     const urlTab =
         document.getElementById(
-            "lunasUrlTab"
+            "urlTab"
         );
 
 
-    if (mode === "file") {
+    if (
+        mode === "file"
+    ) {
 
         fileMode.style.display =
             "block";
@@ -2162,9 +2374,9 @@ function switchLunasMode(
 }
 
 
-/* ==========================================
-   FILE BASE64
-========================================== */
+/* =====================================================
+   FILE TO BASE64
+===================================================== */
 
 function fileToBase64(file) {
 
@@ -2207,62 +2419,65 @@ function fileToBase64(file) {
 }
 
 
-/* ==========================================
-   LUNAS PROCESS
-========================================== */
+/* =====================================================
+   STAMPLE GENERATOR
+===================================================== */
 
-async function processLunas() {
+async function processStample() {
 
     const button =
         document.getElementById(
-            "lunasProcessBtn"
+            "processBtn"
         );
+
 
     const loading =
         document.getElementById(
-            "lunasLoading"
+            "loading"
         );
+
 
     const result =
         document.getElementById(
-            "lunasResult"
-        );
-
-    const message =
-        document.getElementById(
-            "lunasMessage"
+            "stampleResult"
         );
 
 
     const text =
         document
             .getElementById(
-                "lunasText"
+                "stampText"
             )
             .value
-            .trim() ||
-        "LUNAS";
+            .trim() || "LUNAS";
 
 
-    button.disabled = true;
+    button.disabled =
+        true;
 
-    result.style.display = "none";
 
-    loading.style.display = "block";
+    result.style.display =
+        "none";
+
+
+    loading.style.display =
+        "block";
 
 
     try {
 
-        let body = {};
+        let requestBody = {};
 
+
+        /* FILE */
 
         if (
-            lunasMode === "file"
+            currentMode === "file"
         ) {
 
             const input =
                 document.getElementById(
-                    "lunasImageFile"
+                    "imageFile"
                 );
 
 
@@ -2272,7 +2487,7 @@ async function processLunas() {
             ) {
 
                 throw new Error(
-                    "Silakan pilih gambar terlebih dahulu."
+                    "Pilih gambar terlebih dahulu."
                 );
 
             }
@@ -2294,28 +2509,941 @@ async function processLunas() {
             }
 
 
-            const base64 =
+            originalBase64 =
                 await fileToBase64(
                     file
                 );
 
 
-            body = {
+            requestBody = {
 
                 base64:
-                    base64,
+                    originalBase64,
 
                 text:
                     text
 
             };
 
-        } else {
+
+            lastCurlBase64 =
+`curl -X POST "${STAMPLE_API}" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "base64": "<BASE64_GAMBAR>",
+    "text": "${escapeShell(text)}"
+}'`;
+
+        }
+
+
+        /* URL */
+
+        else {
 
             const url =
                 document
                     .getElementById(
-                        "lunasImageUrl"
+                        "imageUrl"
                     )
                     .value
-                    .
+                    .trim();
+
+
+            if (!url) {
+
+                throw new Error(
+                    "Masukkan URL gambar."
+                );
+
+            }
+
+
+            try {
+
+                new URL(url);
+
+            } catch {
+
+                throw new Error(
+                    "URL gambar tidak valid."
+                );
+
+            }
+
+
+            requestBody = {
+
+                url:
+                    url,
+
+                text:
+                    text
+
+            };
+
+
+            lastCurlUrl =
+`curl -X POST "${STAMPLE_API}" \\
+  -H "Content-Type: application/json" \\
+  -d '${JSON.stringify({
+        url: url,
+        text: text
+    }, null, 2)}'`;
+
+        }
+
+
+        /* REQUEST */
+
+        const response =
+            await fetch(
+                STAMPLE_API,
+                {
+
+                    method:
+                        "POST",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json"
+
+                    },
+
+                    body:
+                        JSON.stringify(
+                            requestBody
+                        )
+
+                }
+            );
+
+
+        let data;
+
+
+        try {
+
+            data =
+                await response.json();
+
+        } catch {
+
+            throw new Error(
+                "Server tidak mengembalikan JSON."
+            );
+
+        }
+
+
+        if (
+            !response.ok ||
+            !data.status
+        ) {
+
+            throw new Error(
+                data.error ||
+                `HTTP Error ${response.status}`
+            );
+
+        }
+
+
+        const imageUrl =
+            data?.result?.url_gambar ||
+            data?.result?.url ||
+            data?.url_gambar ||
+            data?.url;
+
+
+        if (!imageUrl) {
+
+            throw new Error(
+                "URL gambar hasil tidak ditemukan."
+            );
+
+        }
+
+
+        document
+            .getElementById(
+                "resultImage"
+            )
+            .src =
+                imageUrl;
+
+
+        document
+            .getElementById(
+                "resultLink"
+            )
+            .value =
+                imageUrl;
+
+
+        document
+            .getElementById(
+                "openImage"
+            )
+            .href =
+                imageUrl;
+
+
+        document
+            .getElementById(
+                "jsonResponse"
+            )
+            .textContent =
+                JSON.stringify(
+                    data,
+                    null,
+                    2
+                );
+
+
+        document
+            .getElementById(
+                "curlUrl"
+            )
+            .textContent =
+                lastCurlUrl ||
+                "Mode URL belum digunakan.";
+
+
+        document
+            .getElementById(
+                "curlBase64"
+            )
+            .textContent =
+                lastCurlBase64 ||
+                "Mode Upload File belum digunakan.";
+
+
+        document
+            .getElementById(
+                "endpointInfo"
+            )
+            .textContent =
+`POST ${STAMPLE_API}
+
+Content-Type:
+application/json
+
+PARAMETERS:
+
+{
+  "base64": "BASE64_GAMBAR",
+  "text": "LUNAS"
+}
+
+atau
+
+{
+  "url": "https://example.com/gambar.jpg",
+  "text": "LUNAS"
+}`;
+
+
+        const message =
+            document.getElementById(
+                "stampleMessage"
+            );
+
+
+        message.className =
+            "message success";
+
+
+        message.textContent =
+            "✓ Image berhasil dibuat oleh API.";
+
+
+        result.style.display =
+            "block";
+
+
+        setTimeout(
+            () => {
+
+                result.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+
+            },
+            100
+        );
+
+    } catch(error) {
+
+        showStampleError(
+            error.message
+        );
+
+    } finally {
+
+        loading.style.display =
+            "none";
+
+        button.disabled =
+            false;
+
+    }
+
+}
+
+
+/* =====================================================
+   STAMPLE ERROR
+===================================================== */
+
+function showStampleError(
+    message
+) {
+
+    const result =
+        document.getElementById(
+            "stampleResult"
+        );
+
+
+    const box =
+        document.getElementById(
+            "stampleMessage"
+        );
+
+
+    box.className =
+        "message error";
+
+
+    box.textContent =
+        "✕ " + message;
+
+
+    document
+        .getElementById(
+            "resultImage"
+        )
+        .removeAttribute("src");
+
+
+    document
+        .getElementById(
+            "resultLink"
+        )
+        .value = "";
+
+
+    document
+        .getElementById(
+            "jsonResponse"
+        )
+        .textContent =
+            JSON.stringify(
+                {
+                    status: false,
+                    creator: "Ndra09",
+                    error: message
+                },
+                null,
+                2
+            );
+
+
+    result.style.display =
+        "block";
+
+}
+
+
+/* =====================================================
+   BRAT PATRICK GENERATOR
+===================================================== */
+
+async function processPatrick() {
+
+    const button =
+        document.getElementById(
+            "patrickBtn"
+        );
+
+
+    const loading =
+        document.getElementById(
+            "patrickLoading"
+        );
+
+
+    const result =
+        document.getElementById(
+            "patrickResult"
+        );
+
+
+    const text =
+        document
+            .getElementById(
+                "patrickText"
+            )
+            .value
+            .trim();
+
+
+    if (!text) {
+
+        showPatrickError(
+            "Masukkan teks terlebih dahulu."
+        );
+
+        return;
+
+    }
+
+
+    button.disabled =
+        true;
+
+
+    result.style.display =
+        "none";
+
+
+    loading.style.display =
+        "block";
+
+
+    const requestBody = {
+
+        text:
+            text
+
+    };
+
+
+    const curl =
+`curl -X POST "${BRAT_PATRICK_API}" \\
+  -H "Content-Type: application/json" \\
+  -d '${JSON.stringify(
+        requestBody,
+        null,
+        2
+    )}'`;
+
+
+    document
+        .getElementById(
+            "patrickCurl"
+        )
+        .textContent =
+            curl;
+
+
+    document
+        .getElementById(
+            "patrickEndpoint"
+        )
+        .textContent =
+`POST ${BRAT_PATRICK_API}
+
+Content-Type:
+application/json
+
+PARAMETERS:
+
+{
+  "text": "${escapeJson(text)}"
+}`;
+
+
+    try {
+
+        const response =
+            await fetch(
+                BRAT_PATRICK_API,
+                {
+
+                    method:
+                        "POST",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json"
+
+                    },
+
+                    body:
+                        JSON.stringify(
+                            requestBody
+                        )
+
+                }
+            );
+
+
+        let data;
+
+
+        try {
+
+            data =
+                await response.json();
+
+        } catch {
+
+            throw new Error(
+                "Server tidak mengembalikan JSON."
+            );
+
+        }
+
+
+        if (
+            !response.ok ||
+            data.status === false
+        ) {
+
+            throw new Error(
+                data.error ||
+                data.message ||
+                `HTTP Error ${response.status}`
+            );
+
+        }
+
+
+        const imageUrl =
+            data?.result?.url_gambar ||
+            data?.result?.url ||
+            data?.result?.image ||
+            data?.url_gambar ||
+            data?.url ||
+            data?.image;
+
+
+        if (!imageUrl) {
+
+            throw new Error(
+                "API berhasil tetapi URL gambar tidak ditemukan dalam response."
+            );
+
+        }
+
+
+        /* IMAGE */
+
+        document
+            .getElementById(
+                "patrickImage"
+            )
+            .src =
+                imageUrl;
+
+
+        /* LINK */
+
+        document
+            .getElementById(
+                "patrickLink"
+            )
+            .value =
+                imageUrl;
+
+
+        document
+            .getElementById(
+                "patrickOpen"
+            )
+            .href =
+                imageUrl;
+
+
+        /* JSON */
+
+        document
+            .getElementById(
+                "patrickJson"
+            )
+            .textContent =
+                JSON.stringify(
+                    data,
+                    null,
+                    2
+                );
+
+
+        /* CDN / CTERMAI */
+
+        const uploadInfo =
+            document.getElementById(
+                "patrickUploadInfo"
+            );
+
+
+        uploadInfo.textContent =
+`STATUS       : SUCCESS
+IMAGE URL    : ${imageUrl}
+
+SOURCE       : API RESPONSE
+CDN / STORAGE: ${detectCtermai(imageUrl)}`;
+
+        
+        const message =
+            document.getElementById(
+                "patrickMessage"
+            );
+
+
+        message.className =
+            "message success";
+
+
+        message.textContent =
+            "✓ Brat Patrick berhasil dibuat dan URL gambar diterima dari API.";
+
+
+        result.style.display =
+            "block";
+
+
+        setTimeout(
+            () => {
+
+                result.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+
+            },
+            100
+        );
+
+    } catch(error) {
+
+        showPatrickError(
+            error.message
+        );
+
+    } finally {
+
+        loading.style.display =
+            "none";
+
+        button.disabled =
+            false;
+
+    }
+
+}
+
+
+/* =====================================================
+   CTERMAI DETECTOR
+===================================================== */
+
+function detectCtermai(url) {
+
+    const lower =
+        String(url)
+            .toLowerCase();
+
+
+    if (
+        lower.includes(
+            "ctermai"
+        )
+    ) {
+
+        return "CTERMAI CDN";
+
+    }
+
+
+    return "URL dari API";
+
+}
+
+
+/* =====================================================
+   PATRICK ERROR
+===================================================== */
+
+function showPatrickError(
+    message
+) {
+
+    const result =
+        document.getElementById(
+            "patrickResult"
+        );
+
+
+    const box =
+        document.getElementById(
+            "patrickMessage"
+        );
+
+
+    box.className =
+        "message error";
+
+
+    box.textContent =
+        "✕ " + message;
+
+
+    document
+        .getElementById(
+            "patrickImage"
+        )
+        .removeAttribute("src");
+
+
+    document
+        .getElementById(
+            "patrickLink"
+        )
+        .value = "";
+
+
+    document
+        .getElementById(
+            "patrickJson"
+        )
+        .textContent =
+            JSON.stringify(
+                {
+                    status: false,
+                    creator: "Ndra09",
+                    error: message
+                },
+                null,
+                2
+            );
+
+
+    document
+        .getElementById(
+            "patrickUploadInfo"
+        )
+        .textContent =
+            "STATUS : FAILED\n\n" +
+            "IMAGE  : Tidak tersedia";
+
+
+    result.style.display =
+        "block";
+
+}
+
+
+/* =====================================================
+   COPY TEXT
+===================================================== */
+
+async function copyText(id) {
+
+    const input =
+        document.getElementById(id);
+
+
+    if (!input.value) {
+
+        return;
+
+    }
+
+
+    try {
+
+        await navigator
+            .clipboard
+            .writeText(
+                input.value
+            );
+
+        alert(
+            "✓ Berhasil disalin."
+        );
+
+    } catch {
+
+        input.select();
+
+        document.execCommand(
+            "copy"
+        );
+
+        alert(
+            "✓ Berhasil disalin."
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   COPY CODE
+===================================================== */
+
+async function copyCode(id) {
+
+    const element =
+        document.getElementById(id);
+
+
+    const text =
+        element.textContent;
+
+
+    try {
+
+        await navigator
+            .clipboard
+            .writeText(text);
+
+        alert(
+            "✓ cURL berhasil disalin."
+        );
+
+    } catch {
+
+        alert(
+            "Gagal menyalin."
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   ESCAPE HELPERS
+===================================================== */
+
+function escapeJson(text) {
+
+    return String(text)
+        .replace(
+            /\\/g,
+            "\\\\"
+        )
+        .replace(
+            /"/g,
+            '\\"'
+        )
+        .replace(
+            /\n/g,
+            "\\n"
+        );
+
+}
+
+
+function escapeShell(text) {
+
+    return String(text)
+        .replace(
+            /'/g,
+            "'\\''"
+        );
+
+}
+
+
+/* =====================================================
+   ENTER TO GENERATE
+===================================================== */
+
+document
+    .getElementById(
+        "patrickText"
+    )
+    .addEventListener(
+        "keydown",
+        function(event) {
+
+            if (
+                event.key === "Enter"
+            ) {
+
+                event.preventDefault();
+
+                processPatrick();
+
+            }
+
+        }
+    );
+
+
+document
+    .getElementById(
+        "stampText"
+    )
+    .addEventListener(
+        "keydown",
+        function(event) {
+
+            if (
+                event.key === "Enter"
+            ) {
+
+                event.preventDefault();
+
+                processStample();
+
+            }
+
+        }
+    );
+
+
+/* =====================================================
+   INITIAL ENDPOINT
+===================================================== */
+
+document
+    .getElementById(
+        "endpointInfo"
+    )
+    .textContent =
+`POST ${STAMPLE_API}
+
+Content-Type:
+application/json
+
+{
+  "base64": "BASE64_GAMBAR",
+  "text": "LUNAS"
+}
+
+atau
+
+{
+  "url": "https://example.com/gambar.jpg",
+  "text": "LUNAS"
+}`;
+
+
+document
+    .getElementById(
+        "patrickEndpoint"
+    )
+    .textContent =
+`POST ${BRAT_PATRICK_API}
+
+Content-Type:
+application/json
+
+{
+  "text": "Hello World"
+}`;
+
+</script>
+
+</body>
+</html>
