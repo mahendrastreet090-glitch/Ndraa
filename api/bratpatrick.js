@@ -24,6 +24,16 @@ function sendJson(res, status, data) {
     );
 
     res.setHeader(
+        "Access-Control-Allow-Methods",
+        "POST, OPTIONS"
+    );
+
+    res.setHeader(
+        "Access-Control-Allow-Headers",
+        "Content-Type"
+    );
+
+    res.setHeader(
         "Cache-Control",
         "no-store"
     );
@@ -63,35 +73,36 @@ function wrapText(text, maxChars) {
 
         if (test.length <= maxChars) {
             current = test;
-        } else {
-            if (current) {
-                lines.push(current);
-            }
+            continue;
+        }
 
-            if (word.length > maxChars) {
-                let remaining = word;
+        if (current) {
+            lines.push(current);
+        }
 
-                while (
-                    remaining.length >
-                    maxChars
-                ) {
-                    lines.push(
-                        remaining.slice(
-                            0,
-                            maxChars
-                        )
+        if (word.length > maxChars) {
+            let remaining = word;
+
+            while (
+                remaining.length >
+                maxChars
+            ) {
+                lines.push(
+                    remaining.slice(
+                        0,
+                        maxChars
+                    )
+                );
+
+                remaining =
+                    remaining.slice(
+                        maxChars
                     );
-
-                    remaining =
-                        remaining.slice(
-                            maxChars
-                        );
-                }
-
-                current = remaining;
-            } else {
-                current = word;
             }
+
+            current = remaining;
+        } else {
+            current = word;
         }
     }
 
@@ -104,26 +115,56 @@ function wrapText(text, maxChars) {
 
 function createTextSvg(
     text,
+    width,
+    height,
     fontSize
 ) {
-    const paperX = 445;
-    const paperY = 755;
+    const originalWidth = 1536;
+    const originalHeight = 1536;
 
-    const paperWidth = 665;
-    const paperHeight = 500;
+    const scaleX =
+        width /
+        originalWidth;
 
-    const paddingX = 55;
+    const scaleY =
+        height /
+        originalHeight;
+
+    const scale =
+        Math.min(
+            scaleX,
+            scaleY
+        );
+
+    const paperX =
+        445 * scale;
+
+    const paperY =
+        755 * scale;
+
+    const paperWidth =
+        665 * scale;
+
+    const paperHeight =
+        500 * scale;
+
+    const paddingX =
+        55 * scale;
 
     let size =
         Number(fontSize) || 62;
 
-    size = Math.max(
-        30,
-        Math.min(
-            size,
-            100
-        )
-    );
+    size =
+        size * scale;
+
+    size =
+        Math.max(
+            14,
+            Math.min(
+                size,
+                100 * scale
+            )
+        );
 
     let maxChars =
         Math.floor(
@@ -174,7 +215,7 @@ function createTextSvg(
         size =
             Math.min(
                 size,
-                52
+                52 * scale
             );
     } else if (
         lines.length >= 4
@@ -182,7 +223,7 @@ function createTextSvg(
         size =
             Math.min(
                 size,
-                58
+                58 * scale
             );
     }
 
@@ -227,7 +268,10 @@ function createTextSvg(
                             font-weight="700"
                             fill="#111111"
                             stroke="#111111"
-                            stroke-width="0.6"
+                            stroke-width="${Math.max(
+                                0.4,
+                                0.6 * scale
+                            )}"
                             paint-order="stroke"
                         >${escapeXml(
                             line
@@ -239,9 +283,9 @@ function createTextSvg(
 
     return `
         <svg
-            width="1536"
-            height="1536"
-            viewBox="0 0 1536 1536"
+            width="${width}"
+            height="${height}"
+            viewBox="0 0 ${width} ${height}"
             xmlns="http://www.w3.org/2000/svg"
         >
             ${elements}
@@ -411,9 +455,42 @@ export default async function handler(
                 )
             );
 
+        const metadata =
+            await sharp(
+                IMAGE_PATH
+            ).metadata();
+
+        const width =
+            Number(
+                metadata.width
+            );
+
+        const height =
+            Number(
+                metadata.height
+            );
+
+        if (
+            !width ||
+            !height
+        ) {
+            return sendJson(
+                res,
+                500,
+                {
+                    status: false,
+                    creator: CREATOR,
+                    error:
+                        "Dimensi gambar tidak dapat dibaca."
+                }
+            );
+        }
+
         const svg =
             createTextSvg(
                 text,
+                width,
+                height,
                 fontSize
             );
 
@@ -455,6 +532,8 @@ export default async function handler(
                 result: {
                     text: text,
                     fontSize: fontSize,
+                    width: width,
+                    height: height,
                     mime: "image/png",
                     url_gambar: dataUrl,
                     base64: base64
