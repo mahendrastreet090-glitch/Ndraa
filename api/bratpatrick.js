@@ -1,7 +1,6 @@
-import sharp from "sharp";
-import path from "path";
-import fs from "fs";
-import opentype from "opentype.js";
+const sharp = require("sharp");
+const path = require("path");
+const fs = require("fs");
 
 const CREATOR = "Ndra09";
 
@@ -25,6 +24,307 @@ function sendJson(res, status, data) {
         "application/json; charset=utf-8"
     );
 
+    return res.end(
+        JSON.stringify(data)
+    );
+}
+
+function escapeXml(text) {
+    return String(text).replace(
+        /[&<>"']/g,
+        char => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&apos;"
+        }[char])
+    );
+}
+
+function wrapText(text, maxChars) {
+    const words = String(text)
+        .trim()
+        .split(/\s+/);
+
+    const lines = [];
+    let current = "";
+
+    for (const word of words) {
+        const test = current
+            ? current + " " + word
+            : word;
+
+        if (test.length <= maxChars) {
+            current = test;
+        } else {
+            if (current) {
+                lines.push(current);
+            }
+
+            if (word.length > maxChars) {
+                let remaining = word;
+
+                while (
+                    remaining.length >
+                    maxChars
+                ) {
+                    lines.push(
+                        remaining.slice(
+                            0,
+                            maxChars
+                        )
+                    );
+
+                    remaining =
+                        remaining.slice(
+                            maxChars
+                        );
+                }
+
+                current = remaining;
+            } else {
+                current = word;
+            }
+        }
+    }
+
+    if (current) {
+        lines.push(current);
+    }
+
+    return lines;
+}
+
+function createTextSvg(
+    text,
+    imageWidth,
+    imageHeight,
+    fontSize
+) {
+    const scaleX =
+        imageWidth / 1536;
+
+    const scaleY =
+        imageHeight / 1536;
+
+    const paperX =
+        445 * scaleX;
+
+    const paperY =
+        755 * scaleY;
+
+    const paperWidth =
+        665 * scaleX;
+
+    const paperHeight =
+        500 * scaleY;
+
+    const paddingX =
+        35 * scaleX;
+
+    let size =
+        Number(fontSize) || 115;
+
+    size =
+        Math.max(
+            45,
+            Math.min(
+                size,
+                170
+            )
+        );
+
+    let maxChars =
+        Math.floor(
+            (paperWidth -
+                paddingX * 2) /
+            (size * 0.52)
+        );
+
+    maxChars =
+        Math.max(
+            5,
+            maxChars
+        );
+
+    let lines =
+        wrapText(
+            text,
+            maxChars
+        );
+
+    if (lines.length > 5) {
+        lines =
+            lines.slice(
+                0,
+                5
+            );
+
+        let last =
+            lines[4];
+
+        if (
+            !last.endsWith("...")
+        ) {
+            last =
+                last.slice(
+                    0,
+                    Math.max(
+                        1,
+                        last.length - 3
+                    )
+                ) + "...";
+        }
+
+        lines[4] =
+            last;
+    }
+
+    if (lines.length >= 5) {
+        size =
+            Math.min(
+                size,
+                78
+            );
+    } else if (lines.length === 4) {
+        size =
+            Math.min(
+                size,
+                88
+            );
+    } else if (lines.length === 3) {
+        size =
+            Math.min(
+                size,
+                105
+            );
+    }
+
+    const lineHeight =
+        size * 1.12;
+
+    const totalHeight =
+        lines.length *
+        lineHeight;
+
+    const centerX =
+        paperX +
+        paperWidth / 2;
+
+    const centerY =
+        paperY +
+        paperHeight / 2;
+
+    const startY =
+        centerY -
+        totalHeight / 2 +
+        lineHeight / 2;
+
+    let fontData = "";
+
+    try {
+        if (
+            fs.existsSync(
+                FONT_PATH
+            )
+        ) {
+            fontData =
+                fs.readFileSync(
+                    FONT_PATH
+                ).toString("base64");
+        }
+    } catch {
+        fontData = "";
+    }
+
+    const fontFace =
+        fontData
+            ? `
+                <style>
+                    @font-face {
+                        font-family: "AptosCustom";
+                        src: url(data:font/ttf;base64,${fontData});
+                    }
+                </style>
+            `
+            : "";
+
+    const elements =
+        lines
+            .map(
+                (
+                    line,
+                    index
+                ) => {
+
+                    const y =
+                        startY +
+                        index *
+                        lineHeight;
+
+                    return `
+                        <text
+                            x="${centerX}"
+                            y="${y}"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-family="AptosCustom, Arial, Helvetica, sans-serif"
+                            font-size="${size}px"
+                            font-weight="700"
+                            fill="#111111"
+                            stroke="#111111"
+                            stroke-width="0.7"
+                            paint-order="stroke"
+                        >${escapeXml(
+                            line
+                        )}</text>
+                    `;
+                }
+            )
+            .join("");
+
+    return `
+        <svg
+            width="${imageWidth}"
+            height="${imageHeight}"
+            viewBox="0 0 ${imageWidth} ${imageHeight}"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            ${fontFace}
+
+            ${elements}
+        </svg>
+    `;
+}
+
+function parseBody(req) {
+    if (
+        req.body &&
+        typeof req.body === "object"
+    ) {
+        return req.body;
+    }
+
+    if (
+        typeof req.body === "string"
+    ) {
+        try {
+            return JSON.parse(
+                req.body
+            );
+        } catch {
+            return {};
+        }
+    }
+
+    return {};
+}
+
+module.exports = async function handler(
+    req,
+    res
+) {
     res.setHeader(
         "Access-Control-Allow-Origin",
         "*"
@@ -45,442 +345,7 @@ function sendJson(res, status, data) {
         "no-store"
     );
 
-    return res.end(
-        JSON.stringify(data)
-    );
-}
-
-function escapeXml(text) {
-    return String(text).replace(
-        /[&<>"']/g,
-        (char) => {
-            return {
-                "&": "&amp;",
-                "<": "&lt;",
-                ">": "&gt;",
-                '"': "&quot;",
-                "'": "&apos;"
-            }[char];
-        }
-    );
-}
-
-function wrapTextByWidth(
-    font,
-    text,
-    fontSize,
-    maxWidth
-) {
-    const words = String(text)
-        .trim()
-        .split(/\s+/);
-
-    const lines = [];
-    let current = "";
-
-    for (const word of words) {
-        const test = current
-            ? current + " " + word
-            : word;
-
-        const width =
-            font.getAdvanceWidth(
-                test,
-                fontSize
-            );
-
-        if (
-            width <= maxWidth
-        ) {
-            current = test;
-            continue;
-        }
-
-        if (current) {
-            lines.push(current);
-        }
-
-        if (
-            font.getAdvanceWidth(
-                word,
-                fontSize
-            ) <= maxWidth
-        ) {
-            current = word;
-            continue;
-        }
-
-        let partial = "";
-
-        for (
-            const char of word
-        ) {
-            const testChar =
-                partial + char;
-
-            const charWidth =
-                font.getAdvanceWidth(
-                    testChar,
-                    fontSize
-                );
-
-            if (
-                charWidth <= maxWidth
-            ) {
-                partial =
-                    testChar;
-            } else {
-                if (partial) {
-                    lines.push(
-                        partial
-                    );
-                }
-
-                partial = char;
-            }
-        }
-
-        current = partial;
-    }
-
-    if (current) {
-        lines.push(current);
-    }
-
-    return lines;
-}
-
-function createGlyphPath(
-    font,
-    text,
-    fontSize,
-    centerX,
-    baselineY
-) {
-    const pathObject =
-        font.getPath(
-            text,
-            0,
-            0,
-            fontSize
-        );
-
-    const advanceWidth =
-        font.getAdvanceWidth(
-            text,
-            fontSize
-        );
-
-    const xOffset =
-        centerX -
-        advanceWidth / 2;
-
-    const commands =
-        pathObject.commands;
-
-    let pathData = "";
-
-    for (
-        const command of commands
-    ) {
-        switch (
-            command.type
-        ) {
-            case "M":
-                pathData +=
-                    `M ${(
-                        xOffset +
-                        command.x
-                    ).toFixed(2)} ${(
-                        baselineY -
-                        command.y
-                    ).toFixed(2)} `;
-                break;
-
-            case "L":
-                pathData +=
-                    `L ${(
-                        xOffset +
-                        command.x
-                    ).toFixed(2)} ${(
-                        baselineY -
-                        command.y
-                    ).toFixed(2)} `;
-                break;
-
-            case "C":
-                pathData +=
-                    `C ${(
-                        xOffset +
-                        command.x1
-                    ).toFixed(2)} ${(
-                        baselineY -
-                        command.y1
-                    ).toFixed(2)} ${(
-                        xOffset +
-                        command.x2
-                    ).toFixed(2)} ${(
-                        baselineY -
-                        command.y2
-                    ).toFixed(2)} ${(
-                        xOffset +
-                        command.x
-                    ).toFixed(2)} ${(
-                        baselineY -
-                        command.y
-                    ).toFixed(2)} `;
-                break;
-
-            case "Q":
-                pathData +=
-                    `Q ${(
-                        xOffset +
-                        command.x1
-                    ).toFixed(2)} ${(
-                        baselineY -
-                        command.y1
-                    ).toFixed(2)} ${(
-                        xOffset +
-                        command.x
-                    ).toFixed(2)} ${(
-                        baselineY -
-                        command.y
-                    ).toFixed(2)} `;
-                break;
-
-            case "Z":
-                pathData += "Z ";
-                break;
-        }
-    }
-
-    return pathData.trim();
-}
-
-function createTextSvg(
-    font,
-    text,
-    width,
-    height,
-    requestedFontSize
-) {
-    const designWidth = 1536;
-    const designHeight = 1536;
-
-    const scaleX =
-        width / designWidth;
-
-    const scaleY =
-        height / designHeight;
-
-    const scale =
-        Math.min(
-            scaleX,
-            scaleY
-        );
-
-    const paperX =
-        445 * scale;
-
-    const paperY =
-        755 * scale;
-
-    const paperWidth =
-        665 * scale;
-
-    const paperHeight =
-        500 * scale;
-
-    const padding =
-        55 * scale;
-
-    let fontSize =
-        requestedFontSize *
-        scale;
-
-    fontSize =
-        Math.max(
-            14,
-            fontSize
-        );
-
-    const maxWidth =
-        paperWidth -
-        padding * 2;
-
-    let lines =
-        wrapTextByWidth(
-            font,
-            text,
-            fontSize,
-            maxWidth
-        );
-
-    if (
-        lines.length === 0
-    ) {
-        lines = [text];
-    }
-
-    if (
-        lines.length > 6
-    ) {
-        lines =
-            lines.slice(
-                0,
-                6
-            );
-
-        let last =
-            lines[5];
-
-        if (
-            !last.endsWith(
-                "..."
-            )
-        ) {
-            last =
-                last.slice(
-                    0,
-                    Math.max(
-                        1,
-                        last.length - 3
-                    )
-                ) + "...";
-        }
-
-        lines[5] =
-            last;
-    }
-
-    if (
-        lines.length >= 5
-    ) {
-        fontSize =
-            Math.min(
-                fontSize,
-                52 * scale
-            );
-    } else if (
-        lines.length >= 4
-    ) {
-        fontSize =
-            Math.min(
-                fontSize,
-                58 * scale
-            );
-    }
-
-    const lineHeight =
-        fontSize * 1.2;
-
-    const totalHeight =
-        lines.length *
-        lineHeight;
-
-    const centerX =
-        paperX +
-        paperWidth / 2;
-
-    const firstBaseline =
-        paperY +
-        (
-            paperHeight -
-            totalHeight
-        ) / 2 +
-        fontSize;
-
-    let paths = "";
-
-    lines.forEach(
-        (
-            line,
-            index
-        ) => {
-            const baseline =
-                firstBaseline +
-                index *
-                lineHeight;
-
-            const pathData =
-                createGlyphPath(
-                    font,
-                    line,
-                    fontSize,
-                    centerX,
-                    baseline
-                );
-
-            paths += `
-                <path
-                    d="${pathData}"
-                    fill="#111111"
-                />
-            `;
-        }
-    );
-
-    return `
-        <svg
-            width="${width}"
-            height="${height}"
-            viewBox="0 0 ${width} ${height}"
-            xmlns="http://www.w3.org/2000/svg"
-        >
-            ${paths}
-        </svg>
-    `;
-}
-
-function parseBody(req) {
-    if (
-        req.body &&
-        typeof req.body ===
-            "object"
-    ) {
-        return req.body;
-    }
-
-    if (
-        typeof req.body ===
-            "string"
-    ) {
-        try {
-            return JSON.parse(
-                req.body
-            );
-        } catch {
-            return {};
-        }
-    }
-
-    return {};
-}
-
-export default async function handler(
-    req,
-    res
-) {
     try {
-        res.setHeader(
-            "Access-Control-Allow-Origin",
-            "*"
-        );
-
-        res.setHeader(
-            "Access-Control-Allow-Methods",
-            "POST, OPTIONS"
-        );
-
-        res.setHeader(
-            "Access-Control-Allow-Headers",
-            "Content-Type"
-        );
-
-        res.setHeader(
-            "Cache-Control",
-            "no-store"
-        );
 
         if (
             req.method ===
@@ -529,29 +394,12 @@ export default async function handler(
             );
         }
 
-        if (
-            !fs.existsSync(
-                FONT_PATH
-            )
-        ) {
-            return sendJson(
-                res,
-                500,
-                {
-                    status: false,
-                    creator: CREATOR,
-                    error:
-                        "assets/Aptos.ttf tidak ditemukan."
-                }
-            );
-        }
-
         const body =
             parseBody(req);
 
         const text =
             String(
-                body?.text ??
+                body.text ??
                 req.query?.text ??
                 ""
             ).trim();
@@ -591,9 +439,9 @@ export default async function handler(
 
         let fontSize =
             Number(
-                body?.fontSize ??
+                body.fontSize ??
                 req.query?.fontSize ??
-                62
+                115
             );
 
         if (
@@ -601,15 +449,15 @@ export default async function handler(
                 fontSize
             )
         ) {
-            fontSize = 62;
+            fontSize = 115;
         }
 
         fontSize =
             Math.max(
-                30,
+                45,
                 Math.min(
                     fontSize,
-                    100
+                    170
                 )
             );
 
@@ -618,19 +466,15 @@ export default async function handler(
                 IMAGE_PATH
             ).metadata();
 
-        const width =
-            Number(
-                metadata.width
-            );
+        const imageWidth =
+            metadata.width;
 
-        const height =
-            Number(
-                metadata.height
-            );
+        const imageHeight =
+            metadata.height;
 
         if (
-            !width ||
-            !height
+            !imageWidth ||
+            !imageHeight
         ) {
             return sendJson(
                 res,
@@ -639,31 +483,16 @@ export default async function handler(
                     status: false,
                     creator: CREATOR,
                     error:
-                        "Dimensi gambar tidak dapat dibaca."
+                        "Ukuran gambar tidak dapat dibaca."
                 }
             );
         }
 
-        const fontBuffer =
-            fs.readFileSync(
-                FONT_PATH
-            );
-
-        const font =
-            opentype.parse(
-                fontBuffer.buffer.slice(
-                    fontBuffer.byteOffset,
-                    fontBuffer.byteOffset +
-                    fontBuffer.byteLength
-                )
-            );
-
         const svg =
             createTextSvg(
-                font,
                 text,
-                width,
-                height,
+                imageWidth,
+                imageHeight,
                 fontSize
             );
 
@@ -671,12 +500,12 @@ export default async function handler(
             await sharp(
                 IMAGE_PATH
             )
+                .rotate()
                 .composite([
                     {
                         input:
                             Buffer.from(
-                                svg,
-                                "utf8"
+                                svg
                             ),
                         top: 0,
                         left: 0
@@ -691,7 +520,8 @@ export default async function handler(
             );
 
         const dataUrl =
-            `data:image/png;base64,${base64}`;
+            "data:image/png;base64," +
+            base64;
 
         return sendJson(
             res,
@@ -700,11 +530,16 @@ export default async function handler(
                 status: true,
                 creator: CREATOR,
                 result: {
-                    text: text,
-                    fontSize: fontSize,
-                    width: width,
-                    height: height,
-                    mime: "image/png",
+                    text:
+                        text,
+                    fontSize:
+                        fontSize,
+                    mime:
+                        "image/png",
+                    width:
+                        imageWidth,
+                    height:
+                        imageHeight,
                     url_gambar:
                         dataUrl,
                     base64:
@@ -714,6 +549,7 @@ export default async function handler(
         );
 
     } catch (error) {
+
         console.error(
             "BRAT PATRICK ERROR:",
             error
@@ -734,12 +570,13 @@ export default async function handler(
             }
         );
     }
-}
+};
 
-export const config = {
+module.exports.config = {
     api: {
         bodyParser: {
-            sizeLimit: "10mb"
+            sizeLimit:
+                "10mb"
         }
     }
 };
