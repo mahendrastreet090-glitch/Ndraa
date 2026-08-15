@@ -1,6 +1,7 @@
 import sharp from "sharp";
 import path from "path";
 import fs from "fs";
+import opentype from "opentype.js";
 
 const CREATOR = "Ndra09";
 
@@ -52,7 +53,7 @@ function sendJson(res, status, data) {
 function escapeXml(text) {
     return String(text).replace(
         /[&<>"']/g,
-        function (char) {
+        (char) => {
             return {
                 "&": "&amp;",
                 "<": "&lt;",
@@ -64,7 +65,12 @@ function escapeXml(text) {
     );
 }
 
-function wrapText(text, maxChars) {
+function wrapTextByWidth(
+    font,
+    text,
+    fontSize,
+    maxWidth
+) {
     const words = String(text)
         .trim()
         .split(/\s+/);
@@ -77,7 +83,15 @@ function wrapText(text, maxChars) {
             ? current + " " + word
             : word;
 
-        if (test.length <= maxChars) {
+        const width =
+            font.getAdvanceWidth(
+                test,
+                fontSize
+            );
+
+        if (
+            width <= maxWidth
+        ) {
             current = test;
             continue;
         }
@@ -86,30 +100,47 @@ function wrapText(text, maxChars) {
             lines.push(current);
         }
 
-        if (word.length > maxChars) {
-            let remaining = word;
+        if (
+            font.getAdvanceWidth(
+                word,
+                fontSize
+            ) <= maxWidth
+        ) {
+            current = word;
+            continue;
+        }
 
-            while (
-                remaining.length >
-                maxChars
-            ) {
-                lines.push(
-                    remaining.slice(
-                        0,
-                        maxChars
-                    )
+        let partial = "";
+
+        for (
+            const char of word
+        ) {
+            const testChar =
+                partial + char;
+
+            const charWidth =
+                font.getAdvanceWidth(
+                    testChar,
+                    fontSize
                 );
 
-                remaining =
-                    remaining.slice(
-                        maxChars
+            if (
+                charWidth <= maxWidth
+            ) {
+                partial =
+                    testChar;
+            } else {
+                if (partial) {
+                    lines.push(
+                        partial
                     );
-            }
+                }
 
-            current = remaining;
-        } else {
-            current = word;
+                partial = char;
+            }
         }
+
+        current = partial;
     }
 
     if (current) {
@@ -119,23 +150,128 @@ function wrapText(text, maxChars) {
     return lines;
 }
 
+function createGlyphPath(
+    font,
+    text,
+    fontSize,
+    centerX,
+    baselineY
+) {
+    const pathObject =
+        font.getPath(
+            text,
+            0,
+            0,
+            fontSize
+        );
+
+    const advanceWidth =
+        font.getAdvanceWidth(
+            text,
+            fontSize
+        );
+
+    const xOffset =
+        centerX -
+        advanceWidth / 2;
+
+    const commands =
+        pathObject.commands;
+
+    let pathData = "";
+
+    for (
+        const command of commands
+    ) {
+        switch (
+            command.type
+        ) {
+            case "M":
+                pathData +=
+                    `M ${(
+                        xOffset +
+                        command.x
+                    ).toFixed(2)} ${(
+                        baselineY -
+                        command.y
+                    ).toFixed(2)} `;
+                break;
+
+            case "L":
+                pathData +=
+                    `L ${(
+                        xOffset +
+                        command.x
+                    ).toFixed(2)} ${(
+                        baselineY -
+                        command.y
+                    ).toFixed(2)} `;
+                break;
+
+            case "C":
+                pathData +=
+                    `C ${(
+                        xOffset +
+                        command.x1
+                    ).toFixed(2)} ${(
+                        baselineY -
+                        command.y1
+                    ).toFixed(2)} ${(
+                        xOffset +
+                        command.x2
+                    ).toFixed(2)} ${(
+                        baselineY -
+                        command.y2
+                    ).toFixed(2)} ${(
+                        xOffset +
+                        command.x
+                    ).toFixed(2)} ${(
+                        baselineY -
+                        command.y
+                    ).toFixed(2)} `;
+                break;
+
+            case "Q":
+                pathData +=
+                    `Q ${(
+                        xOffset +
+                        command.x1
+                    ).toFixed(2)} ${(
+                        baselineY -
+                        command.y1
+                    ).toFixed(2)} ${(
+                        xOffset +
+                        command.x
+                    ).toFixed(2)} ${(
+                        baselineY -
+                        command.y
+                    ).toFixed(2)} `;
+                break;
+
+            case "Z":
+                pathData += "Z ";
+                break;
+        }
+    }
+
+    return pathData.trim();
+}
+
 function createTextSvg(
+    font,
     text,
     width,
     height,
-    fontSize,
-    fontBase64
+    requestedFontSize
 ) {
-    const originalWidth = 1536;
-    const originalHeight = 1536;
+    const designWidth = 1536;
+    const designHeight = 1536;
 
     const scaleX =
-        width /
-        originalWidth;
+        width / designWidth;
 
     const scaleY =
-        height /
-        originalHeight;
+        height / designHeight;
 
     const scale =
         Math.min(
@@ -155,44 +291,40 @@ function createTextSvg(
     const paperHeight =
         500 * scale;
 
-    const paddingX =
+    const padding =
         55 * scale;
 
-    let size =
-        Number(fontSize) || 62;
+    let fontSize =
+        requestedFontSize *
+        scale;
 
-    size =
-        size * scale;
-
-    size =
+    fontSize =
         Math.max(
             14,
-            Math.min(
-                size,
-                100 * scale
-            )
+            fontSize
         );
 
-    let maxChars =
-        Math.floor(
-            (paperWidth -
-                paddingX * 2) /
-            (size * 0.55)
-        );
-
-    maxChars =
-        Math.max(
-            8,
-            maxChars
-        );
+    const maxWidth =
+        paperWidth -
+        padding * 2;
 
     let lines =
-        wrapText(
+        wrapTextByWidth(
+            font,
             text,
-            maxChars
+            fontSize,
+            maxWidth
         );
 
-    if (lines.length > 6) {
+    if (
+        lines.length === 0
+    ) {
+        lines = [text];
+    }
+
+    if (
+        lines.length > 6
+    ) {
         lines =
             lines.slice(
                 0,
@@ -203,7 +335,9 @@ function createTextSvg(
             lines[5];
 
         if (
-            !last.endsWith("...")
+            !last.endsWith(
+                "..."
+            )
         ) {
             last =
                 last.slice(
@@ -215,27 +349,30 @@ function createTextSvg(
                 ) + "...";
         }
 
-        lines[5] = last;
+        lines[5] =
+            last;
     }
 
-    if (lines.length >= 5) {
-        size =
+    if (
+        lines.length >= 5
+    ) {
+        fontSize =
             Math.min(
-                size,
+                fontSize,
                 52 * scale
             );
     } else if (
         lines.length >= 4
     ) {
-        size =
+        fontSize =
             Math.min(
-                size,
+                fontSize,
                 58 * scale
             );
     }
 
     const lineHeight =
-        size * 1.2;
+        fontSize * 1.2;
 
     const totalHeight =
         lines.length *
@@ -245,48 +382,43 @@ function createTextSvg(
         paperX +
         paperWidth / 2;
 
-    const startY =
+    const firstBaseline =
         paperY +
-        (paperHeight -
-            totalHeight) / 2 +
-        size / 2;
+        (
+            paperHeight -
+            totalHeight
+        ) / 2 +
+        fontSize;
 
-    const elements =
-        lines
-            .map(
-                (
+    let paths = "";
+
+    lines.forEach(
+        (
+            line,
+            index
+        ) => {
+            const baseline =
+                firstBaseline +
+                index *
+                lineHeight;
+
+            const pathData =
+                createGlyphPath(
+                    font,
                     line,
-                    index
-                ) => {
+                    fontSize,
+                    centerX,
+                    baseline
+                );
 
-                    const y =
-                        startY +
-                        index *
-                        lineHeight;
-
-                    return `
-                        <text
-                            x="${centerX}"
-                            y="${y}"
-                            text-anchor="middle"
-                            dominant-baseline="middle"
-                            font-family="Aptos"
-                            font-size="${size}px"
-                            font-weight="700"
-                            fill="#111111"
-                            stroke="#111111"
-                            stroke-width="${Math.max(
-                                0.35,
-                                0.6 * scale
-                            )}"
-                            paint-order="stroke"
-                        >${escapeXml(
-                            line
-                        )}</text>
-                    `;
-                }
-            )
-            .join("");
+            paths += `
+                <path
+                    d="${pathData}"
+                    fill="#111111"
+                />
+            `;
+        }
+    );
 
     return `
         <svg
@@ -295,24 +427,7 @@ function createTextSvg(
             viewBox="0 0 ${width} ${height}"
             xmlns="http://www.w3.org/2000/svg"
         >
-
-            <defs>
-
-                <style>
-
-                    @font-face {
-                        font-family: "Aptos";
-                        src: url("data:font/ttf;base64,${fontBase64}") format("truetype");
-                        font-weight: 700;
-                        font-style: normal;
-                    }
-
-                </style>
-
-            </defs>
-
-            ${elements}
-
+            ${paths}
         </svg>
     `;
 }
@@ -320,13 +435,15 @@ function createTextSvg(
 function parseBody(req) {
     if (
         req.body &&
-        typeof req.body === "object"
+        typeof req.body ===
+            "object"
     ) {
         return req.body;
     }
 
     if (
-        typeof req.body === "string"
+        typeof req.body ===
+            "string"
     ) {
         try {
             return JSON.parse(
@@ -345,7 +462,6 @@ export default async function handler(
     res
 ) {
     try {
-
         res.setHeader(
             "Access-Control-Allow-Origin",
             "*"
@@ -497,16 +613,6 @@ export default async function handler(
                 )
             );
 
-        const fontBuffer =
-            fs.readFileSync(
-                FONT_PATH
-            );
-
-        const fontBase64 =
-            fontBuffer.toString(
-                "base64"
-            );
-
         const metadata =
             await sharp(
                 IMAGE_PATH
@@ -538,13 +644,27 @@ export default async function handler(
             );
         }
 
+        const fontBuffer =
+            fs.readFileSync(
+                FONT_PATH
+            );
+
+        const font =
+            opentype.parse(
+                fontBuffer.buffer.slice(
+                    fontBuffer.byteOffset,
+                    fontBuffer.byteOffset +
+                    fontBuffer.byteLength
+                )
+            );
+
         const svg =
             createTextSvg(
+                font,
                 text,
                 width,
                 height,
-                fontSize,
-                fontBase64
+                fontSize
             );
 
         const output =
@@ -594,7 +714,6 @@ export default async function handler(
         );
 
     } catch (error) {
-
         console.error(
             "BRAT PATRICK ERROR:",
             error
