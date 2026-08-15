@@ -10,6 +10,12 @@ const IMAGE_PATH = path.join(
     "bratpatrick.png"
 );
 
+const FONT_PATH = path.join(
+    process.cwd(),
+    "assets",
+    "Aptos.ttf"
+);
+
 function sendJson(res, status, data) {
     res.statusCode = status;
 
@@ -117,7 +123,8 @@ function createTextSvg(
     text,
     width,
     height,
-    fontSize
+    fontSize,
+    fontBase64
 ) {
     const originalWidth = 1536;
     const originalHeight = 1536;
@@ -263,13 +270,13 @@ function createTextSvg(
                             y="${y}"
                             text-anchor="middle"
                             dominant-baseline="middle"
-                            font-family="Arial, Helvetica, sans-serif"
+                            font-family="Aptos"
                             font-size="${size}px"
                             font-weight="700"
                             fill="#111111"
                             stroke="#111111"
                             stroke-width="${Math.max(
-                                0.4,
+                                0.35,
                                 0.6 * scale
                             )}"
                             paint-order="stroke"
@@ -288,7 +295,24 @@ function createTextSvg(
             viewBox="0 0 ${width} ${height}"
             xmlns="http://www.w3.org/2000/svg"
         >
+
+            <defs>
+
+                <style>
+
+                    @font-face {
+                        font-family: "Aptos";
+                        src: url("data:font/ttf;base64,${fontBase64}") format("truetype");
+                        font-weight: 700;
+                        font-style: normal;
+                    }
+
+                </style>
+
+            </defs>
+
             ${elements}
+
         </svg>
     `;
 }
@@ -321,6 +345,7 @@ export default async function handler(
     res
 ) {
     try {
+
         res.setHeader(
             "Access-Control-Allow-Origin",
             "*"
@@ -384,6 +409,23 @@ export default async function handler(
                     creator: CREATOR,
                     error:
                         "assets/bratpatrick.png tidak ditemukan."
+                }
+            );
+        }
+
+        if (
+            !fs.existsSync(
+                FONT_PATH
+            )
+        ) {
+            return sendJson(
+                res,
+                500,
+                {
+                    status: false,
+                    creator: CREATOR,
+                    error:
+                        "assets/Aptos.ttf tidak ditemukan."
                 }
             );
         }
@@ -455,6 +497,16 @@ export default async function handler(
                 )
             );
 
+        const fontBuffer =
+            fs.readFileSync(
+                FONT_PATH
+            );
+
+        const fontBase64 =
+            fontBuffer.toString(
+                "base64"
+            );
+
         const metadata =
             await sharp(
                 IMAGE_PATH
@@ -491,13 +543,8 @@ export default async function handler(
                 text,
                 width,
                 height,
-                fontSize
-            );
-
-        const svgBuffer =
-            Buffer.from(
-                svg,
-                "utf8"
+                fontSize,
+                fontBase64
             );
 
         const output =
@@ -507,7 +554,10 @@ export default async function handler(
                 .composite([
                     {
                         input:
-                            svgBuffer,
+                            Buffer.from(
+                                svg,
+                                "utf8"
+                            ),
                         top: 0,
                         left: 0
                     }
@@ -535,13 +585,16 @@ export default async function handler(
                     width: width,
                     height: height,
                     mime: "image/png",
-                    url_gambar: dataUrl,
-                    base64: base64
+                    url_gambar:
+                        dataUrl,
+                    base64:
+                        base64
                 }
             }
         );
 
     } catch (error) {
+
         console.error(
             "BRAT PATRICK ERROR:",
             error
