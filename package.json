@@ -6,6 +6,7 @@
   "author": "Ndra09",
   "license": "MIT",
   "dependencies": {
-    "sharp": "^0.34.3"
+    "sharp": "^0.34.3",
+    "opentype.js": "^1.3.4"
   }
 }
