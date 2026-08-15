@@ -1,573 +1,1371 @@
-import sharp from "sharp";
-import path from "path";
-import fs from "fs";
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NDRA // STAMPLE API</title>
 
-const CREATOR = "Ndra09";
-
-const IMAGE_PATH = path.join(
-    process.cwd(),
-    "assets",
-    "bratpatrick.png"
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#020403;
+--panel:#050907;
+--panel2:#08100b;
+--line:#12351f;
+--line2:#1b5c32;
+--green:#00ff66;
+--green2:#00c853;
+--text:#d8ffe5;
+--muted:#527261;
+--red:#ff3b3b;
+--cyan:#00e5ff;
+}
+html{scroll-behavior:smooth}
+body{
+font-family:"JetBrains Mono","Fira Code","SFMono-Regular",Consolas,monospace;
+background:
+radial-gradient(circle at 50% -10%,rgba(0,255,102,.09),transparent 35%),
+linear-gradient(rgba(0,255,102,.018) 1px,transparent 1px),
+linear-gradient(90deg,rgba(0,255,102,.018) 1px,transparent 1px),
+var(--bg);
+background-size:auto,28px 28px,28px 28px;
+color:var(--text);
+min-height:100vh;
+overflow-x:hidden;
+}
+body:before{
+content:"";
+position:fixed;
+inset:0;
+pointer-events:none;
+background:linear-gradient(
+transparent 50%,
+rgba(0,255,102,.012) 50%
 );
+background-size:100% 4px;
+z-index:999;
+}
+::selection{background:rgba(0,255,102,.25);color:#fff}
+.app{width:100%;min-height:100vh}
+.header{
+height:66px;
+border-bottom:1px solid var(--line);
+background:rgba(2,4,3,.92);
+backdrop-filter:blur(12px);
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:0 28px;
+position:sticky;
+top:0;
+z-index:100;
+}
+.logo{
+display:flex;
+align-items:center;
+gap:12px;
+font-weight:900;
+letter-spacing:1px;
+}
+.logo-box{
+width:34px;
+height:34px;
+border:1px solid rgba(0,255,102,.45);
+display:flex;
+align-items:center;
+justify-content:center;
+color:var(--green);
+box-shadow:0 0 18px rgba(0,255,102,.08);
+}
+.logo-text{color:#fff;font-size:13px}
+.logo-text span{color:var(--green)}
+.header-right{
+display:flex;
+align-items:center;
+gap:18px;
+font-size:10px;
+color:var(--muted);
+}
+.online{
+display:flex;
+align-items:center;
+gap:7px;
+color:#74ff9e;
+}
+.dot{
+width:7px;
+height:7px;
+border-radius:50%;
+background:var(--green);
+box-shadow:0 0 12px var(--green);
+animation:pulse 1.5s infinite;
+}
+@keyframes pulse{50%{opacity:.35}}
+.main{
+width:min(1100px,calc(100% - 30px));
+margin:auto;
+padding:45px 0 60px;
+}
+.terminal-head{
+border:1px solid var(--line);
+background:rgba(4,10,6,.7);
+padding:15px 18px;
+margin-bottom:22px;
+display:flex;
+align-items:center;
+gap:12px;
+font-size:10px;
+color:var(--muted);
+}
+.term-dots{display:flex;gap:5px}
+.term-dots i{
+width:8px;
+height:8px;
+border-radius:50%;
+background:#17321f;
+display:block;
+}
+.term-dots i:nth-child(1){background:#ff4d4d}
+.term-dots i:nth-child(2){background:#ffd23f}
+.term-dots i:nth-child(3){background:#00d95a}
+.path{margin-left:auto}
+.path span{color:var(--green)}
+.hero{
+text-align:center;
+padding:30px 10px 42px;
+}
+.prompt{
+font-size:11px;
+color:var(--green);
+margin-bottom:16px;
+letter-spacing:1px;
+}
+.prompt:before{content:"root@ndra:~$ ";color:var(--muted)}
+.hero h1{
+font-size:clamp(30px,6vw,58px);
+line-height:1;
+letter-spacing:-3px;
+color:#f1fff5;
+text-shadow:0 0 30px rgba(0,255,102,.08);
+}
+.hero h1 span{
+color:var(--green);
+text-shadow:0 0 18px rgba(0,255,102,.3);
+}
+.hero p{
+max-width:650px;
+margin:18px auto 0;
+font-size:11px;
+line-height:1.9;
+color:var(--muted);
+}
+.hero p b{color:#a5ffc1;font-weight:500}
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:18px;
+}
+.card{
+background:linear-gradient(145deg,rgba(6,14,9,.95),rgba(3,8,5,.95));
+border:1px solid var(--line);
+position:relative;
+padding:22px;
+overflow:hidden;
+}
+.card:before{
+content:"";
+position:absolute;
+left:0;
+top:0;
+width:100%;
+height:1px;
+background:linear-gradient(90deg,transparent,var(--green),transparent);
+opacity:.35;
+}
+.card-title{
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding-bottom:15px;
+border-bottom:1px solid var(--line);
+margin-bottom:20px;
+}
+.title-left{
+display:flex;
+align-items:center;
+gap:9px;
+font-size:11px;
+font-weight:800;
+color:#d9ffe5;
+letter-spacing:.7px;
+}
+.title-icon{color:var(--green)}
+.badge{
+font-size:8px;
+padding:5px 8px;
+border:1px solid rgba(0,255,102,.22);
+color:#70ff99;
+background:rgba(0,255,102,.035);
+}
+.tabs{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:5px;
+padding:4px;
+border:1px solid var(--line);
+background:#020604;
+margin-bottom:18px;
+}
+.tab{
+border:1px solid transparent;
+background:transparent;
+color:#456252;
+padding:10px;
+font-family:inherit;
+font-size:9px;
+cursor:pointer;
+}
+.tab.active{
+color:var(--green);
+border-color:rgba(0,255,102,.18);
+background:rgba(0,255,102,.06);
+}
+.form-group{margin-bottom:17px}
+label{
+display:block;
+font-size:9px;
+color:#6d947d;
+letter-spacing:1px;
+font-weight:800;
+margin-bottom:8px;
+}
+input[type=file],
+input[type=text],
+input[type=url]{
+width:100%;
+height:43px;
+background:#020503;
+border:1px solid #173a23;
+outline:none;
+color:#dffff0;
+font-family:inherit;
+font-size:10px;
+padding:0 12px;
+border-radius:2px;
+transition:.2s;
+}
+input:focus{
+border-color:var(--green2);
+box-shadow:0 0 0 2px rgba(0,255,102,.04),0 0 20px rgba(0,255,102,.04);
+}
+input::placeholder{color:#294435}
+input[type=file]{padding:5px}
+input[type=file]::file-selector-button{
+border:1px solid #19532d;
+background:#07150c;
+color:#73ff9b;
+font-family:inherit;
+font-size:9px;
+padding:7px 10px;
+margin-right:9px;
+cursor:pointer;
+}
+.action{
+width:100%;
+height:46px;
+border:1px solid rgba(0,255,102,.4);
+background:
+linear-gradient(90deg,rgba(0,255,102,.08),rgba(0,255,102,.02)),
+#06100a;
+color:var(--green);
+font-family:inherit;
+font-size:10px;
+font-weight:900;
+letter-spacing:.7px;
+cursor:pointer;
+position:relative;
+overflow:hidden;
+}
+.action:hover{
+background:rgba(0,255,102,.1);
+box-shadow:0 0 25px rgba(0,255,102,.07);
+}
+.action:disabled{opacity:.4;cursor:not-allowed}
+.action:after{
+content:"";
+position:absolute;
+top:0;
+left:-100%;
+width:60%;
+height:100%;
+background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);
+animation:scan 2.8s infinite;
+}
+@keyframes scan{to{left:150%}}
+.loading{
+display:none;
+padding:25px 0 5px;
+text-align:center;
+}
+.loader{
+width:26px;
+height:26px;
+border:2px solid #17321f;
+border-top-color:var(--green);
+border-radius:50%;
+animation:spin .65s linear infinite;
+margin:auto auto 10px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading p{font-size:9px;color:var(--muted)}
+.result{
+display:none;
+grid-column:1/-1;
+}
+.message{
+font-size:9px;
+padding:11px 13px;
+border:1px solid;
+margin-bottom:17px;
+line-height:1.7;
+}
+.success{
+color:#70ff99;
+background:rgba(0,255,102,.035);
+border-color:rgba(0,255,102,.18);
+}
+.error{
+color:#ff8585;
+background:rgba(255,59,59,.035);
+border-color:rgba(255,59,59,.2);
+}
+.preview{
+border:1px solid var(--line);
+background:
+linear-gradient(45deg,#030805 25%,transparent 25%),
+linear-gradient(-45deg,#030805 25%,transparent 25%),
+linear-gradient(45deg,transparent 75%,#030805 75%),
+linear-gradient(-45deg,transparent 75%,#030805 75%);
+background-size:20px 20px;
+background-position:0 0,0 10px,10px -10px,-10px 0;
+padding:15px;
+text-align:center;
+margin-bottom:18px;
+min-height:100px;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+.preview img{
+max-width:100%;
+max-height:600px;
+display:block;
+margin:auto;
+}
+.link-label{
+font-size:9px;
+color:#60816d;
+margin-bottom:7px;
+}
+.link-row{
+display:flex;
+gap:7px;
+margin-bottom:18px;
+}
+.link-row input{flex:1}
+.small-btn{
+height:43px;
+padding:0 15px;
+background:#07100a;
+border:1px solid #173a23;
+color:#8cb49b;
+font-family:inherit;
+font-size:9px;
+font-weight:800;
+cursor:pointer;
+}
+.small-btn:hover{
+color:var(--green);
+border-color:#26733e;
+}
+.open{
+display:flex;
+align-items:center;
+justify-content:center;
+text-decoration:none;
+}
+.code-title{
+font-size:9px;
+color:#60816d;
+font-weight:800;
+letter-spacing:.8px;
+margin:17px 0 7px;
+}
+pre{
+background:#010302;
+border:1px solid #102b19;
+padding:14px;
+color:#69e891;
+font-family:inherit;
+font-size:9px;
+line-height:1.75;
+overflow:auto;
+white-space:pre-wrap;
+word-break:break-word;
+}
+.copy{
+margin-top:6px;
+background:#06100a;
+border:1px solid #163720;
+color:#60816d;
+padding:7px 10px;
+font-family:inherit;
+font-size:8px;
+cursor:pointer;
+}
+.copy:hover{color:var(--green)}
+.info-card{margin-top:18px}
+.info-row{
+display:flex;
+justify-content:space-between;
+gap:20px;
+padding:12px 0;
+border-bottom:1px solid #0d2114;
+font-size:9px;
+}
+.info-row:last-child{border-bottom:0}
+.info-key{color:#4d6e59}
+.info-val{
+color:#b6e8c6;
+text-align:right;
+word-break:break-all;
+}
+.green{color:var(--green)!important}
+.docs{
+margin-top:18px;
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:18px;
+}
+.doc pre{color:#68d98a}
+.footer{
+text-align:center;
+padding:35px 10px 10px;
+font-size:8px;
+line-height:2;
+color:#294434;
+}
+.footer span{color:#426d51}
+.cursor{
+display:inline-block;
+width:6px;
+height:11px;
+background:var(--green);
+margin-left:4px;
+animation:blink .8s infinite;
+vertical-align:-1px;
+}
+@keyframes blink{50%{opacity:0}}
+@media(max-width:800px){
+.main{width:calc(100% - 22px);padding-top:25px}
+.header{padding:0 15px}
+.header-right .version{display:none}
+.grid,.docs{grid-template-columns:1fr}
+.result{grid-column:auto}
+.hero{padding:25px 5px 32px}
+.hero h1{letter-spacing:-2px}
+.path{display:none}
+}
+@media(max-width:500px){
+.header{height:58px}
+.logo-box{width:30px;height:30px}
+.logo-text{font-size:11px}
+.main{width:calc(100% - 16px)}
+.card{padding:15px}
+.link-row{flex-direction:column}
+.small-btn{width:100%}
+.terminal-head{padding:12px}
+.hero p{font-size:10px}
+}
+</style>
+</head>
 
-function sendJson(res, status, data) {
-    res.statusCode = status;
+<body>
 
-    res.setHeader(
-        "Content-Type",
-        "application/json; charset=utf-8"
-    );
+<div class="app">
 
-    res.setHeader(
-        "Access-Control-Allow-Origin",
-        "*"
-    );
+<header class="header">
+    <div class="logo">
+        <div class="logo-box">&gt;_</div>
+        <div class="logo-text">
+            NDRA <span>//</span> STAMPLE API
+        </div>
+    </div>
 
-    res.setHeader(
-        "Access-Control-Allow-Methods",
-        "POST, OPTIONS"
-    );
+    <div class="header-right">
+        <div class="online">
+            <span class="dot"></span>
+            SYSTEM ONLINE
+        </div>
+        <div class="version">API v1.0</div>
+    </div>
+</header>
 
-    res.setHeader(
-        "Access-Control-Allow-Headers",
-        "Content-Type"
-    );
+<main class="main">
 
-    res.setHeader(
-        "Cache-Control",
-        "no-store"
-    );
+    <div class="terminal-head">
+        <div class="term-dots">
+            <i></i><i></i><i></i>
+        </div>
+        <div>
+            terminal://ndra-official/api
+        </div>
+        <div class="path">
+            endpoint:
+            <span>/api/lunas</span>
+        </div>
+    </div>
 
-    return res.end(
-        JSON.stringify(data)
-    );
+    <section class="hero">
+        <div class="prompt">
+            STAMPLE_ENGINE.init()<span class="cursor"></span>
+        </div>
+
+        <h1>
+            IMAGE <span>STAMPLE</span>
+            API
+        </h1>
+
+        <p>
+            REST API untuk memproses gambar dengan
+            <b>stempel LUNAS</b> atau teks custom.
+            Upload gambar, kirim request, dan dapatkan
+            hasil secara langsung.
+        </p>
+    </section>
+
+    <div class="grid">
+
+        <section class="card">
+
+            <div class="card-title">
+                <div class="title-left">
+                    <span class="title-icon">$</span>
+                    STAMPLE GENERATOR
+                </div>
+
+                <div class="badge">
+                    POST /api/lunas
+                </div>
+            </div>
+
+            <div class="tabs">
+                <button
+                    class="tab active"
+                    id="fileTab"
+                    onclick="switchMode('file')">
+                    [ FILE ]
+                </button>
+
+                <button
+                    class="tab"
+                    id="urlTab"
+                    onclick="switchMode('url')">
+                    [ URL ]
+                </button>
+            </div>
+
+            <div id="fileMode">
+                <div class="form-group">
+                    <label>IMAGE FILE</label>
+
+                    <input
+                        type="file"
+                        id="imageFile"
+                        accept="image/*">
+                </div>
+            </div>
+
+            <div
+                id="urlMode"
+                style="display:none">
+
+                <div class="form-group">
+                    <label>IMAGE URL</label>
+
+                    <input
+                        type="url"
+                        id="imageUrl"
+                        placeholder="https://domain.com/image.jpg">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>STAMPLE TEXT</label>
+
+                <input
+                    type="text"
+                    id="stampText"
+                    value="LUNAS"
+                    maxlength="50"
+                    placeholder="LUNAS">
+            </div>
+
+            <button
+                class="action"
+                id="processBtn"
+                onclick="processStample()">
+
+                &gt; EXECUTE STAMPLE PROCESS
+
+            </button>
+
+            <div
+                class="loading"
+                id="loading">
+
+                <div class="loader"></div>
+
+                <p>
+                    [ PROCESSING ] image → api → stample
+                </p>
+            </div>
+
+        </section>
+
+
+        <section class="card">
+
+            <div class="card-title">
+                <div class="title-left">
+                    <span class="title-icon">#</span>
+                    API STATUS
+                </div>
+
+                <div class="badge">
+                    ONLINE
+                </div>
+            </div>
+
+            <div class="info-row">
+                <span class="info-key">METHOD</span>
+                <span class="info-val green">POST</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-key">ENDPOINT</span>
+                <span class="info-val">/api/lunas</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-key">CONTENT-TYPE</span>
+                <span class="info-val">application/json</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-key">INPUT</span>
+                <span class="info-val">base64 / url</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-key">TEXT</span>
+                <span class="info-val">LUNAS / CUSTOM</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-key">OUTPUT</span>
+                <span class="info-val green">IMAGE / JSON</span>
+            </div>
+
+        </section>
+
+
+        <section
+            class="card result"
+            id="stampleResult">
+
+            <div class="card-title">
+                <div class="title-left">
+                    <span class="title-icon">&gt;_</span>
+                    PROCESS RESULT
+                </div>
+
+                <div class="badge">
+                    RESPONSE
+                </div>
+            </div>
+
+            <div
+                id="stampleMessage"
+                class="message success">
+                ✓ Image successfully generated.
+            </div>
+
+            <div class="preview">
+                <img
+                    id="resultImage"
+                    src=""
+                    alt="Stample Result">
+            </div>
+
+            <div class="link-label">
+                RESULT IMAGE
+            </div>
+
+            <div class="link-row">
+                <input
+                    type="text"
+                    id="resultLink"
+                    readonly>
+
+                <button
+                    class="small-btn"
+                    onclick="copyText('resultLink')">
+                    COPY
+                </button>
+
+                <a
+                    id="openImage"
+                    class="small-btn open"
+                    href="#"
+                    target="_blank">
+                    OPEN
+                </a>
+            </div>
+
+            <div class="code-title">
+                RESPONSE JSON
+            </div>
+
+            <pre id="jsonResponse"></pre>
+
+            <div class="code-title">
+                cURL REQUEST
+            </div>
+
+            <pre id="curlCode"></pre>
+
+            <button
+                class="copy"
+                onclick="copyCode('curlCode')">
+                COPY CURL
+            </button>
+
+        </section>
+
+    </div>
+
+
+    <div class="docs">
+
+        <section class="card doc">
+
+            <div class="card-title">
+                <div class="title-left">
+                    <span class="title-icon">{}</span>
+                    REQUEST
+                </div>
+            </div>
+
+<pre>POST /api/lunas
+Content-Type: application/json
+
+{
+  "base64": "BASE64_GAMBAR",
+  "text": "LUNAS"
+}</pre>
+
+        </section>
+
+
+        <section class="card doc">
+
+            <div class="card-title">
+                <div class="title-left">
+                    <span class="title-icon">{}</span>
+                    RESPONSE
+                </div>
+            </div>
+
+<pre>{
+  "status": true,
+  "creator": "Ndra09",
+  "result": {
+    "text": "LUNAS",
+    "url_gambar": "..."
+  }
+}</pre>
+
+        </section>
+
+    </div>
+
+
+    <section class="card info-card">
+
+        <div class="card-title">
+            <div class="title-left">
+                <span class="title-icon">::</span>
+                ENDPOINT INFORMATION
+            </div>
+        </div>
+
+        <div class="info-row">
+            <span class="info-key">BASE URL</span>
+            <span
+                class="info-val"
+                id="baseUrl">
+            </span>
+        </div>
+
+        <div class="info-row">
+            <span class="info-key">FULL ENDPOINT</span>
+            <span
+                class="info-val green"
+                id="fullEndpoint">
+            </span>
+        </div>
+
+        <div class="info-row">
+            <span class="info-key">DEFAULT TEXT</span>
+            <span class="info-val">LUNAS</span>
+        </div>
+
+        <div class="info-row">
+            <span class="info-key">MAX REQUEST</span>
+            <span class="info-val">8 MB CLIENT / 10 MB API</span>
+        </div>
+
+    </section>
+
+
+    <footer class="footer">
+        NDRA OFFICIAL API<br>
+        <span>STAMPLE ENGINE // REST // JSON // IMAGE PROCESSOR</span><br>
+        © 2026 NDRA09
+    </footer>
+
+</main>
+</div>
+
+
+<script>
+
+const API_ORIGIN =
+    window.location.origin;
+
+const STAMPLE_API =
+    API_ORIGIN + "/api/lunas";
+
+let currentMode = "file";
+
+let lastCurl = "";
+
+
+document.getElementById("baseUrl")
+    .textContent = API_ORIGIN;
+
+document.getElementById("fullEndpoint")
+    .textContent = STAMPLE_API;
+
+
+/* =========================
+   MODE
+========================= */
+
+function switchMode(mode){
+
+    currentMode = mode;
+
+    const fileMode =
+        document.getElementById("fileMode");
+
+    const urlMode =
+        document.getElementById("urlMode");
+
+    const fileTab =
+        document.getElementById("fileTab");
+
+    const urlTab =
+        document.getElementById("urlTab");
+
+    if(mode === "file"){
+
+        fileMode.style.display = "block";
+        urlMode.style.display = "none";
+
+        fileTab.classList.add("active");
+        urlTab.classList.remove("active");
+
+    }else{
+
+        fileMode.style.display = "none";
+        urlMode.style.display = "block";
+
+        fileTab.classList.remove("active");
+        urlTab.classList.add("active");
+    }
 }
 
-function escapeXml(text) {
-    return String(text).replace(
-        /[&<>"']/g,
-        function (char) {
-            return {
-                "&": "&amp;",
-                "<": "&lt;",
-                ">": "&gt;",
-                '"': "&quot;",
-                "'": "&apos;"
-            }[char];
-        }
-    );
-}
 
-function wrapText(text, maxChars) {
-    const words = String(text)
-        .trim()
-        .split(/\s+/);
+/* =========================
+   FILE BASE64
+========================= */
 
-    const lines = [];
-    let current = "";
+function fileToBase64(file){
 
-    for (const word of words) {
-        const test = current
-            ? current + " " + word
-            : word;
+    return new Promise((resolve,reject)=>{
 
-        if (test.length <= maxChars) {
-            current = test;
-            continue;
-        }
+        const reader = new FileReader();
 
-        if (current) {
-            lines.push(current);
-        }
+        reader.onload = () =>
+            resolve(reader.result);
 
-        if (word.length > maxChars) {
-            let remaining = word;
-
-            while (
-                remaining.length >
-                maxChars
-            ) {
-                lines.push(
-                    remaining.slice(
-                        0,
-                        maxChars
-                    )
-                );
-
-                remaining =
-                    remaining.slice(
-                        maxChars
-                    );
-            }
-
-            current = remaining;
-        } else {
-            current = word;
-        }
-    }
-
-    if (current) {
-        lines.push(current);
-    }
-
-    return lines;
-}
-
-function createTextSvg(
-    text,
-    width,
-    height,
-    fontSize
-) {
-    const originalWidth = 1536;
-    const originalHeight = 1536;
-
-    const scaleX =
-        width /
-        originalWidth;
-
-    const scaleY =
-        height /
-        originalHeight;
-
-    const scale =
-        Math.min(
-            scaleX,
-            scaleY
-        );
-
-    const paperX =
-        445 * scale;
-
-    const paperY =
-        755 * scale;
-
-    const paperWidth =
-        665 * scale;
-
-    const paperHeight =
-        500 * scale;
-
-    const paddingX =
-        55 * scale;
-
-    let size =
-        Number(fontSize) || 62;
-
-    size =
-        size * scale;
-
-    size =
-        Math.max(
-            14,
-            Math.min(
-                size,
-                100 * scale
-            )
-        );
-
-    let maxChars =
-        Math.floor(
-            (paperWidth -
-                paddingX * 2) /
-            (size * 0.55)
-        );
-
-    maxChars =
-        Math.max(
-            8,
-            maxChars
-        );
-
-    let lines =
-        wrapText(
-            text,
-            maxChars
-        );
-
-    if (lines.length > 6) {
-        lines =
-            lines.slice(
-                0,
-                6
-            );
-
-        let last =
-            lines[5];
-
-        if (
-            !last.endsWith("...")
-        ) {
-            last =
-                last.slice(
-                    0,
-                    Math.max(
-                        1,
-                        last.length - 3
-                    )
-                ) + "...";
-        }
-
-        lines[5] = last;
-    }
-
-    if (lines.length >= 5) {
-        size =
-            Math.min(
-                size,
-                52 * scale
-            );
-    } else if (
-        lines.length >= 4
-    ) {
-        size =
-            Math.min(
-                size,
-                58 * scale
-            );
-    }
-
-    const lineHeight =
-        size * 1.2;
-
-    const totalHeight =
-        lines.length *
-        lineHeight;
-
-    const centerX =
-        paperX +
-        paperWidth / 2;
-
-    const startY =
-        paperY +
-        (paperHeight -
-            totalHeight) / 2 +
-        size / 2;
-
-    const elements =
-        lines
-            .map(
-                (
-                    line,
-                    index
-                ) => {
-
-                    const y =
-                        startY +
-                        index *
-                        lineHeight;
-
-                    return `
-                        <text
-                            x="${centerX}"
-                            y="${y}"
-                            text-anchor="middle"
-                            dominant-baseline="middle"
-                            font-family="Arial, Helvetica, sans-serif"
-                            font-size="${size}px"
-                            font-weight="700"
-                            fill="#111111"
-                            stroke="#111111"
-                            stroke-width="${Math.max(
-                                0.4,
-                                0.6 * scale
-                            )}"
-                            paint-order="stroke"
-                        >${escapeXml(
-                            line
-                        )}</text>
-                    `;
-                }
-            )
-            .join("");
-
-    return `
-        <svg
-            width="${width}"
-            height="${height}"
-            viewBox="0 0 ${width} ${height}"
-            xmlns="http://www.w3.org/2000/svg"
-        >
-            ${elements}
-        </svg>
-    `;
-}
-
-function parseBody(req) {
-    if (
-        req.body &&
-        typeof req.body === "object"
-    ) {
-        return req.body;
-    }
-
-    if (
-        typeof req.body === "string"
-    ) {
-        try {
-            return JSON.parse(
-                req.body
-            );
-        } catch {
-            return {};
-        }
-    }
-
-    return {};
-}
-
-export default async function handler(
-    req,
-    res
-) {
-    try {
-        res.setHeader(
-            "Access-Control-Allow-Origin",
-            "*"
-        );
-
-        res.setHeader(
-            "Access-Control-Allow-Methods",
-            "POST, OPTIONS"
-        );
-
-        res.setHeader(
-            "Access-Control-Allow-Headers",
-            "Content-Type"
-        );
-
-        res.setHeader(
-            "Cache-Control",
-            "no-store"
-        );
-
-        if (
-            req.method ===
-            "OPTIONS"
-        ) {
-            return sendJson(
-                res,
-                200,
-                {
-                    status: true,
-                    creator: CREATOR
-                }
-            );
-        }
-
-        if (
-            req.method !==
-            "POST"
-        ) {
-            return sendJson(
-                res,
-                405,
-                {
-                    status: false,
-                    creator: CREATOR,
-                    error:
-                        "Gunakan method POST."
-                }
-            );
-        }
-
-        if (
-            !fs.existsSync(
-                IMAGE_PATH
-            )
-        ) {
-            return sendJson(
-                res,
-                500,
-                {
-                    status: false,
-                    creator: CREATOR,
-                    error:
-                        "assets/bratpatrick.png tidak ditemukan."
-                }
-            );
-        }
-
-        const body =
-            parseBody(req);
-
-        const text =
-            String(
-                body?.text ??
-                req.query?.text ??
-                ""
-            ).trim();
-
-        if (!text) {
-            return sendJson(
-                res,
-                400,
-                {
-                    status: false,
-                    creator: CREATOR,
-                    error:
-                        "Parameter text wajib diisi.",
-                    example: {
-                        text:
-                            "HALLO"
-                    }
-                }
-            );
-        }
-
-        if (
-            text.length >
-            500
-        ) {
-            return sendJson(
-                res,
-                400,
-                {
-                    status: false,
-                    creator: CREATOR,
-                    error:
-                        "Maksimal 500 karakter."
-                }
-            );
-        }
-
-        let fontSize =
-            Number(
-                body?.fontSize ??
-                req.query?.fontSize ??
-                62
-            );
-
-        if (
-            !Number.isFinite(
-                fontSize
-            )
-        ) {
-            fontSize = 62;
-        }
-
-        fontSize =
-            Math.max(
-                30,
-                Math.min(
-                    fontSize,
-                    100
+        reader.onerror = () =>
+            reject(
+                new Error(
+                    "Gagal membaca file."
                 )
             );
 
-        const metadata =
-            await sharp(
-                IMAGE_PATH
-            ).metadata();
+        reader.readAsDataURL(file);
+    });
+}
 
-        const width =
-            Number(
-                metadata.width
-            );
 
-        const height =
-            Number(
-                metadata.height
-            );
+/* =========================
+   GENERATE
+========================= */
 
-        if (
-            !width ||
-            !height
-        ) {
-            return sendJson(
-                res,
-                500,
+async function processStample(){
+
+    const button =
+        document.getElementById("processBtn");
+
+    const loading =
+        document.getElementById("loading");
+
+    const result =
+        document.getElementById("stampleResult");
+
+    const text =
+        document
+            .getElementById("stampText")
+            .value
+            .trim() || "LUNAS";
+
+
+    button.disabled = true;
+
+    loading.style.display = "block";
+
+    result.style.display = "none";
+
+
+    try{
+
+        let body = {};
+
+
+        /* FILE */
+
+        if(currentMode === "file"){
+
+            const input =
+                document.getElementById("imageFile");
+
+            if(
+                !input.files ||
+                !input.files.length
+            ){
+
+                throw new Error(
+                    "Pilih gambar terlebih dahulu."
+                );
+            }
+
+
+            const file =
+                input.files[0];
+
+
+            if(
+                !file.type.startsWith("image/")
+            ){
+
+                throw new Error(
+                    "File harus berupa gambar."
+                );
+            }
+
+
+            if(
+                file.size >
+                8 * 1024 * 1024
+            ){
+
+                throw new Error(
+                    "Ukuran gambar maksimal 8MB."
+                );
+            }
+
+
+            const base64 =
+                await fileToBase64(file);
+
+
+            body = {
+                base64: base64,
+                text: text
+            };
+
+
+            lastCurl =
+`curl -X POST "${STAMPLE_API}" \\
+-H "Content-Type: application/json" \\
+-d '{
+  "base64": "<BASE64_GAMBAR>",
+  "text": "${escapeShell(text)}"
+}'`;
+
+        }
+
+
+        /* URL */
+
+        else{
+
+            const url =
+                document
+                    .getElementById("imageUrl")
+                    .value
+                    .trim();
+
+
+            if(!url){
+
+                throw new Error(
+                    "Masukkan URL gambar."
+                );
+            }
+
+
+            try{
+                new URL(url);
+            }catch{
+
+                throw new Error(
+                    "URL gambar tidak valid."
+                );
+            }
+
+
+            body = {
+                url: url,
+                text: text
+            };
+
+
+            lastCurl =
+`curl -X POST "${STAMPLE_API}" \\
+-H "Content-Type: application/json" \\
+-d '${JSON.stringify(
+    body,
+    null,
+    2
+)}'`;
+        }
+
+
+        const response =
+            await fetch(
+                STAMPLE_API,
                 {
-                    status: false,
-                    creator: CREATOR,
-                    error:
-                        "Dimensi gambar tidak dapat dibaca."
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body:
+                        JSON.stringify(body)
                 }
+            );
+
+
+        const raw =
+            await response.text();
+
+
+        let data;
+
+
+        try{
+
+            data =
+                JSON.parse(raw);
+
+        }catch{
+
+            throw new Error(
+                "Server tidak mengembalikan JSON."
             );
         }
 
-        const svg =
-            createTextSvg(
-                text,
-                width,
-                height,
-                fontSize
+
+        if(
+            !response.ok ||
+            data.status === false
+        ){
+
+            throw new Error(
+                data.error ||
+                data.message ||
+                `HTTP ${response.status}`
+            );
+        }
+
+
+        const imageUrl =
+            data?.result?.url_gambar ||
+            data?.result?.url ||
+            data?.result?.image ||
+            data?.url_gambar ||
+            data?.url;
+
+
+        if(!imageUrl){
+
+            throw new Error(
+                "URL gambar hasil tidak ditemukan."
+            );
+        }
+
+
+        document
+            .getElementById("resultImage")
+            .src = imageUrl;
+
+
+        document
+            .getElementById("resultLink")
+            .value = imageUrl;
+
+
+        document
+            .getElementById("openImage")
+            .href = imageUrl;
+
+
+        document
+            .getElementById("jsonResponse")
+            .textContent =
+            JSON.stringify(
+                data,
+                null,
+                2
             );
 
-        const svgBuffer =
-            Buffer.from(
-                svg,
-                "utf8"
+
+        document
+            .getElementById("curlCode")
+            .textContent =
+            lastCurl;
+
+
+        const message =
+            document.getElementById(
+                "stampleMessage"
             );
 
-        const output =
-            await sharp(
-                IMAGE_PATH
-            )
-                .composite([
-                    {
-                        input:
-                            svgBuffer,
-                        top: 0,
-                        left: 0
-                    }
-                ])
-                .png()
-                .toBuffer();
 
-        const base64 =
-            output.toString(
-                "base64"
-            );
+        message.className =
+            "message success";
 
-        const dataUrl =
-            `data:image/png;base64,${base64}`;
 
-        return sendJson(
-            res,
-            200,
-            {
-                status: true,
-                creator: CREATOR,
-                result: {
-                    text: text,
-                    fontSize: fontSize,
-                    width: width,
-                    height: height,
-                    mime: "image/png",
-                    url_gambar: dataUrl,
-                    base64: base64
-                }
-            }
+        message.textContent =
+            "✓ PROCESS SUCCESS // IMAGE GENERATED";
+
+
+        result.style.display = "block";
+
+
+        setTimeout(()=>{
+
+            result.scrollIntoView({
+                behavior:"smooth",
+                block:"start"
+            });
+
+        },100);
+
+
+    }catch(error){
+
+        showError(
+            error.message ||
+            "Unknown error."
         );
 
-    } catch (error) {
-        console.error(
-            "BRAT PATRICK ERROR:",
-            error
-        );
+    }finally{
 
-        return sendJson(
-            res,
-            500,
-            {
-                status: false,
-                creator: CREATOR,
-                error:
-                    error?.message ||
-                    "Internal Server Error",
-                type:
-                    error?.name ||
-                    "Error"
-            }
-        );
+        loading.style.display = "none";
+
+        button.disabled = false;
     }
 }
 
-export const config = {
-    api: {
-        bodyParser: {
-            sizeLimit: "10mb"
-        }
+
+/* =========================
+   ERROR
+========================= */
+
+function showError(message){
+
+    const result =
+        document.getElementById(
+            "stampleResult"
+        );
+
+    const box =
+        document.getElementById(
+            "stampleMessage"
+        );
+
+
+    box.className =
+        "message error";
+
+    box.textContent =
+        "✕ ERROR // " + message;
+
+
+    document
+        .getElementById("resultImage")
+        .removeAttribute("src");
+
+
+    document
+        .getElementById("resultLink")
+        .value = "";
+
+
+    document
+        .getElementById("openImage")
+        .href = "#";
+
+
+    document
+        .getElementById("jsonResponse")
+        .textContent =
+        JSON.stringify(
+            {
+                status:false,
+                creator:"Ndra09",
+                error:message
+            },
+            null,
+            2
+        );
+
+
+    document
+        .getElementById("curlCode")
+        .textContent =
+        lastCurl ||
+        "REQUEST NOT CREATED";
+
+
+    result.style.display = "block";
+}
+
+
+/* =========================
+   COPY
+========================= */
+
+async function copyText(id){
+
+    const input =
+        document.getElementById(id);
+
+    if(!input.value) return;
+
+
+    try{
+
+        await navigator.clipboard
+            .writeText(input.value);
+
+        alert("✓ URL berhasil disalin.");
+
+    }catch{
+
+        input.select();
+
+        document.execCommand("copy");
+
+        alert("✓ URL berhasil disalin.");
     }
-};
+}
+
+
+async function copyCode(id){
+
+    const element =
+        document.getElementById(id);
+
+    const text =
+        element.textContent;
+
+
+    try{
+
+        await navigator.clipboard
+            .writeText(text);
+
+        alert("✓ cURL berhasil disalin.");
+
+    }catch{
+
+        alert("✕ Gagal menyalin.");
+    }
+}
+
+
+/* =========================
+   SHELL ESCAPE
+========================= */
+
+function escapeShell(text){
+
+    return String(text)
+        .replace(
+            /'/g,
+            "'\\''"
+        );
+}
+
+
+/* =========================
+   ENTER
+========================= */
+
+document
+    .getElementById("stampText")
+    .addEventListener(
+        "keydown",
+        function(event){
+
+            if(event.key === "Enter"){
+
+                event.preventDefault();
+
+                processStample();
+            }
+        }
+    );
+
+</script>
+
+</body>
+</html>
