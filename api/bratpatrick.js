@@ -10,32 +10,30 @@ const IMAGE_PATH = path.join(
     "bratpatrick.png"
 );
 
-const CTERMAI_KEY =
-    process.env.CTERMAI_KEY ||
-    "AIzaBj7z2z3xBjsk";
+function sendJson(res, status, data) {
+    res.statusCode = status;
+    res.setHeader(
+        "Content-Type",
+        "application/json; charset=utf-8"
+    );
 
-const CTERMAI_UPLOAD_URL =
-    "https://c.termai.cc/api/upload?key=" +
-    encodeURIComponent(CTERMAI_KEY);
-
-module.exports.config = {
-    api: {
-        bodyParser: {
-            sizeLimit: "10mb"
-        }
-    }
-};
+    return res.end(
+        JSON.stringify(data)
+    );
+}
 
 function escapeXml(text) {
     return String(text).replace(
         /[&<>"']/g,
-        char => ({
-            "&": "&amp;",
-            "<": "&lt;",
-            ">": "&gt;",
-            '"': "&quot;",
-            "'": "&apos;"
-        })[char]
+        function (char) {
+            return {
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&apos;"
+            }[char];
+        }
     );
 }
 
@@ -54,33 +52,35 @@ function wrapText(text, maxChars) {
 
         if (test.length <= maxChars) {
             current = test;
-            continue;
-        }
-
-        if (current) {
-            lines.push(current);
-        }
-
-        if (word.length > maxChars) {
-            let remaining = word;
-
-            while (remaining.length > maxChars) {
-                lines.push(
-                    remaining.slice(
-                        0,
-                        maxChars
-                    )
-                );
-
-                remaining =
-                    remaining.slice(
-                        maxChars
-                    );
+        } else {
+            if (current) {
+                lines.push(current);
             }
 
-            current = remaining;
-        } else {
-            current = word;
+            if (word.length > maxChars) {
+                let remaining = word;
+
+                while (
+                    remaining.length >
+                    maxChars
+                ) {
+                    lines.push(
+                        remaining.slice(
+                            0,
+                            maxChars
+                        )
+                    );
+
+                    remaining =
+                        remaining.slice(
+                            maxChars
+                        );
+                }
+
+                current = remaining;
+            } else {
+                current = word;
+            }
         }
     }
 
@@ -93,53 +93,59 @@ function wrapText(text, maxChars) {
 
 function createTextSvg(
     text,
-    fontSize = 62
+    fontSize
 ) {
     const paperX = 445;
     const paperY = 755;
+
     const paperWidth = 665;
     const paperHeight = 500;
+
     const paddingX = 55;
 
-    let actualFontSize =
+    let size =
         Number(fontSize) || 62;
 
-    actualFontSize = Math.max(
+    size = Math.max(
         30,
         Math.min(
-            actualFontSize,
+            size,
             100
         )
     );
 
-    let maxChars = Math.floor(
-        (paperWidth - paddingX * 2) /
-        (actualFontSize * 0.55)
-    );
+    let maxChars =
+        Math.floor(
+            (paperWidth -
+                paddingX * 2) /
+            (size * 0.55)
+        );
 
-    maxChars = Math.max(
-        8,
-        maxChars
-    );
+    maxChars =
+        Math.max(
+            8,
+            maxChars
+        );
 
-    let lines = wrapText(
-        text,
-        maxChars
-    );
+    let lines =
+        wrapText(
+            text,
+            maxChars
+        );
 
-    const maxLines = 6;
-
-    if (lines.length > maxLines) {
+    if (lines.length > 6) {
         lines =
             lines.slice(
                 0,
-                maxLines
+                6
             );
 
         let last =
-            lines[maxLines - 1];
+            lines[5];
 
-        if (!last.endsWith("...")) {
+        if (
+            !last.endsWith("...")
+        ) {
             last =
                 last.slice(
                     0,
@@ -150,26 +156,27 @@ function createTextSvg(
                 ) + "...";
         }
 
-        lines[maxLines - 1] =
-            last;
+        lines[5] = last;
     }
 
     if (lines.length >= 5) {
-        actualFontSize =
+        size =
             Math.min(
-                actualFontSize,
+                size,
                 52
             );
-    } else if (lines.length >= 4) {
-        actualFontSize =
+    } else if (
+        lines.length >= 4
+    ) {
+        size =
             Math.min(
-                actualFontSize,
+                size,
                 58
             );
     }
 
     const lineHeight =
-        actualFontSize * 1.2;
+        size * 1.2;
 
     const totalHeight =
         lines.length *
@@ -181,35 +188,43 @@ function createTextSvg(
 
     const startY =
         paperY +
-        (paperHeight - totalHeight) / 2 +
-        actualFontSize / 2;
+        (paperHeight -
+            totalHeight) / 2 +
+        size / 2;
 
-    const textElements =
-        lines.map(
-            (line, index) => {
+    const elements =
+        lines
+            .map(
+                (
+                    line,
+                    index
+                ) => {
 
-                const y =
-                    startY +
-                    index *
-                    lineHeight;
+                    const y =
+                        startY +
+                        index *
+                        lineHeight;
 
-                return `
-                    <text
-                        x="${centerX}"
-                        y="${y}"
-                        text-anchor="middle"
-                        dominant-baseline="middle"
-                        font-family="Arial, Helvetica, sans-serif"
-                        font-size="${actualFontSize}px"
-                        font-weight="700"
-                        fill="#111111"
-                        stroke="#111111"
-                        stroke-width="0.6"
-                        paint-order="stroke"
-                    >${escapeXml(line)}</text>
-                `;
-            }
-        ).join("");
+                    return `
+                        <text
+                            x="${centerX}"
+                            y="${y}"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-family="Arial, Helvetica, sans-serif"
+                            font-size="${size}px"
+                            font-weight="700"
+                            fill="#111111"
+                            stroke="#111111"
+                            stroke-width="0.6"
+                            paint-order="stroke"
+                        >${escapeXml(
+                            line
+                        )}</text>
+                    `;
+                }
+            )
+            .join("");
 
     return `
         <svg
@@ -218,115 +233,25 @@ function createTextSvg(
             viewBox="0 0 1536 1536"
             xmlns="http://www.w3.org/2000/svg"
         >
-            ${textElements}
+            ${elements}
         </svg>
     `;
 }
 
-async function uploadToCtermai(buffer) {
-
-    if (
-        typeof FormData === "undefined" ||
-        typeof Blob === "undefined"
-    ) {
-        throw new Error(
-            "FormData atau Blob tidak tersedia pada runtime."
-        );
-    }
-
-    const formData =
-        new FormData();
-
-    const blob =
-        new Blob(
-            [buffer],
-            {
-                type: "image/png"
-            }
-        );
-
-    formData.append(
-        "file",
-        blob,
-        "bratpatrick.png"
-    );
-
-    const response =
-        await fetch(
-            CTERMAI_UPLOAD_URL,
-            {
-                method: "POST",
-                body: formData
-            }
-        );
-
-    const responseText =
-        await response.text();
-
-    let data = null;
-
-    try {
-        data =
-            JSON.parse(
-                responseText
-            );
-    } catch {
-        throw new Error(
-            "Response Ctermai bukan JSON. HTTP " +
-            response.status
-        );
-    }
-
-    if (
-        !response.ok ||
-        !data
-    ) {
-        throw new Error(
-            data?.message ||
-            data?.error ||
-            "Upload Ctermai gagal."
-        );
-    }
-
-    const imageUrl =
-        data.path ||
-        data.url ||
-        data.result?.path ||
-        data.result?.url;
-
-    if (!imageUrl) {
-        throw new Error(
-            "Upload Ctermai berhasil tetapi URL gambar tidak ditemukan."
-        );
-    }
-
-    return imageUrl;
-}
-
 function parseBody(req) {
-
-    let body =
-        req.body;
-
     if (
-        body === undefined ||
-        body === null
+        req.body &&
+        typeof req.body === "object"
     ) {
-        return {};
+        return req.body;
     }
 
     if (
-        typeof body === "object"
-    ) {
-        return body;
-    }
-
-    if (
-        typeof body === "string"
+        typeof req.body === "string"
     ) {
         try {
             return JSON.parse(
-                body
+                req.body
             );
         } catch {
             return {};
@@ -361,39 +286,53 @@ module.exports = async function handler(
         "no-store"
     );
 
-    if (
-        req.method === "OPTIONS"
-    ) {
-        return res.status(200).json({
-            status: true,
-            creator: CREATOR
-        });
-    }
-
-    if (
-        req.method !== "POST"
-    ) {
-        return res.status(405).json({
-            status: false,
-            creator: CREATOR,
-            error:
-                "Method Not Allowed. Gunakan POST."
-        });
-    }
-
     try {
+
+        if (
+            req.method ===
+            "OPTIONS"
+        ) {
+            return sendJson(
+                res,
+                200,
+                {
+                    status: true,
+                    creator: CREATOR
+                }
+            );
+        }
+
+        if (
+            req.method !==
+            "POST"
+        ) {
+            return sendJson(
+                res,
+                405,
+                {
+                    status: false,
+                    creator: CREATOR,
+                    error:
+                        "Gunakan method POST."
+                }
+            );
+        }
 
         if (
             !fs.existsSync(
                 IMAGE_PATH
             )
         ) {
-            return res.status(500).json({
-                status: false,
-                creator: CREATOR,
-                error:
-                    "File assets/bratpatrick.png tidak ditemukan."
-            });
+            return sendJson(
+                res,
+                500,
+                {
+                    status: false,
+                    creator: CREATOR,
+                    error:
+                        "assets/bratpatrick.png tidak ditemukan."
+                }
+            );
         }
 
         const body =
@@ -407,27 +346,36 @@ module.exports = async function handler(
             ).trim();
 
         if (!text) {
-            return res.status(400).json({
-                status: false,
-                creator: CREATOR,
-                error:
-                    "Parameter text wajib diisi.",
-                example: {
-                    text:
-                        "HALO DUNIA"
+            return sendJson(
+                res,
+                400,
+                {
+                    status: false,
+                    creator: CREATOR,
+                    error:
+                        "Parameter text wajib diisi.",
+                    example: {
+                        text:
+                            "HALLO"
+                    }
                 }
-            });
+            );
         }
 
         if (
-            text.length > 500
+            text.length >
+            500
         ) {
-            return res.status(400).json({
-                status: false,
-                creator: CREATOR,
-                error:
-                    "Teks terlalu panjang. Maksimal 500 karakter."
-            });
+            return sendJson(
+                res,
+                400,
+                {
+                    status: false,
+                    creator: CREATOR,
+                    error:
+                        "Maksimal 500 karakter."
+                }
+            );
         }
 
         let fontSize =
@@ -460,7 +408,7 @@ module.exports = async function handler(
                 fontSize
             );
 
-        const outputBuffer =
+        const output =
             await sharp(
                 IMAGE_PATH
             )
@@ -478,41 +426,33 @@ module.exports = async function handler(
                 .toBuffer();
 
         const base64 =
-            outputBuffer.toString(
+            output.toString(
                 "base64"
             );
 
-        const urlGambar =
-            await uploadToCtermai(
-                outputBuffer
-            );
+        const dataUrl =
+            "data:image/png;base64," +
+            base64;
 
-        return res.status(200).json({
-
-            status: true,
-
-            creator: CREATOR,
-
-            result: {
-
-                text:
-                    text,
-
-                fontSize:
-                    fontSize,
-
-                mime:
-                    "image/png",
-
-                url_gambar:
-                    urlGambar,
-
-                base64:
-                    base64
-
+        return sendJson(
+            res,
+            200,
+            {
+                status: true,
+                creator: CREATOR,
+                result: {
+                    text: text,
+                    fontSize:
+                        fontSize,
+                    mime:
+                        "image/png",
+                    url_gambar:
+                        dataUrl,
+                    base64:
+                        base64
+                }
             }
-
-        });
+        );
 
     } catch (error) {
 
@@ -521,17 +461,28 @@ module.exports = async function handler(
             error
         );
 
-        return res.status(500).json({
+        return sendJson(
+            res,
+            500,
+            {
+                status: false,
+                creator: CREATOR,
+                error:
+                    error?.message ||
+                    "Internal Server Error",
+                type:
+                    error?.name ||
+                    "Error"
+            }
+        );
+    }
+};
 
-            status: false,
-
-            creator: CREATOR,
-
-            error:
-                error?.message ||
-                "Internal Server Error"
-
-        });
-
+module.exports.config = {
+    api: {
+        bodyParser: {
+            sizeLimit:
+                "10mb"
+        }
     }
 };
