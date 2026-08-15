@@ -2,14 +2,21 @@ const sharp = require("sharp");
 const path = require("path");
 const fs = require("fs");
 
+const CREATOR = "Ndra09";
+
 const IMAGE_PATH = path.join(
     process.cwd(),
     "assets",
     "bratpatrick.png"
 );
 
-const CREATOR = "Ndra09";
-const CTERMAI_UPLOAD_URL = "https://c.termai.cc/api/upload";
+const CTERMAI_KEY =
+    process.env.CTERMAI_KEY ||
+    "AIzaBj7z2z3xBjsk";
+
+const CTERMAI_UPLOAD_URL =
+    "https://c.termai.cc/api/upload?key=" +
+    encodeURIComponent(CTERMAI_KEY);
 
 module.exports.config = {
     api: {
@@ -20,15 +27,16 @@ module.exports.config = {
 };
 
 function escapeXml(text) {
-    return String(text).replace(/[&<>"']/g, function (char) {
-        return {
+    return String(text).replace(
+        /[&<>"']/g,
+        char => ({
             "&": "&amp;",
             "<": "&lt;",
             ">": "&gt;",
             '"': "&quot;",
             "'": "&apos;"
-        }[char];
-    });
+        })[char]
+    );
 }
 
 function wrapText(text, maxChars) {
@@ -58,12 +66,16 @@ function wrapText(text, maxChars) {
 
             while (remaining.length > maxChars) {
                 lines.push(
-                    remaining.slice(0, maxChars)
+                    remaining.slice(
+                        0,
+                        maxChars
+                    )
                 );
 
-                remaining = remaining.slice(
-                    maxChars
-                );
+                remaining =
+                    remaining.slice(
+                        maxChars
+                    );
             }
 
             current = remaining;
@@ -118,10 +130,11 @@ function createTextSvg(
     const maxLines = 6;
 
     if (lines.length > maxLines) {
-        lines = lines.slice(
-            0,
-            maxLines
-        );
+        lines =
+            lines.slice(
+                0,
+                maxLines
+            );
 
         let last =
             lines[maxLines - 1];
@@ -142,15 +155,17 @@ function createTextSvg(
     }
 
     if (lines.length >= 5) {
-        actualFontSize = Math.min(
-            actualFontSize,
-            52
-        );
+        actualFontSize =
+            Math.min(
+                actualFontSize,
+                52
+            );
     } else if (lines.length >= 4) {
-        actualFontSize = Math.min(
-            actualFontSize,
-            58
-        );
+        actualFontSize =
+            Math.min(
+                actualFontSize,
+                58
+            );
     }
 
     const lineHeight =
@@ -172,6 +187,7 @@ function createTextSvg(
     const textElements =
         lines.map(
             (line, index) => {
+
                 const y =
                     startY +
                     index *
@@ -208,25 +224,30 @@ function createTextSvg(
 }
 
 async function uploadToCtermai(buffer) {
+
     if (
         typeof FormData === "undefined" ||
         typeof Blob === "undefined"
     ) {
         throw new Error(
-            "FormData atau Blob tidak tersedia di server."
+            "FormData atau Blob tidak tersedia pada runtime."
         );
     }
 
-    const form = new FormData();
+    const formData =
+        new FormData();
 
-    form.append(
-        "file",
+    const blob =
         new Blob(
             [buffer],
             {
                 type: "image/png"
             }
-        ),
+        );
+
+    formData.append(
+        "file",
+        blob,
         "bratpatrick.png"
     );
 
@@ -235,41 +256,57 @@ async function uploadToCtermai(buffer) {
             CTERMAI_UPLOAD_URL,
             {
                 method: "POST",
-                body: form
+                body: formData
             }
         );
 
-    const rawText =
+    const responseText =
         await response.text();
 
-    let data;
+    let data = null;
 
     try {
         data =
-            JSON.parse(rawText);
+            JSON.parse(
+                responseText
+            );
     } catch {
         throw new Error(
-            `Upload Ctermai gagal. HTTP ${response.status}`
+            "Response Ctermai bukan JSON. HTTP " +
+            response.status
         );
     }
 
     if (
         !response.ok ||
-        !data ||
-        !data.url
+        !data
     ) {
         throw new Error(
             data?.message ||
             data?.error ||
-            `Upload Ctermai gagal. HTTP ${response.status}`
+            "Upload Ctermai gagal."
         );
     }
 
-    return data.url;
+    const imageUrl =
+        data.path ||
+        data.url ||
+        data.result?.path ||
+        data.result?.url;
+
+    if (!imageUrl) {
+        throw new Error(
+            "Upload Ctermai berhasil tetapi URL gambar tidak ditemukan."
+        );
+    }
+
+    return imageUrl;
 }
 
-function getBody(req) {
-    let body = req.body;
+function parseBody(req) {
+
+    let body =
+        req.body;
 
     if (
         body === undefined ||
@@ -288,7 +325,9 @@ function getBody(req) {
         typeof body === "string"
     ) {
         try {
-            return JSON.parse(body);
+            return JSON.parse(
+                body
+            );
         } catch {
             return {};
         }
@@ -301,10 +340,6 @@ module.exports = async function handler(
     req,
     res
 ) {
-    res.setHeader(
-        "Cache-Control",
-        "no-store"
-    );
 
     res.setHeader(
         "Access-Control-Allow-Origin",
@@ -321,22 +356,32 @@ module.exports = async function handler(
         "Content-Type"
     );
 
-    if (req.method === "OPTIONS") {
+    res.setHeader(
+        "Cache-Control",
+        "no-store"
+    );
+
+    if (
+        req.method === "OPTIONS"
+    ) {
         return res.status(200).json({
             status: true,
             creator: CREATOR
         });
     }
 
+    if (
+        req.method !== "POST"
+    ) {
+        return res.status(405).json({
+            status: false,
+            creator: CREATOR,
+            error:
+                "Method Not Allowed. Gunakan POST."
+        });
+    }
+
     try {
-        if (req.method !== "POST") {
-            return res.status(405).json({
-                status: false,
-                creator: CREATOR,
-                error:
-                    "Method Not Allowed. Gunakan POST."
-            });
-        }
 
         if (
             !fs.existsSync(
@@ -352,13 +397,14 @@ module.exports = async function handler(
         }
 
         const body =
-            getBody(req);
+            parseBody(req);
 
-        const text = String(
-            body.text ??
-            req.query?.text ??
-            ""
-        ).trim();
+        const text =
+            String(
+                body.text ??
+                req.query?.text ??
+                ""
+            ).trim();
 
         if (!text) {
             return res.status(400).json({
@@ -373,7 +419,9 @@ module.exports = async function handler(
             });
         }
 
-        if (text.length > 500) {
+        if (
+            text.length > 500
+        ) {
             return res.status(400).json({
                 status: false,
                 creator: CREATOR,
@@ -382,11 +430,12 @@ module.exports = async function handler(
             });
         }
 
-        let fontSize = Number(
-            body.fontSize ??
-            req.query?.fontSize ??
-            62
-        );
+        let fontSize =
+            Number(
+                body.fontSize ??
+                req.query?.fontSize ??
+                62
+            );
 
         if (
             !Number.isFinite(
@@ -396,13 +445,14 @@ module.exports = async function handler(
             fontSize = 62;
         }
 
-        fontSize = Math.max(
-            30,
-            Math.min(
-                fontSize,
-                100
-            )
-        );
+        fontSize =
+            Math.max(
+                30,
+                Math.min(
+                    fontSize,
+                    100
+                )
+            );
 
         const svg =
             createTextSvg(
@@ -438,29 +488,50 @@ module.exports = async function handler(
             );
 
         return res.status(200).json({
+
             status: true,
+
             creator: CREATOR,
+
             result: {
-                text: text,
-                fontSize: fontSize,
-                mime: "image/png",
-                url_gambar: urlGambar,
-                base64: base64
+
+                text:
+                    text,
+
+                fontSize:
+                    fontSize,
+
+                mime:
+                    "image/png",
+
+                url_gambar:
+                    urlGambar,
+
+                base64:
+                    base64
+
             }
+
         });
 
     } catch (error) {
+
         console.error(
-            "BRAT PATRICK API ERROR:",
+            "BRAT PATRICK ERROR:",
             error
         );
 
         return res.status(500).json({
+
             status: false,
+
             creator: CREATOR,
+
             error:
                 error?.message ||
                 "Internal Server Error"
+
         });
+
     }
 };
