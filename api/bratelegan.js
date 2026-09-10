@@ -1,17 +1,8 @@
 const sharp = require('sharp')
-const fs = require('fs')
-const path = require('path')
 const GIFEncoder = require('gif-encoder-2')
 
-const CREATOR = 'Ndra09'
-const FONT_PATH = path.join(process.cwd(), 'assets', 'Aptos.ttf')
-const SIZE = 512
-const DELAY = 300
-const MAX_WORDS = 40
-const MAX_CHARS = 500
-
-function escapeXml(value) {
-  return String(value)
+function escapeXml(str) {
+  return String(str)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
@@ -19,23 +10,21 @@ function escapeXml(value) {
     .replace(/'/g, '&apos;')
 }
 
-function splitWords(text) {
-  return String(text)
-    .replace(/\r?\n/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .split(' ')
-    .filter(Boolean)
-}
-
-function wrapWords(words, maxChars) {
+function wrapText(text, maxChars = 16) {
+  const words = text.trim().split(/\s+/)
   const lines = []
   let line = ''
 
   for (const word of words) {
-    const next = line ? `${line} ${word}` : word
-    if (!line || next.length <= maxChars) {
-      line = next
+    if (!line) {
+      line = word
+      continue
+    }
+
+    const test = line + ' ' + word
+
+    if (test.length <= maxChars) {
+      line = test
     } else {
       lines.push(line)
       line = word
@@ -43,142 +32,188 @@ function wrapWords(words, maxChars) {
   }
 
   if (line) lines.push(line)
-  return lines
+
+  return lines.length ? lines : ['']
 }
 
-function getLayout(words) {
-  const longest = Math.max(...words.map(w => w.length), 1)
-  let maxChars = 15
-  if (longest >= 24) maxChars = 12
-  else if (longest >= 18) maxChars = 13
-  else if (longest >= 14) maxChars = 14
+function createSvg(text) {
+  const lines = wrapText(text, 17)
 
-  const lines = wrapWords(words, maxChars)
-  const fontSize = lines.length <= 2 ? 74 : lines.length <= 3 ? 66 : lines.length <= 4 ? 58 : 50
-  const lineHeight = Math.round(fontSize * 1.08)
+  const width = 512
+  const height = 512
+
+  let fontSize = 62
+
+  if (text.length > 35) fontSize = 52
+  if (text.length > 55) fontSize = 44
+  if (text.length > 75) fontSize = 37
+  if (text.length > 100) fontSize = 32
+
+  const lineHeight = fontSize * 1.12
   const totalHeight = lines.length * lineHeight
-  const startY = Math.round((SIZE - totalHeight) / 2 + fontSize * 0.82)
+  const startY = (height - totalHeight) / 2 + fontSize
 
-  return { lines, fontSize, lineHeight, startY }
+  const textSvg = lines
+    .map((line, index) => {
+      const y = startY + index * lineHeight
+
+      return `
+        <text
+          x="256"
+          y="${y}"
+          text-anchor="middle"
+          font-family="DejaVu Sans, sans-serif"
+          font-size="${fontSize}px"
+          font-weight="700"
+          fill="#000000"
+        >${escapeXml(line)}</text>
+      `
+    })
+    .join('')
+
+  return `
+    <svg
+      width="${width}"
+      height="${height}"
+      viewBox="0 0 ${width} ${height}"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect
+        width="512"
+        height="512"
+        fill="#ffffff"
+      />
+
+      ${textSvg}
+    </svg>
+  `
 }
 
-function makeSvg(words, visibleCount, layout) {
-  const { lines, fontSize, lineHeight, startY } = layout
-  let wordIndex = 0
-  const nodes = []
+async function renderFrame(text) {
+  const svg = createSvg(text)
 
-  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-    const wordsInLine = lines[lineIndex].split(' ')
-    const y = startY + lineIndex * lineHeight
-    const parts = []
-
-    for (const word of wordsInLine) {
-      const index = wordIndex++
-      const visible = index < visibleCount
-      const fill = visible ? '#111111' : '#ffffff'
-      parts.push(`<tspan fill="${fill}">${escapeXml(word)}</tspan>`)
-      if (word !== wordsInLine[wordsInLine.length - 1]) parts.push('<tspan fill="#ffffff"> </tspan>')
-    }
-
-    nodes.push(`<text x="256" y="${y}" text-anchor="middle">${parts.join('')}</text>`)
-  }
-
-  const fontStyle = `<style>text{font-family:"DejaVu Sans",sans-serif;font-weight:700;}</style>`
-
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  ${fontStyle}
-  <rect width="512" height="512" fill="#ffffff"/>
-  ${nodes.join('')}
-</svg>`
+  return await sharp(Buffer.from(svg))
+    .png()
+    .raw()
+    .toBuffer({ resolveWithObject: true })
 }
 
-async function createFrame(words, visibleCount, layout) {
-  const svg = makeSvg(words, visibleCount, layout)
-  return sharp(Buffer.from(svg)).png().toBuffer()
+function splitWords(text) {
+  return text
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
 }
 
-async function createAnimatedWebp(text) {
+async function createGif(text) {
   const words = splitWords(text)
 
-  if (!words.length) throw new Error("Parameter 'text' wajib diisi")
-  if (String(text).length > MAX_CHARS) throw new Error(`Maksimal ${MAX_CHARS} karakter`)
-  if (words.length > MAX_WORDS) throw new Error(`Maksimal ${MAX_WORDS} kata`)
+  if (!words.length) {
+    throw new Error('Text tidak boleh kosong')
+  }
 
-  const layout = getLayout(words)
   const frames = []
 
   for (let i = 1; i <= words.length; i++) {
-    frames.push(await createFrame(words, i, layout))
+    const currentText = words.slice(0, i).join(' ')
+    const frame = await renderFrame(currentText)
+
+    frames.push(frame)
   }
 
-  const finalFrame = await createFrame(words, words.length, layout)
-  frames.push(finalFrame, finalFrame, finalFrame)
+  const encoder = new GIFEncoder(512, 512, 'neuquant', true)
 
-  const encoder = new GIFEncoder(SIZE, SIZE, 'neuquant', false)
-  encoder.setDelay(DELAY)
+  encoder.setDelay(550)
   encoder.setRepeat(0)
   encoder.setQuality(10)
+
   encoder.start()
 
   for (const frame of frames) {
-    const raw = await sharp(frame).ensureAlpha().raw().toBuffer()
-    encoder.addFrame(raw)
+    encoder.addFrame(frame.data)
   }
 
-  encoder.finish()
-  const gifBuffer = encoder.out.getData()
+  encoder.setDelay(1800)
 
-  return sharp(gifBuffer, { animated: true })
-    .webp({ quality: 92, effort: 4, loop: 0, delay: DELAY })
-    .toBuffer()
+  const lastFrame = frames[frames.length - 1]
+  encoder.addFrame(lastFrame.data)
+
+  encoder.finish()
+
+  return encoder.out.getData()
 }
 
 function getText(req) {
-  if (req.method === 'GET') return req.query?.text || ''
-
-  if (typeof req.body === 'string') {
-    try {
-      const parsed = JSON.parse(req.body)
-      return parsed?.text || ''
-    } catch {
-      return ''
-    }
+  if (req.method === 'GET') {
+    return (
+      req.query?.text ||
+      ''
+    )
   }
 
-  return req.body?.text || ''
+  if (req.method === 'POST') {
+    if (typeof req.body === 'string') {
+      try {
+        const body = JSON.parse(req.body)
+        return body.text || ''
+      } catch {
+        return ''
+      }
+    }
+
+    return req.body?.text || ''
+  }
+
+  return ''
 }
 
-module.exports = async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate')
-
-  if (req.method === 'OPTIONS') return res.status(204).end()
-
-  if (!['GET', 'POST'].includes(req.method)) {
-    return res.status(405).json({ status: false, creator: CREATOR, error: 'Gunakan method GET atau POST' })
-  }
-
+module.exports = async (req, res) => {
   try {
-    const text = String(getText(req) || '').trim()
-    if (!text) {
-      return res.status(400).json({
+    if (req.method !== 'GET' && req.method !== 'POST') {
+      return res.status(405).json({
         status: false,
-        creator: CREATOR,
-        error: "Parameter 'text' wajib diisi",
-        example: '/api/bratelegan?text=halo%20dunia'
+        creator: 'Ndra09',
+        error: 'Gunakan method GET atau POST'
       })
     }
 
-    const image = await createAnimatedWebp(text)
-    res.setHeader('Content-Type', 'image/webp')
-    res.setHeader('Content-Length', image.length)
-    res.setHeader('Content-Disposition', 'inline; filename="bratelegan.webp"')
-    return res.status(200).send(image)
+    const text = String(getText(req)).trim()
+
+    if (!text) {
+      return res.status(400).json({
+        status: false,
+        creator: 'Ndra09',
+        error: 'Parameter text wajib diisi',
+        example: '/api/bratelegan?text=halo dunia'
+      })
+    }
+
+    if (text.length > 300) {
+      return res.status(400).json({
+        status: false,
+        creator: 'Ndra09',
+        error: 'Text maksimal 300 karakter'
+      })
+    }
+
+    const result = await createGif(text)
+
+    res.setHeader('Content-Type', 'image/gif')
+    res.setHeader(
+      'Content-Disposition',
+      'inline; filename="bratelegan.gif"'
+    )
+    res.setHeader('Cache-Control', 'no-store')
+
+    return res.status(200).send(result)
+
   } catch (error) {
-    console.error('[BRAT ELEGAN API ERROR]', error)
-    return res.status(500).json({ status: false, creator: CREATOR, error: error?.message || 'Terjadi kesalahan internal pada server' })
+    console.error('BRAT ELEGAN ERROR:', error)
+
+    return res.status(500).json({
+      status: false,
+      creator: 'Ndra09',
+      error: error.message || 'Gagal membuat Brat Elegan'
+    })
   }
 }
