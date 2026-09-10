@@ -1,23 +1,11 @@
-import sharp from 'sharp'
-import GIFEncoder from 'gif-encoder-2'
-import opentype from 'opentype.js'
-import twemoji from 'twemoji'
-import emojiRegex from 'emoji-regex'
-import path from 'path'
-import fs from 'fs'
-
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb'
-    }
-  }
-}
-
-const CREATOR = 'Ndra09'
-
-const TERMAI_UPLOAD_URL =
-  'https://c.termai.cc/api/upload?key=AIzaBj7z2z3xBjsk'
+const sharp = require('sharp')
+const GIFEncoder = require('gif-encoder-2')
+const opentype = require('opentype.js')
+const twemoji = require('twemoji')
+const emojiRegex = require('emoji-regex')
+const path = require('path')
+const fs = require('fs')
+const https = require('https')
 
 const FONT_PATH = path.join(
   process.cwd(),
@@ -29,25 +17,32 @@ const WIDTH = 1024
 const HEIGHT = 1024
 
 const SIDE_PADDING = 70
-const WORD_GAP_RATIO = 0.20
+const WORD_GAP_RATIO = 0.22
+const BOLD_OFFSET = 3.2
+const BOLD_STEPS = 10
 
-const BOLD_OFFSET = 2.8
-const BOLD_STEPS = 8
+const CACHE_DIR = '/tmp/twemoji-cache'
+
+const TERMAI_UPLOAD_URL =
+  'https://c.termai.cc/api/upload?key=AIzaBj7z2z3xBjsk'
 
 let font
 
 try {
   font = opentype.loadSync(FONT_PATH)
-} catch (error) {
-  console.error(
-    'FONT LOAD ERROR:',
-    error.message
-  )
+} catch (err) {
+  console.error('FONT LOAD ERROR:', err)
 }
 
-// ============================================
-// SPLIT WORD
-// ============================================
+try {
+  if (!fs.existsSync(CACHE_DIR)) {
+    fs.mkdirSync(CACHE_DIR, {
+      recursive: true
+    })
+  }
+} catch (err) {
+  console.error('CACHE DIR ERROR:', err)
+}
 
 function splitWords(text) {
   return text
@@ -56,12 +51,111 @@ function splitWords(text) {
     .filter(Boolean)
 }
 
-// ============================================
-// EMOJI
-// ============================================
+function getEmojiUrl(code) {
+  return (
+    'https://cdn.jsdelivr.net/gh/' +
+    'twitter/twemoji@14.0.2/' +
+    'assets/svg/' +
+    code +
+    '.svg'
+  )
+}
+
+function downloadFile(url) {
+  return new Promise((resolve, reject) => {
+    const request = https.get(
+      url,
+      response => {
+        if (response.statusCode !== 200) {
+          response.resume()
+
+          return reject(
+            new Error(
+              `Emoji HTTP ${response.statusCode}`
+            )
+          )
+        }
+
+        const chunks = []
+
+        response.on(
+          'data',
+          chunk => {
+            chunks.push(chunk)
+          }
+        )
+
+        response.on(
+          'end',
+          () => {
+            resolve(
+              Buffer.concat(chunks)
+            )
+          }
+        )
+
+        response.on(
+          'error',
+          reject
+        )
+      }
+    )
+
+    request.on(
+      'error',
+      reject
+    )
+
+    request.setTimeout(
+      8000,
+      () => {
+        request.destroy(
+          new Error(
+            'Emoji download timeout'
+          )
+        )
+      }
+    )
+  })
+}
+
+async function getEmojiSvg(code) {
+  const cacheFile =
+    path.join(
+      CACHE_DIR,
+      `${code}.svg`
+    )
+
+  try {
+    if (
+      fs.existsSync(
+        cacheFile
+      )
+    ) {
+      return fs.readFileSync(
+        cacheFile
+      )
+    }
+  } catch {}
+
+  const data =
+    await downloadFile(
+      getEmojiUrl(code)
+    )
+
+  try {
+    fs.writeFileSync(
+      cacheFile,
+      data
+    )
+  } catch {}
+
+  return data
+}
 
 function findEmojiParts(text) {
   const regex = emojiRegex()
+
   const parts = []
 
   let lastIndex = 0
@@ -120,18 +214,9 @@ function findEmojiParts(text) {
   return parts
 }
 
-// ============================================
-// EMOJI ASSET
-// ============================================
-
-function loadEmojiAssets(text) {
-  const assets = {}
-
-  const regex =
-    emojiRegex()
-
-  const codes =
-    new Set()
+async function prepareEmojiAssets(text) {
+  const regex = emojiRegex()
+  const codes = new Set()
 
   let match
 
@@ -145,63 +230,30 @@ function loadEmojiAssets(text) {
     )
   }
 
-  let emojiDir
-
-  try {
-    emojiDir =
-      path.join(
-        path.dirname(
-          require.resolve('twemoji')
-        ),
-        '../assets/svg'
-      )
-  } catch {
-    emojiDir = null
-  }
-
-  if (!emojiDir) {
-    return assets
-  }
+  const assets = {}
 
   for (
     const code of codes
   ) {
     try {
-      const file =
-        path.join(
-          emojiDir,
-          `${code}.svg`
-        )
-
-      if (
-        !fs.existsSync(file)
-      ) {
-        continue
-      }
-
       const svg =
-        fs.readFileSync(
-          file
+        await getEmojiSvg(
+          code
         )
 
       assets[code] =
         `data:image/svg+xml;base64,${svg.toString('base64')}`
-
-    } catch (error) {
+    } catch (err) {
       console.error(
-        'EMOJI ERROR:',
+        'EMOJI LOAD ERROR:',
         code,
-        error.message
+        err.message
       )
     }
   }
 
   return assets
 }
-
-// ============================================
-// FONT
-// ============================================
 
 function getFontAdvance(
   text,
@@ -227,7 +279,7 @@ function getPartWidth(
   if (
     part.type === 'emoji'
   ) {
-    return fontSize
+    return fontSize * 1.02
   }
 
   return getFontAdvance(
@@ -259,10 +311,6 @@ function getWordWidth(
 
   return width
 }
-
-// ============================================
-// LINE
-// ============================================
 
 function calculateLines(
   words,
@@ -299,49 +347,42 @@ function calculateLines(
 
     if (
       current.length &&
-      nextWidth >
-        maxWidth
+      nextWidth > maxWidth
     ) {
       lines.push({
         words: current,
-        width: currentWidth
+        width:
+          currentWidth
       })
 
       current = [word]
-
       currentWidth =
         wordWidth
     } else {
       current.push(word)
-
       currentWidth =
         nextWidth
     }
   }
 
-  if (
-    current.length
-  ) {
+  if (current.length) {
     lines.push({
       words: current,
-      width: currentWidth
+      width:
+        currentWidth
     })
   }
 
   return lines
 }
 
-// ============================================
-// FONT SIZE
-// ============================================
-
 function getBestFontSize(
   words
 ) {
-  let size = 145
+  let size = 150
 
   while (
-    size >= 42
+    size > 40
   ) {
     const lines =
       calculateLines(
@@ -356,23 +397,25 @@ function getBestFontSize(
       lines.length *
       lineHeight
 
+    const tooTall =
+      totalHeight >
+      HEIGHT - 150
+
+    const tooManyLines =
+      lines.length > 5
+
     if (
-      totalHeight <=
-        HEIGHT - 160 &&
-      lines.length <= 5
+      !tooTall &&
+      !tooManyLines
     ) {
       return size
     }
 
-    size -= 5
+    size -= 4
   }
 
-  return 42
+  return 40
 }
-
-// ============================================
-// BOLD TEXT
-// ============================================
 
 function createBoldTextPath(
   text,
@@ -390,9 +433,12 @@ function createBoldTextPath(
       fontSize
     )
 
-  result.push(
-    `<path d="${base.toPathData(2)}" fill="#000000"/>`
-  )
+  result.push(`
+    <path
+      d="${base.toPathData(2)}"
+      fill="#000000"
+    />
+  `)
 
   for (
     let i = 0;
@@ -421,17 +467,16 @@ function createBoldTextPath(
         fontSize
       )
 
-    result.push(
-      `<path d="${bold.toPathData(2)}" fill="#000000"/>`
-    )
+    result.push(`
+      <path
+        d="${bold.toPathData(2)}"
+        fill="#000000"
+      />
+    `)
   }
 
-  return result.join('')
+  return result.join('\n')
 }
-
-// ============================================
-// LAYOUT
-// ============================================
 
 function buildLayout(
   words,
@@ -459,7 +504,7 @@ function buildLayout(
 
   const result = []
 
-  let index = 0
+  let globalIndex = 0
 
   for (
     const line of lines
@@ -562,14 +607,14 @@ function buildLayout(
             Math.min(
               minY,
               y -
-                fontSize *
-                  0.90
+              fontSize * 0.90
             )
 
           maxY =
             Math.max(
               maxY,
-              y
+              y +
+              fontSize * 0.10
             )
         }
 
@@ -597,12 +642,14 @@ function buildLayout(
       }
 
       result.push({
-        index,
+        index: globalIndex,
         word,
         x,
         y,
         width:
           maxX - minX,
+        height:
+          maxY - minY,
         centerX:
           (
             minX +
@@ -620,7 +667,7 @@ function buildLayout(
         wordWidth +
         gap
 
-      index++
+      globalIndex++
     }
 
     y += lineHeight
@@ -628,10 +675,6 @@ function buildLayout(
 
   return result
 }
-
-// ============================================
-// RENDER WORD
-// ============================================
 
 function renderWord(
   item,
@@ -660,12 +703,11 @@ function renderWord(
       }
 
       const size =
-        fontSize
+        fontSize * 1.02
 
       const emojiY =
         item.y -
-        fontSize *
-          0.90
+        fontSize * 0.90
 
       return `
         <image
@@ -678,21 +720,17 @@ function renderWord(
         />
       `
     })
-    .join('')
+    .join('\n')
 }
 
-// ============================================
-// SVG FRAME
-// ============================================
-
 function createSvg(
+  words,
   layout,
   visibleCount,
   activeIndex,
   scale,
-  shine,
-  assets,
-  fontSize
+  shineProgress,
+  assets
 ) {
   const elements = []
 
@@ -727,48 +765,60 @@ function createSvg(
         `translate(${cx} ${cy}) scale(${scale}) translate(${-cx} ${-cy})`
 
       elements.push(`
-        <g transform="${transform}">
+        <g
+          transform="${transform}"
+        >
+
           <rect
-            x="${item.x - 15}"
-            y="${item.y - fontSize}"
-            width="${item.width + 30}"
-            height="${fontSize * 1.25}"
-            rx="${fontSize * 0.12}"
+            x="${item.x - 18}"
+            y="${item.y - 150}"
+            width="${item.width + 36}"
+            height="190"
+            rx="25"
             fill="#000000"
-            opacity="0.16"
-            filter="url(#shadow)"
-            transform="translate(7 9)"
+            opacity="0.20"
+            filter="url(#shadowBlur)"
+            transform="translate(8 10)"
           />
 
           ${renderWord(
             item,
-            fontSize,
+            layout.fontSize,
             assets
           )}
+
         </g>
       `)
 
       if (
-        shine < 1
+        shineProgress < 1
       ) {
         const shineX =
           item.x -
-          item.width +
+          item.width * 1.4 +
           item.width *
-            2 *
-            shine
+          3.2 *
+          shineProgress
 
         elements.push(`
-          <rect
-            x="${shineX}"
-            y="${item.y - fontSize}"
-            width="${fontSize * 0.16}"
-            height="${fontSize * 2}"
-            fill="#ffffff"
-            opacity="0.95"
-            filter="url(#shine)"
-            transform="rotate(18 ${shineX} ${item.y})"
-          />
+          <g
+            transform="${transform}"
+            clip-path="url(#activeClip)"
+          >
+
+            <rect
+              x="${shineX}"
+              y="${item.y - 150}"
+              width="${layout.fontSize * 0.22}"
+              height="${layout.fontSize * 2.5}"
+              rx="${layout.fontSize * 0.12}"
+              fill="#ffffff"
+              opacity="0.95"
+              transform="rotate(18 ${shineX} ${item.y})"
+              filter="url(#shineBlur)"
+            />
+
+          </g>
         `)
       }
 
@@ -776,46 +826,53 @@ function createSvg(
         Math.max(
           14,
           Math.min(
-            30,
-            fontSize *
-              0.19
+            32,
+            layout.fontSize * 0.20
           )
         )
 
       const sparkleX =
         item.x +
         item.width *
-          (
-            0.15 +
-            shine * 0.7
-          )
+        (
+          0.15 +
+          shineProgress *
+          0.70
+        )
 
       const sparkleY =
         item.y -
-        fontSize *
-          0.2
+        layout.fontSize * 0.20
 
-      let opacity = 1
+      let sparkleOpacity = 1
 
       if (
-        shine < 0.2
+        shineProgress <
+        0.15
       ) {
-        opacity =
-          shine / 0.2
+        sparkleOpacity =
+          shineProgress /
+          0.15
       } else if (
-        shine > 0.75
+        shineProgress >
+        0.75
       ) {
-        opacity =
+        sparkleOpacity =
           (
-            1 - shine
+            1 -
+            shineProgress
           ) / 0.25
       }
 
       elements.push(`
-        <g opacity="${Math.max(
-          0,
-          opacity
-        )}">
+        <g
+          opacity="${Math.max(
+            0,
+            sparkleOpacity
+          )}"
+          transform="${transform}"
+        >
+
           <path
             d="
               M ${sparkleX} ${sparkleY - sparkleSize}
@@ -829,35 +886,63 @@ function createSvg(
               Z
             "
             fill="#ffffff"
-            filter="url(#sparkle)"
+            filter="url(#sparkleBlur)"
           />
+
+          <circle
+            cx="${sparkleX}"
+            cy="${sparkleY}"
+            r="${Math.max(
+              3,
+              sparkleSize * 0.16
+            )}"
+            fill="#ffffff"
+          />
+
         </g>
       `)
-
     } else {
-      elements.push(
-        renderWord(
-          item,
-          fontSize,
-          assets
-        )
-      )
+      elements.push(`
+        <g>
+          ${renderWord(
+            item,
+            layout.fontSize,
+            assets
+          )}
+        </g>
+      `)
     }
   }
 
-  const clip =
-    active
-      ? `
-        <clipPath id="clip">
-          <rect
-            x="${active.x - 30}"
-            y="${active.y - fontSize}"
-            width="${active.width + 60}"
-            height="${fontSize * 1.5}"
-          />
-        </clipPath>
-      `
-      : ''
+  let activeClip
+
+  if (active) {
+    activeClip = `
+      <clipPath
+        id="activeClip"
+      >
+        <rect
+          x="${active.x - 30}"
+          y="${active.y - layout.fontSize}"
+          width="${active.width + 60}"
+          height="${layout.fontSize * 1.5}"
+        />
+      </clipPath>
+    `
+  } else {
+    activeClip = `
+      <clipPath
+        id="activeClip"
+      >
+        <rect
+          x="0"
+          y="0"
+          width="${WIDTH}"
+          height="${HEIGHT}"
+        />
+      </clipPath>
+    `
+  }
 
   return `
     <svg
@@ -870,79 +955,77 @@ function createSvg(
       <defs>
 
         <filter
-          id="shadow"
+          id="shadowBlur"
           x="-50%"
           y="-50%"
           width="200%"
           height="200%"
         >
           <feGaussianBlur
-            stdDeviation="5"
+            stdDeviation="6"
           />
         </filter>
 
         <filter
-          id="shine"
+          id="shineBlur"
           x="-100%"
           y="-100%"
           width="300%"
           height="300%"
         >
           <feGaussianBlur
-            stdDeviation="3"
+            stdDeviation="4"
           />
         </filter>
 
         <filter
-          id="sparkle"
+          id="sparkleBlur"
           x="-200%"
           y="-200%"
           width="400%"
           height="400%"
         >
           <feGaussianBlur
-            stdDeviation="2"
+            stdDeviation="3"
           />
         </filter>
 
-        ${clip}
+        ${activeClip}
 
       </defs>
 
       <rect
+        x="0"
+        y="0"
         width="${WIDTH}"
         height="${HEIGHT}"
         fill="#ffffff"
       />
 
-      ${elements.join('')}
+      ${elements.join('\n')}
 
     </svg>
   `
 }
 
-// ============================================
-// RENDER FRAME
-// ============================================
-
 async function renderFrame(
+  words,
   layout,
   visibleCount,
   activeIndex,
   scale,
-  shine,
-  assets,
-  fontSize
+  shineProgress,
+  assets
 ) {
   const svg =
     createSvg(
+      words,
       layout,
       visibleCount,
       activeIndex,
       scale,
-      shine,
-      assets,
-      fontSize
+      shineProgress,
+      assets
     )
 
   return sharp(
@@ -951,34 +1034,24 @@ async function renderFrame(
     .png()
     .raw()
     .toBuffer({
-      resolveWithObject:
-        true
+      resolveWithObject: true
     })
 }
-
-// ============================================
-// CREATE GIF
-// ============================================
 
 async function createGif(text) {
   const words =
     splitWords(text)
 
-  if (
-    !words.length
-  ) {
+  if (!words.length) {
     throw new Error(
       'Text tidak boleh kosong'
     )
   }
 
-  if (
-    words.length > 15
-  ) {
-    throw new Error(
-      'Maksimal 15 kata'
+  const assets =
+    await prepareEmojiAssets(
+      text
     )
-  }
 
   const fontSize =
     getBestFontSize(
@@ -991,77 +1064,97 @@ async function createGif(text) {
       fontSize
     )
 
-  const assets =
-    loadEmojiAssets(
-      text
-    )
+  layout.fontSize =
+    fontSize
 
   const frames = []
 
-  const POP = [
+  const POP_SCALES = [
+    0.62,
     0.78,
-    0.94,
-    1.06,
+    0.92,
+    1.04,
+    1.10,
+    1.04,
     1.00
   ]
 
   const SHINE = [
     0.00,
-    0.28,
+    0.10,
+    0.25,
+    0.45,
     0.65,
+    0.82,
     1.00
   ]
 
   for (
     let wordIndex = 0;
-    wordIndex <
-      words.length;
+    wordIndex < words.length;
     wordIndex++
   ) {
     const visibleCount =
       wordIndex + 1
 
     for (
-      let i = 0;
-      i < POP.length;
-      i++
+      let frameIndex = 0;
+      frameIndex <
+      POP_SCALES.length;
+      frameIndex++
     ) {
       const frame =
         await renderFrame(
+          words,
           layout,
           visibleCount,
           wordIndex,
-          POP[i],
-          SHINE[i],
-          assets,
-          fontSize
+          POP_SCALES[
+            frameIndex
+          ],
+          SHINE[
+            frameIndex
+          ],
+          assets
         )
 
       frames.push({
         data: frame.data,
-        delay:
-          i === 3
-            ? 160
-            : 65
+        delay: 55
       })
     }
+
+    const hold =
+      await renderFrame(
+        words,
+        layout,
+        visibleCount,
+        wordIndex,
+        1,
+        1,
+        assets
+      )
+
+    frames.push({
+      data: hold.data,
+      delay: 350
+    })
   }
 
   const finalFrame =
     await renderFrame(
+      words,
       layout,
       words.length,
       -1,
       1,
       1,
-      assets,
-      fontSize
+      assets
     )
 
   frames.push({
-    data:
-      finalFrame.data,
-    delay: 1000
+    data: finalFrame.data,
+    delay: 1500
   })
 
   const encoder =
@@ -1073,7 +1166,7 @@ async function createGif(text) {
     )
 
   encoder.setRepeat(0)
-  encoder.setQuality(10)
+  encoder.setQuality(8)
 
   encoder.start()
 
@@ -1094,14 +1187,10 @@ async function createGif(text) {
   return encoder.out.getData()
 }
 
-// ============================================
-// UPLOAD TERMAI
-// ============================================
-
 async function uploadTermai(
   imageBuffer
 ) {
-  const formData =
+  const form =
     new FormData()
 
   const blob =
@@ -1112,7 +1201,7 @@ async function uploadTermai(
       }
     )
 
-  formData.append(
+  form.append(
     'file',
     blob,
     'bratelegan.gif'
@@ -1123,216 +1212,195 @@ async function uploadTermai(
       TERMAI_UPLOAD_URL,
       {
         method: 'POST',
-
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0'
-        },
-
-        body: formData
+        body: form
       }
     )
 
-  if (
-    !response.ok
-  ) {
+  const text =
+    await response.text()
+
+  if (!response.ok) {
     throw new Error(
-      `Termai HTTP ${response.status}`
+      `Upload Termai HTTP ${response.status}: ${text.slice(0, 300)}`
     )
   }
 
-  const result =
-    await response.json()
+  let data
+
+  try {
+    data =
+      JSON.parse(text)
+  } catch {
+    throw new Error(
+      'Response upload Termai bukan JSON'
+    )
+  }
 
   const imageUrl =
-    result?.path ||
-    result?.url ||
-    result?.data?.url
+    data?.result?.path ||
+    data?.result?.url ||
+    data?.result?.data?.url ||
+    data?.path ||
+    data?.url
 
-  if (
-    !imageUrl
-  ) {
+  if (!imageUrl) {
     console.error(
-      'Response Termai:',
-      result
+      'TERMAI RESPONSE:',
+      data
     )
 
     throw new Error(
-      'Termai tidak mengembalikan URL GIF'
+      'URL gambar dari Termai tidak ditemukan'
     )
   }
 
   return imageUrl
 }
 
-// ============================================
-// HANDLER
-// ============================================
-
-export default async function handler(
-  req,
-  res
-) {
-  res.setHeader(
-    'Access-Control-Allow-Origin',
-    '*'
-  )
-
-  res.setHeader(
-    'Access-Control-Allow-Methods',
-    'GET, POST, OPTIONS'
-  )
-
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'Content-Type'
-  )
-
+function getText(req) {
   if (
-    req.method === 'OPTIONS'
+    req.method === 'GET'
   ) {
-    return res
-      .status(200)
-      .end()
+    return (
+      req.query?.text ||
+      ''
+    )
   }
 
   if (
-    req.method !== 'GET' &&
-    req.method !== 'POST'
+    req.method === 'POST'
   ) {
-    return res
-      .status(405)
-      .json({
-        status: false,
-        creator: CREATOR,
-        error:
-          'Gunakan GET atau POST'
-      })
-  }
-
-  try {
-    let text = ''
-
     if (
-      req.method === 'GET'
+      typeof req.body ===
+      'string'
     ) {
-      text =
-        req.query?.text ||
-        ''
-    } else {
-      const body =
-        req.body || {}
+      try {
+        const body =
+          JSON.parse(
+            req.body
+          )
 
-      if (
-        typeof body ===
-        'string'
-      ) {
-        try {
-          const parsed =
-            JSON.parse(
-              body
-            )
-
-          text =
-            parsed?.text ||
-            ''
-        } catch {
-          text = ''
-        }
-      } else {
-        text =
-          body?.text ||
+        return (
+          body.text ||
           ''
+        )
+      } catch {
+        return ''
       }
     }
 
-    text =
-      String(
-        text
-      ).trim()
+    return (
+      req.body?.text ||
+      ''
+    )
+  }
 
-    if (!text) {
+  return ''
+}
+
+module.exports =
+  async (
+    req,
+    res
+  ) => {
+    try {
+      if (
+        req.method !== 'GET' &&
+        req.method !== 'POST'
+      ) {
+        return res
+          .status(405)
+          .json({
+            status: false,
+            creator: 'Ndra09',
+            error:
+              'Gunakan method GET atau POST'
+          })
+      }
+
+      const text =
+        String(
+          getText(req)
+        ).trim()
+
+      if (!text) {
+        return res
+          .status(400)
+          .json({
+            status: false,
+            creator: 'Ndra09',
+            error:
+              'Parameter text wajib diisi',
+            example:
+              '/api/bratelegan?text=halo 😂🔥'
+          })
+      }
+
+      if (
+        text.length > 300
+      ) {
+        return res
+          .status(400)
+          .json({
+            status: false,
+            creator: 'Ndra09',
+            error:
+              'Text maksimal 300 karakter'
+          })
+      }
+
+      if (!font) {
+        return res
+          .status(500)
+          .json({
+            status: false,
+            creator: 'Ndra09',
+            error:
+              'Font Aptos.ttf tidak ditemukan. Pastikan file ada di assets/Aptos.ttf'
+          })
+      }
+
+      const gif =
+        await createGif(
+          text
+        )
+
+      const imageUrl =
+        await uploadTermai(
+          gif
+        )
+
       return res
-        .status(400)
+        .status(200)
         .json({
-          status: false,
-          creator: CREATOR,
-          error:
-            'Parameter text wajib diisi',
-          example:
-            '/api/bratelegan?text=HELO GEYS 🔥'
+          status: true,
+          creator: 'Ndra09',
+          result: {
+            text,
+            url_gambar:
+              imageUrl,
+            content_type:
+              'image/gif',
+            animated: true,
+            message:
+              'Brat Elegan berhasil dibuat'
+          }
         })
-    }
 
-    if (
-      text.length > 300
-    ) {
-      return res
-        .status(400)
-        .json({
-          status: false,
-          creator: CREATOR,
-          error:
-            'Text maksimal 300 karakter'
-        })
-    }
+    } catch (error) {
+      console.error(
+        'BRAT ELEGAN ERROR:',
+        error
+      )
 
-    if (!font) {
       return res
         .status(500)
         .json({
           status: false,
-          creator: CREATOR,
+          creator: 'Ndra09',
           error:
-            'Font Aptos.ttf tidak ditemukan'
+            error.message ||
+            'Gagal membuat Brat Elegan'
         })
     }
-
-    const gifBuffer =
-      await createGif(
-        text
-      )
-
-    const imageUrl =
-      await uploadTermai(
-        gifBuffer
-      )
-
-    return res
-      .status(200)
-      .json({
-        status: true,
-        creator: CREATOR,
-        result: {
-          text,
-          url_gambar:
-            imageUrl,
-          content_type:
-            'image/gif',
-          animated: true,
-          ukuran: {
-            width: WIDTH,
-            height: HEIGHT
-          },
-          message:
-            'Brat Elegan berhasil dibuat'
-        }
-      })
-
-  } catch (error) {
-    console.error(
-      '[BRAT ELEGAN ERROR]',
-      error
-    )
-
-    return res
-      .status(500)
-      .json({
-        status: false,
-        creator: CREATOR,
-        error:
-          error?.message ||
-          'Gagal membuat Brat Elegan'
-      })
   }
-}
