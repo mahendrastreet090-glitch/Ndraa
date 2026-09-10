@@ -34,7 +34,10 @@ let font = null
 try {
   font = opentype.loadSync(FONT_PATH)
 } catch (err) {
-  console.error('FONT LOAD ERROR:', err.message)
+  console.error(
+    'FONT LOAD ERROR:',
+    err.message
+  )
 }
 
 try {
@@ -44,7 +47,10 @@ try {
     })
   }
 } catch (err) {
-  console.error('CACHE DIR ERROR:', err.message)
+  console.error(
+    'CACHE DIR ERROR:',
+    err.message
+  )
 }
 
 function splitWords(text) {
@@ -65,98 +71,154 @@ function getEmojiUrl(code) {
 }
 
 function downloadFile(url) {
-  return new Promise((resolve, reject) => {
-    const request = https.get(
-      url,
-      response => {
+  return new Promise(
+    (resolve, reject) => {
 
-        if (response.statusCode !== 200) {
-          response.resume()
+      const request =
+        https.get(
+          url,
+          response => {
 
-          return reject(
+            if (
+              response.statusCode !== 200
+            ) {
+
+              response.resume()
+
+              return reject(
+                new Error(
+                  `Emoji HTTP ${response.statusCode}`
+                )
+              )
+            }
+
+            const chunks = []
+
+            response.on(
+              'data',
+              chunk => {
+                chunks.push(chunk)
+              }
+            )
+
+            response.on(
+              'end',
+              () => {
+
+                resolve(
+                  Buffer.concat(
+                    chunks
+                  )
+                )
+
+              }
+            )
+
+            response.on(
+              'error',
+              reject
+            )
+          }
+        )
+
+      request.on(
+        'error',
+        reject
+      )
+
+      request.setTimeout(
+        6000,
+        () => {
+
+          request.destroy(
             new Error(
-              `Emoji HTTP ${response.statusCode}`
+              'Emoji download timeout'
             )
           )
+
         }
+      )
 
-        const chunks = []
-
-        response.on(
-          'data',
-          chunk => {
-            chunks.push(chunk)
-          }
-        )
-
-        response.on(
-          'end',
-          () => {
-            resolve(
-              Buffer.concat(chunks)
-            )
-          }
-        )
-
-        response.on(
-          'error',
-          reject
-        )
-      }
-    )
-
-    request.on(
-      'error',
-      reject
-    )
-
-    request.setTimeout(
-      6000,
-      () => {
-        request.destroy(
-          new Error(
-            'Emoji download timeout'
-          )
-        )
-      }
-    )
-  })
+    }
+  )
 }
 
-async function getEmojiSvg(code) {
+
+/*
+ * ============================================================
+ * DOWNLOAD + CONVERT EMOJI
+ * ============================================================
+ *
+ * Emoji SVG dari Twemoji akan dikonversi menjadi PNG.
+ *
+ * Ini penting supaya emoji tetap berwarna ketika nantinya
+ * dirender oleh Sharp menjadi frame GIF.
+ *
+ * ============================================================
+ */
+
+async function getEmojiPng(code) {
 
   const cacheFile =
     path.join(
       CACHE_DIR,
-      `${code}.svg`
+      `${code}.png`
     )
 
   try {
+
     if (
       fs.existsSync(
         cacheFile
       )
     ) {
+
       return fs.readFileSync(
         cacheFile
       )
+
     }
+
   } catch {}
 
-  const data =
+
+  const svg =
     await downloadFile(
       getEmojiUrl(code)
     )
 
+
+  /*
+   * SVG Twemoji -> PNG RGBA
+   */
+
+  const png =
+    await sharp(svg, {
+      density: 300
+    })
+      .png()
+      .toBuffer()
+
+
   try {
+
     fs.writeFileSync(
       cacheFile,
-      data
+      png
     )
+
   } catch {}
 
-  return data
+
+  return png
 }
+
+
+/*
+ * ============================================================
+ * FIND EMOJI
+ * ============================================================
+ */
 
 function findEmojiParts(text) {
 
@@ -176,6 +238,7 @@ function findEmojiParts(text) {
       match.index >
       lastIndex
     ) {
+
       parts.push({
         type: 'text',
         value:
@@ -184,11 +247,15 @@ function findEmojiParts(text) {
             match.index
           )
       })
+
     }
 
     parts.push({
       type: 'emoji',
-      value: match[0],
+
+      value:
+        match[0],
+
       code:
         twemoji.convert.toCodePoint(
           match[0]
@@ -199,30 +266,49 @@ function findEmojiParts(text) {
       regex.lastIndex
   }
 
+
   if (
     lastIndex <
     text.length
   ) {
+
     parts.push({
       type: 'text',
+
       value:
         text.slice(
           lastIndex
         )
     })
+
   }
 
-  if (!parts.length) {
+
+  if (
+    !parts.length
+  ) {
+
     parts.push({
       type: 'text',
       value: text
     })
+
   }
+
 
   return parts
 }
 
-async function prepareEmojiAssets(text) {
+
+/*
+ * ============================================================
+ * PREPARE EMOJI ASSETS
+ * ============================================================
+ */
+
+async function prepareEmojiAssets(
+  text
+) {
 
   const regex =
     emojiRegex()
@@ -241,7 +327,9 @@ async function prepareEmojiAssets(text) {
         match[0]
       )
     )
+
   }
+
 
   const entries =
     await Promise.all(
@@ -250,14 +338,18 @@ async function prepareEmojiAssets(text) {
 
           try {
 
-            const svg =
-              await getEmojiSvg(
+            const png =
+              await getEmojiPng(
                 code
               )
 
+
             return [
               code,
-              `data:image/svg+xml;base64,${svg.toString('base64')}`
+
+              `data:image/png;base64,${png.toString(
+                'base64'
+              )}`
             ]
 
           } catch (err) {
@@ -272,15 +364,25 @@ async function prepareEmojiAssets(text) {
               code,
               ''
             ]
+
           }
+
         }
       )
     )
+
 
   return Object.fromEntries(
     entries
   )
 }
+
+
+/*
+ * ============================================================
+ * FONT
+ * ============================================================
+ */
 
 function getFontAdvance(
   text,
@@ -300,6 +402,13 @@ function getFontAdvance(
   )
 }
 
+
+/*
+ * ============================================================
+ * PART WIDTH
+ * ============================================================
+ */
+
 function getPartWidth(
   part,
   fontSize
@@ -308,14 +417,24 @@ function getPartWidth(
   if (
     part.type === 'emoji'
   ) {
+
     return fontSize * 1.02
+
   }
+
 
   return getFontAdvance(
     part.value,
     fontSize
   )
 }
+
+
+/*
+ * ============================================================
+ * PREPARE WORDS
+ * ============================================================
+ */
 
 function prepareWords(
   words
@@ -333,9 +452,17 @@ function prepareWords(
         word,
         parts
       }
+
     }
   )
 }
+
+
+/*
+ * ============================================================
+ * CALCULATE LINES
+ * ============================================================
+ */
 
 function calculateLines(
   preparedWords,
@@ -355,11 +482,13 @@ function calculateLines(
   let current = []
   let currentWidth = 0
 
+
   for (
     const item of preparedWords
   ) {
 
     let wordWidth = 0
+
 
     for (
       const part of item.parts
@@ -370,10 +499,13 @@ function calculateLines(
           part,
           fontSize
         )
+
     }
+
 
     item.width =
       wordWidth
+
 
     const nextWidth =
       current.length
@@ -382,6 +514,7 @@ function calculateLines(
           wordWidth
         : wordWidth
 
+
     if (
       current.length &&
       nextWidth > maxWidth
@@ -389,41 +522,70 @@ function calculateLines(
 
       lines.push({
         words: current,
+
         width:
           currentWidth
       })
 
-      current = [item]
+
+      current = [
+        item
+      ]
+
 
       currentWidth =
         wordWidth
 
     } else {
 
-      current.push(item)
+      current.push(
+        item
+      )
 
       currentWidth =
         nextWidth
+
     }
+
   }
 
-  if (current.length) {
+
+  if (
+    current.length
+  ) {
 
     lines.push({
       words: current,
+
       width:
         currentWidth
     })
+
   }
+
 
   return lines
 }
+
+
+/*
+ * ============================================================
+ * BEST FONT SIZE
+ * ============================================================
+ */
 
 function getBestFontSize(
   preparedWords
 ) {
 
+  /*
+   * Ukuran awal teks.
+   *
+   * Bisa dinaikkan lagi jika ingin teks lebih besar.
+   */
+
   let size = 180
+
 
   while (
     size > 40
@@ -435,12 +597,15 @@ function getBestFontSize(
         size
       )
 
+
     const lineHeight =
       size * 1.16
+
 
     const totalHeight =
       lines.length *
       lineHeight
+
 
     if (
       totalHeight <=
@@ -449,13 +614,24 @@ function getBestFontSize(
     ) {
 
       return size
+
     }
 
+
     size -= 4
+
   }
+
 
   return 40
 }
+
+
+/*
+ * ============================================================
+ * BOLD TEXT PATH
+ * ============================================================
+ */
 
 function createBoldTextPath(
   text,
@@ -466,6 +642,7 @@ function createBoldTextPath(
 
   const result = []
 
+
   const base =
     font.getPath(
       text,
@@ -474,9 +651,13 @@ function createBoldTextPath(
       fontSize
     )
 
+
   result.push(
-    `<path d="${base.toPathData(2)}" fill="#000000"/>`
+    `<path d="${base.toPathData(
+      2
+    )}" fill="#000000"/>`
   )
+
 
   for (
     let i = 0;
@@ -490,13 +671,16 @@ function createBoldTextPath(
       ) /
       BOLD_STEPS
 
+
     const dx =
       Math.cos(angle) *
       BOLD_OFFSET
 
+
     const dy =
       Math.sin(angle) *
       BOLD_OFFSET
+
 
     const bold =
       font.getPath(
@@ -506,13 +690,25 @@ function createBoldTextPath(
         fontSize
       )
 
+
     result.push(
-      `<path d="${bold.toPathData(2)}" fill="#000000"/>`
+      `<path d="${bold.toPathData(
+        2
+      )}" fill="#000000"/>`
     )
+
   }
+
 
   return result.join('')
 }
+
+
+/*
+ * ============================================================
+ * BUILD LAYOUT
+ * ============================================================
+ */
 
 function buildLayout(
   preparedWords,
@@ -525,12 +721,15 @@ function buildLayout(
       fontSize
     )
 
+
   const lineHeight =
     fontSize * 1.16
+
 
   const totalHeight =
     lines.length *
     lineHeight
+
 
   let y =
     (
@@ -539,9 +738,11 @@ function buildLayout(
     ) / 2 +
     fontSize
 
+
   const result = []
 
   let globalIndex = 0
+
 
   for (
     const line of lines
@@ -551,11 +752,13 @@ function buildLayout(
       fontSize *
       WORD_GAP_RATIO
 
+
     let x =
       (
         WIDTH -
         line.width
       ) / 2
+
 
     for (
       const item of line.words
@@ -564,17 +767,23 @@ function buildLayout(
       const parts =
         item.parts
 
+
       const wordWidth =
         item.width
 
+
       const wordParts = []
+
 
       let partX = x
 
+
       let minX = Infinity
       let maxX = -Infinity
+
       let minY = Infinity
       let maxY = -Infinity
+
 
       for (
         const part of parts
@@ -585,6 +794,7 @@ function buildLayout(
             part,
             fontSize
           )
+
 
         if (
           part.type ===
@@ -599,8 +809,10 @@ function buildLayout(
               fontSize
             )
 
+
           const box =
             textPath.getBoundingBox()
+
 
           minX =
             Math.min(
@@ -608,17 +820,20 @@ function buildLayout(
               box.x1
             )
 
+
           maxX =
             Math.max(
               maxX,
               box.x2
             )
 
+
           minY =
             Math.min(
               minY,
               box.y1
             )
+
 
           maxY =
             Math.max(
@@ -634,12 +849,14 @@ function buildLayout(
               partX
             )
 
+
           maxX =
             Math.max(
               maxX,
               partX +
               partWidth
             )
+
 
           minY =
             Math.min(
@@ -648,29 +865,39 @@ function buildLayout(
               fontSize * 0.90
             )
 
+
           maxY =
             Math.max(
               maxY,
               y +
               fontSize * 0.10
             )
+
         }
+
 
         wordParts.push({
           ...part,
+
           x: partX,
-          width: partWidth
+
+          width:
+            partWidth
         })
+
 
         partX +=
           partWidth
+
       }
+
 
       if (
         minX === Infinity
       ) {
 
         minX = x
+
         maxX =
           x + wordWidth
 
@@ -679,9 +906,12 @@ function buildLayout(
 
         maxY =
           y
+
       }
 
+
       result.push({
+
         index:
           globalIndex,
 
@@ -712,20 +942,34 @@ function buildLayout(
 
         parts:
           wordParts
+
       })
+
 
       x +=
         wordWidth +
         gap
 
+
       globalIndex++
+
     }
 
+
     y += lineHeight
+
   }
+
 
   return result
 }
+
+
+/*
+ * ============================================================
+ * RENDER WORD
+ * ============================================================
+ */
 
 function renderWord(
   item,
@@ -736,6 +980,10 @@ function renderWord(
   return item.parts
     .map(
       part => {
+
+        /*
+         * TEXT
+         */
 
         if (
           part.type ===
@@ -748,23 +996,33 @@ function renderWord(
             item.y,
             fontSize
           )
+
         }
+
+
+        /*
+         * EMOJI
+         */
 
         const src =
           assets[
             part.code
           ]
 
+
         if (!src) {
           return ''
         }
 
+
         const size =
           fontSize * 1.02
+
 
         const emojiY =
           item.y -
           fontSize * 0.90
+
 
         return `
           <image
@@ -776,10 +1034,18 @@ function renderWord(
             preserveAspectRatio="xMidYMid meet"
           />
         `
+
       }
     )
     .join('')
 }
+
+
+/*
+ * ============================================================
+ * CREATE SVG
+ * ============================================================
+ */
 
 function createSvg(
   layout,
@@ -793,12 +1059,14 @@ function createSvg(
 
   const elements = []
 
+
   const active =
     layout.find(
       item =>
         item.index ===
         activeIndex
     )
+
 
   for (
     const item of layout
@@ -811,6 +1079,7 @@ function createSvg(
       continue
     }
 
+
     if (
       item.index ===
       activeIndex
@@ -819,11 +1088,14 @@ function createSvg(
       const cx =
         item.centerX
 
+
       const cy =
         item.centerY
 
+
       const transform =
         `translate(${cx} ${cy}) scale(${scale}) translate(${-cx} ${-cy})`
+
 
       elements.push(`
         <g transform="${transform}">
@@ -849,6 +1121,7 @@ function createSvg(
         </g>
       `)
 
+
       if (
         shineProgress < 1
       ) {
@@ -859,6 +1132,7 @@ function createSvg(
           item.width *
           3 *
           shineProgress
+
 
         elements.push(`
           <g
@@ -880,7 +1154,9 @@ function createSvg(
 
           </g>
         `)
+
       }
+
 
       const sparkleSize =
         Math.max(
@@ -891,6 +1167,7 @@ function createSvg(
           )
         )
 
+
       const sparkleX =
         item.x +
         item.width *
@@ -900,11 +1177,14 @@ function createSvg(
           0.70
         )
 
+
       const sparkleY =
         item.y -
         fontSize * 0.20
 
+
       let sparkleOpacity = 1
+
 
       if (
         shineProgress <
@@ -926,7 +1206,9 @@ function createSvg(
             shineProgress
           ) /
           0.22
+
       }
+
 
       elements.push(`
         <g
@@ -969,12 +1251,20 @@ function createSvg(
     } else {
 
       elements.push(
-        `<g>${renderWord(item, fontSize, assets)}</g>`
+        `<g>${renderWord(
+          item,
+          fontSize,
+          assets
+        )}</g>`
       )
+
     }
+
   }
 
+
   let activeClip
+
 
   if (active) {
 
@@ -1001,7 +1291,9 @@ function createSvg(
         />
       </clipPath>
     `
+
   }
+
 
   return `
     <svg
@@ -1025,6 +1317,7 @@ function createSvg(
           />
         </filter>
 
+
         <filter
           id="shineBlur"
           x="-100%"
@@ -1036,6 +1329,7 @@ function createSvg(
             stdDeviation="3"
           />
         </filter>
+
 
         <filter
           id="sparkleBlur"
@@ -1049,9 +1343,11 @@ function createSvg(
           />
         </filter>
 
+
         ${activeClip}
 
       </defs>
+
 
       <rect
         width="${WIDTH}"
@@ -1059,11 +1355,19 @@ function createSvg(
         fill="#ffffff"
       />
 
+
       ${elements.join('')}
 
     </svg>
   `
 }
+
+
+/*
+ * ============================================================
+ * RENDER FRAME
+ * ============================================================
+ */
 
 async function renderFrame(
   layout,
@@ -1086,6 +1390,7 @@ async function renderFrame(
       assets
     )
 
+
   return sharp(
     Buffer.from(svg)
   )
@@ -1096,6 +1401,13 @@ async function renderFrame(
     })
 }
 
+
+/*
+ * ============================================================
+ * CREATE GIF
+ * ============================================================
+ */
+
 async function createGif(
   text
 ) {
@@ -1103,30 +1415,41 @@ async function createGif(
   const words =
     splitWords(text)
 
-  if (!words.length) {
+
+  if (
+    !words.length
+  ) {
+
     throw new Error(
       'Text tidak boleh kosong'
     )
+
   }
+
 
   if (
     words.length >
     MAX_WORDS
   ) {
+
     throw new Error(
       `Maksimal ${MAX_WORDS} kata agar proses tetap cepat`
     )
+
   }
+
 
   const preparedWords =
     prepareWords(
       words
     )
 
+
   const fontSize =
     getBestFontSize(
       preparedWords
     )
+
 
   const layout =
     buildLayout(
@@ -1134,12 +1457,19 @@ async function createGif(
       fontSize
     )
 
+
+  /*
+   * Emoji dipersiapkan sebelum render frame.
+   */
+
   const assets =
     await prepareEmojiAssets(
       text
     )
 
+
   const frames = []
+
 
   const POP_SCALES = [
     0.72,
@@ -1149,6 +1479,7 @@ async function createGif(
     1.00
   ]
 
+
   const SHINE = [
     0.00,
     0.18,
@@ -1156,6 +1487,7 @@ async function createGif(
     0.72,
     1.00
   ]
+
 
   for (
     let wordIndex = 0;
@@ -1165,6 +1497,7 @@ async function createGif(
 
     const visibleCount =
       wordIndex + 1
+
 
     for (
       let frameIndex = 0;
@@ -1188,6 +1521,7 @@ async function createGif(
           assets
         )
 
+
       frames.push({
         data:
           frame.data,
@@ -1195,7 +1529,9 @@ async function createGif(
         delay:
           45
       })
+
     }
+
 
     const hold =
       await renderFrame(
@@ -1208,6 +1544,7 @@ async function createGif(
         assets
       )
 
+
     frames.push({
       data:
         hold.data,
@@ -1215,7 +1552,13 @@ async function createGif(
       delay:
         220
     })
+
   }
+
+
+  /*
+   * FINAL FRAME
+   */
 
   const finalFrame =
     await renderFrame(
@@ -1228,6 +1571,7 @@ async function createGif(
       assets
     )
 
+
   frames.push({
     data:
       finalFrame.data,
@@ -1235,6 +1579,13 @@ async function createGif(
     delay:
       1000
   })
+
+
+  /*
+   * ==========================================================
+   * GIF ENCODER
+   * ==========================================================
+   */
 
   const encoder =
     new GIFEncoder(
@@ -1244,10 +1595,12 @@ async function createGif(
       true
     )
 
+
   encoder.setRepeat(0)
   encoder.setQuality(10)
 
   encoder.start()
+
 
   for (
     const frame of frames
@@ -1257,15 +1610,26 @@ async function createGif(
       frame.delay
     )
 
+
     encoder.addFrame(
       frame.data
     )
+
   }
+
 
   encoder.finish()
 
+
   return encoder.out.getData()
 }
+
+
+/*
+ * ============================================================
+ * UPLOAD TERMAI
+ * ============================================================
+ */
 
 async function uploadTermai(
   imageBuffer
@@ -1273,6 +1637,7 @@ async function uploadTermai(
 
   const form =
     new FormData()
+
 
   const blob =
     new Blob(
@@ -1285,11 +1650,13 @@ async function uploadTermai(
       }
     )
 
+
   form.append(
     'file',
     blob,
     'bratelegan.gif'
   )
+
 
   const response =
     await fetch(
@@ -1300,24 +1667,32 @@ async function uploadTermai(
       }
     )
 
-  if (!response.ok) {
+
+  if (
+    !response.ok
+  ) {
 
     const errorText =
       await response.text()
 
+
     throw new Error(
       `Termai HTTP ${response.status}: ${errorText}`
     )
+
   }
+
 
   const data =
     await response.json()
+
 
   const imageUrl =
     data?.path ||
     data?.url ||
     data?.data?.url ||
     data?.result?.url
+
 
   if (!imageUrl) {
 
@@ -1326,13 +1701,23 @@ async function uploadTermai(
       data
     )
 
+
     throw new Error(
       'URL gambar dari Termai tidak ditemukan'
     )
+
   }
+
 
   return imageUrl
 }
+
+
+/*
+ * ============================================================
+ * GET TEXT
+ * ============================================================
+ */
 
 function getText(req) {
 
@@ -1345,7 +1730,9 @@ function getText(req) {
       req.query?.text ||
       ''
     )
+
   }
+
 
   if (
     req.method ===
@@ -1364,6 +1751,7 @@ function getText(req) {
             req.body
           )
 
+
         return (
           body.text ||
           ''
@@ -1372,17 +1760,29 @@ function getText(req) {
       } catch {
 
         return ''
+
       }
+
     }
+
 
     return (
       req.body?.text ||
       ''
     )
+
   }
+
 
   return ''
 }
+
+
+/*
+ * ============================================================
+ * API HANDLER
+ * ============================================================
+ */
 
 module.exports =
   async (
@@ -1392,6 +1792,7 @@ module.exports =
 
     const started =
       Date.now()
+
 
     try {
 
@@ -1403,31 +1804,47 @@ module.exports =
         return res
           .status(405)
           .json({
+
             status: false,
-            creator: 'Ndra09',
+
+            creator:
+              'Ndra09',
+
             error:
               'Gunakan method GET atau POST'
+
           })
+
       }
+
 
       const text =
         String(
           getText(req)
         ).trim()
 
+
       if (!text) {
 
         return res
           .status(400)
           .json({
+
             status: false,
-            creator: 'Ndra09',
+
+            creator:
+              'Ndra09',
+
             error:
               'Parameter text wajib diisi',
+
             example:
               '/api/bratelegan?text=halo 😂🔥'
+
           })
+
       }
+
 
       if (
         text.length > 300
@@ -1436,29 +1853,44 @@ module.exports =
         return res
           .status(400)
           .json({
+
             status: false,
-            creator: 'Ndra09',
+
+            creator:
+              'Ndra09',
+
             error:
               'Text maksimal 300 karakter'
+
           })
+
       }
+
 
       if (!font) {
 
         return res
           .status(500)
           .json({
+
             status: false,
-            creator: 'Ndra09',
+
+            creator:
+              'Ndra09',
+
             error:
               'Font Aptos.ttf tidak ditemukan. Pastikan file ada di assets/Aptos.ttf'
+
           })
+
       }
+
 
       const gif =
         await createGif(
           text
         )
+
 
       console.log(
         'GIF CREATED:',
@@ -1466,14 +1898,17 @@ module.exports =
         'bytes'
       )
 
+
       const imageUrl =
         await uploadTermai(
           gif
         )
 
+
       const elapsed =
         Date.now() -
         started
+
 
       console.log(
         'BRAT DONE:',
@@ -1481,24 +1916,39 @@ module.exports =
         'ms'
       )
 
+
       return res
         .status(200)
         .json({
+
           status: true,
-          creator: 'Ndra09',
+
+          creator:
+            'Ndra09',
+
           result: {
+
             text,
+
             url_gambar:
               imageUrl,
+
             content_type:
               'image/gif',
-            animated: true,
+
+            animated:
+              true,
+
             message:
               'Brat Elegan berhasil dibuat',
+
             processing_time:
               `${elapsed}ms`
+
           }
+
         })
+
 
     } catch (error) {
 
@@ -1507,14 +1957,22 @@ module.exports =
         error
       )
 
+
       return res
         .status(500)
         .json({
+
           status: false,
-          creator: 'Ndra09',
+
+          creator:
+            'Ndra09',
+
           error:
             error.message ||
             'Gagal membuat Brat Elegan'
+
         })
+
     }
+
   }
