@@ -8,6 +8,9 @@ const FONT_PATH = path.join(process.cwd(), 'assets', 'Aptos.ttf')
 const WIDTH = 512
 const HEIGHT = 512
 
+const BOLD_OFFSET = 2.2
+const BOLD_STEPS = 8
+
 let font
 
 try {
@@ -37,7 +40,9 @@ function wrapText(text, maxChars) {
     }
   }
 
-  if (line) lines.push(line)
+  if (line) {
+    lines.push(line)
+  }
 
   return lines.length ? lines : ['']
 }
@@ -59,18 +64,108 @@ function splitWords(text) {
     .filter(Boolean)
 }
 
+function getWordWidth(word, fontSize) {
+  return font.getAdvanceWidth(
+    word,
+    fontSize,
+    {
+      kerning: true
+    }
+  )
+}
+
+function createBoldPath(word, x, y, fontSize) {
+  const paths = []
+
+  const basePath = font.getPath(
+    word,
+    x,
+    y,
+    fontSize
+  )
+
+  const baseData = basePath.toPathData(2)
+
+  paths.push(`
+    <path
+      d="${baseData}"
+      fill="#000000"
+    />
+  `)
+
+  const radius = BOLD_OFFSET
+
+  for (
+    let i = 0;
+    i < BOLD_STEPS;
+    i++
+  ) {
+    const angle =
+      (Math.PI * 2 * i) /
+      BOLD_STEPS
+
+    const dx =
+      Math.cos(angle) * radius
+
+    const dy =
+      Math.sin(angle) * radius
+
+    const boldPath = font.getPath(
+      word,
+      x + dx,
+      y + dy,
+      fontSize
+    )
+
+    paths.push(`
+      <path
+        d="${boldPath.toPathData(2)}"
+        fill="#000000"
+      />
+    `)
+  }
+
+  return paths.join('\n')
+}
+
+function createSinglePath(
+  word,
+  x,
+  y,
+  fontSize
+) {
+  return font
+    .getPath(
+      word,
+      x,
+      y,
+      fontSize
+    )
+    .toPathData(2)
+}
+
 function buildLayout(words, fontSize) {
+  const fullText =
+    words.join(' ')
+
   const maxChars =
-    words.join(' ').length <= 25 ? 16 :
-    words.join(' ').length <= 50 ? 18 :
-    words.join(' ').length <= 80 ? 21 :
+    fullText.length <= 25 ? 16 :
+    fullText.length <= 50 ? 18 :
+    fullText.length <= 80 ? 21 :
     24
 
-  const fullText = words.join(' ')
-  const lines = wrapText(fullText, maxChars)
+  const lines =
+    wrapText(
+      fullText,
+      maxChars
+    )
 
-  const lineHeight = fontSize * 1.12
-  const totalHeight = lines.length * lineHeight
+  const lineHeight =
+    fontSize * 1.12
+
+  const totalHeight =
+    lines.length *
+    lineHeight
 
   let startY =
     (HEIGHT - totalHeight) / 2 +
@@ -81,25 +176,29 @@ function buildLayout(words, fontSize) {
   let wordIndex = 0
 
   for (const line of lines) {
-    const lineWords = line.split(/\s+/)
+
+    const lineWords =
+      line.split(/\s+/)
 
     const wordData = []
 
     for (const word of lineWords) {
-      const pathObj = font.getPath(
-        word,
-        0,
-        0,
-        fontSize
-      )
 
-      const box = pathObj.getBoundingBox()
+      const tempPath =
+        font.getPath(
+          word,
+          0,
+          0,
+          fontSize
+        )
+
+      const box =
+        tempPath.getBoundingBox()
 
       const width =
-        font.getAdvanceWidth(
+        getWordWidth(
           word,
-          fontSize,
-          { kerning: true }
+          fontSize
         )
 
       wordData.push({
@@ -109,33 +208,36 @@ function buildLayout(words, fontSize) {
       })
     }
 
-    const gap = fontSize * 0.28
+    const gap =
+      fontSize * 0.28
 
     const lineWidth =
       wordData.reduce(
-        (total, item) => total + item.width,
+        (total, item) =>
+          total + item.width,
         0
       ) +
-      gap * Math.max(0, wordData.length - 1)
+      gap *
+      Math.max(
+        0,
+        wordData.length - 1
+      )
 
     let x =
       (WIDTH - lineWidth) / 2
 
     for (const item of wordData) {
-      const pathObj = font.getPath(
-        item.word,
-        x,
-        startY,
-        fontSize
-      )
 
-      const box = pathObj.getBoundingBox()
+      const tempPath =
+        font.getPath(
+          item.word,
+          x,
+          startY,
+          fontSize
+        )
 
-      const actualWidth =
-        box.x2 - box.x1
-
-      const actualHeight =
-        box.y2 - box.y1
+      const box =
+        tempPath.getBoundingBox()
 
       const centerX =
         (box.x1 + box.x2) / 2
@@ -143,20 +245,35 @@ function buildLayout(words, fontSize) {
       const centerY =
         (box.y1 + box.y2) / 2
 
+      const actualWidth =
+        box.x2 - box.x1
+
+      const actualHeight =
+        box.y2 - box.y1
+
       result.push({
         index: wordIndex,
         word: item.word,
-        path: pathObj.toPathData(2),
         x,
         y: startY,
         width: actualWidth,
         height: actualHeight,
         centerX,
         centerY,
+        path:
+          createSinglePath(
+            item.word,
+            x,
+            startY,
+            fontSize
+          ),
         advance: item.width
       })
 
-      x += item.width + gap
+      x +=
+        item.width +
+        gap
+
       wordIndex++
     }
 
@@ -174,67 +291,92 @@ function createSvg(
   shineProgress
 ) {
   const fontSize =
-    getFontSize(words.join(' '))
+    getFontSize(
+      words.join(' ')
+    )
 
   const layout =
-    buildLayout(words, fontSize)
+    buildLayout(
+      words,
+      fontSize
+    )
 
   const elements = []
 
   const active =
     layout.find(
-      item => item.index === activeIndex
+      item =>
+        item.index ===
+        activeIndex
     )
 
   for (const item of layout) {
-    if (item.index >= visibleCount) {
+
+    if (
+      item.index >=
+      visibleCount
+    ) {
       continue
     }
 
     const isActive =
-      item.index === activeIndex
+      item.index ===
+      activeIndex
 
     if (isActive) {
-      const cx = item.centerX
-      const cy = item.centerY
 
-      const shadowTransform =
+      const cx =
+        item.centerX
+
+      const cy =
+        item.centerY
+
+      const transform =
         `translate(${cx} ${cy}) scale(${scale}) translate(${-cx} ${-cy})`
 
       elements.push(`
-        <path
-          d="${item.path}"
-          fill="#000000"
-          opacity="0.22"
-          filter="url(#shadowBlur)"
-          transform="${shadowTransform}"
-        />
-      `)
+        <g
+          transform="${transform}"
+        >
 
-      elements.push(`
-        <path
-          d="${item.path}"
-          fill="#000000"
-          transform="${shadowTransform}"
-        />
+          <path
+            d="${item.path}"
+            fill="#000000"
+            opacity="0.28"
+            filter="url(#shadowBlur)"
+            transform="translate(3 4)"
+          />
+
+          ${createBoldPath(
+            item.word,
+            item.x,
+            item.y,
+            fontSize
+          )}
+
+        </g>
       `)
 
       const shineX =
         item.x -
         item.width * 1.5 +
-        (
-          item.width * 4
-        ) * shineProgress
+        item.width *
+        4 *
+        shineProgress
 
       elements.push(`
         <g
           clip-path="url(#activeWordClip)"
-          transform="${shadowTransform}"
+          transform="${transform}"
         >
+
           <rect
             x="${shineX}"
             y="${item.y - fontSize}"
-            width="${Math.max(18, fontSize * 0.18)}"
+            width="${Math.max(
+              18,
+              fontSize * 0.20
+            )}"
             height="${fontSize * 2.5}"
             rx="${fontSize * 0.1}"
             fill="#ffffff"
@@ -242,35 +384,50 @@ function createSvg(
             transform="rotate(18 ${shineX} ${item.y})"
             filter="url(#shineBlur)"
           />
+
         </g>
       `)
 
       const sparkleSize =
         Math.max(
-          8,
+          10,
           Math.min(
-            18,
-            fontSize * 0.22
+            20,
+            fontSize * 0.24
           )
         )
 
       const sparkleX =
         item.x +
-        item.width * (
-          0.25 +
-          shineProgress * 0.55
+        item.width *
+        (
+          0.20 +
+          shineProgress *
+          0.60
         )
 
       const sparkleY =
         item.y -
         fontSize * 0.25
 
-      const sparkleOpacity =
-        shineProgress < 0.15
-          ? shineProgress / 0.15
-          : shineProgress > 0.75
-            ? (1 - shineProgress) / 0.25
-            : 1
+      let sparkleOpacity = 1
+
+      if (
+        shineProgress <
+        0.15
+      ) {
+        sparkleOpacity =
+          shineProgress /
+          0.15
+      } else if (
+        shineProgress >
+        0.75
+      ) {
+        sparkleOpacity =
+          (1 -
+            shineProgress) /
+          0.25
+      }
 
       elements.push(`
         <g
@@ -279,6 +436,7 @@ function createSvg(
             sparkleOpacity
           )}"
         >
+
           <path
             d="
               M ${sparkleX} ${sparkleY - sparkleSize}
@@ -298,35 +456,49 @@ function createSvg(
           <circle
             cx="${sparkleX}"
             cy="${sparkleY}"
-            r="${Math.max(2, sparkleSize * 0.15)}"
+            r="${Math.max(
+              2,
+              sparkleSize * 0.16
+            )}"
             fill="#ffffff"
           />
+
         </g>
       `)
 
     } else {
+
       elements.push(`
-        <path
-          d="${item.path}"
-          fill="#000000"
-        />
+        ${createBoldPath(
+          item.word,
+          item.x,
+          item.y,
+          fontSize
+        )}
       `)
     }
   }
 
-  let clipPath = ''
+  let clipPath
 
   if (active) {
+
     clipPath = `
-      <clipPath id="activeWordClip">
+      <clipPath
+        id="activeWordClip"
+      >
         <path
           d="${active.path}"
         />
       </clipPath>
     `
+
   } else {
+
     clipPath = `
-      <clipPath id="activeWordClip">
+      <clipPath
+        id="activeWordClip"
+      >
         <rect
           x="0"
           y="0"
@@ -408,13 +580,14 @@ async function renderFrame(
   scale,
   shineProgress
 ) {
-  const svg = createSvg(
-    words,
-    visibleCount,
-    activeIndex,
-    scale,
-    shineProgress
-  )
+  const svg =
+    createSvg(
+      words,
+      visibleCount,
+      activeIndex,
+      scale,
+      shineProgress
+    )
 
   return sharp(
     Buffer.from(svg)
@@ -427,7 +600,9 @@ async function renderFrame(
 }
 
 async function createGif(text) {
-  const words = splitWords(text)
+
+  const words =
+    splitWords(text)
 
   if (!words.length) {
     throw new Error(
@@ -468,7 +643,8 @@ async function createGif(text) {
 
     for (
       let frameIndex = 0;
-      frameIndex < POP_SCALES.length;
+      frameIndex <
+      POP_SCALES.length;
       frameIndex++
     ) {
 
@@ -477,13 +653,17 @@ async function createGif(text) {
           words,
           visibleCount,
           wordIndex,
-          POP_SCALES[frameIndex],
-          SHINE[frameIndex]
+          POP_SCALES[
+            frameIndex
+          ],
+          SHINE[
+            frameIndex
+          ]
         )
 
       frames.push({
         data: frame.data,
-        delay: 65
+        delay: 60
       })
     }
 
@@ -530,8 +710,14 @@ async function createGif(text) {
   encoder.start()
 
   for (const frame of frames) {
-    encoder.setDelay(frame.delay)
-    encoder.addFrame(frame.data)
+
+    encoder.setDelay(
+      frame.delay
+    )
+
+    encoder.addFrame(
+      frame.data
+    )
   }
 
   encoder.finish()
@@ -540,6 +726,7 @@ async function createGif(text) {
 }
 
 function getText(req) {
+
   if (req.method === 'GET') {
     return req.query?.text || ''
   }
@@ -547,14 +734,19 @@ function getText(req) {
   if (req.method === 'POST') {
 
     if (
-      typeof req.body === 'string'
+      typeof req.body ===
+      'string'
     ) {
+
       try {
+
         const body =
           JSON.parse(req.body)
 
         return body.text || ''
+
       } catch {
+
         return ''
       }
     }
@@ -574,6 +766,7 @@ module.exports =
         req.method !== 'GET' &&
         req.method !== 'POST'
       ) {
+
         return res.status(405).json({
           status: false,
           creator: 'Ndra09',
@@ -588,6 +781,7 @@ module.exports =
         ).trim()
 
       if (!text) {
+
         return res.status(400).json({
           status: false,
           creator: 'Ndra09',
@@ -599,6 +793,7 @@ module.exports =
       }
 
       if (text.length > 300) {
+
         return res.status(400).json({
           status: false,
           creator: 'Ndra09',
@@ -608,6 +803,7 @@ module.exports =
       }
 
       if (!font) {
+
         return res.status(500).json({
           status: false,
           creator: 'Ndra09',
