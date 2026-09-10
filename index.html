@@ -7,62 +7,849 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#020403;--panel:#050907;--panel2:#08100b;--line:#12351f;--line2:#1b5c32;--green:#00ff66;--green2:#00c853;--text:#d8ffe5;--muted:#527261;--red:#ff3b3b;--cyan:#00e5ff}
-html{scroll-behavior:smooth}body{font-family:"JetBrains Mono","Fira Code","SFMono-Regular",Consolas,monospace;background:radial-gradient(circle at 50% -10%,rgba(0,255,102,.09),transparent 35%),linear-gradient(rgba(0,255,102,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,102,.018) 1px,transparent 1px),var(--bg);background-size:auto,28px 28px,28px 28px;color:var(--text);min-height:100vh;overflow-x:hidden}body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(transparent 50%,rgba(0,255,102,.012) 50%);background-size:100% 4px;z-index:999}::selection{background:rgba(0,255,102,.25);color:#fff}.app{width:100%;min-height:100vh}.header{height:66px;border-bottom:1px solid var(--line);background:rgba(2,4,3,.92);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:100}.logo{display:flex;align-items:center;gap:12px;font-weight:900;letter-spacing:1px}.logo-box{width:34px;height:34px;border:1px solid rgba(0,255,102,.45);display:flex;align-items:center;justify-content:center;color:var(--green);box-shadow:0 0 18px rgba(0,255,102,.08)}.logo-text{color:#fff;font-size:13px}.logo-text span{color:var(--green)}.header-right{display:flex;align-items:center;gap:18px;font-size:10px;color:var(--muted)}.online{display:flex;align-items:center;gap:7px;color:#74ff9e}.dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green);animation:pulse 1.5s infinite}@keyframes pulse{50%{opacity:.35}}.main{width:min(1120px,calc(100% - 30px));margin:auto;padding:42px 0 60px}.terminal-head{border:1px solid var(--line);background:rgba(4,10,6,.7);padding:15px 18px;margin-bottom:22px;display:flex;align-items:center;gap:12px;font-size:10px;color:var(--muted)}.term-dots{display:flex;gap:5px}.term-dots i{width:8px;height:8px;border-radius:50%;background:#17321f;display:block}.term-dots i:nth-child(1){background:#ff4d4d}.term-dots i:nth-child(2){background:#ffd23f}.term-dots i:nth-child(3){background:#00d95a}.path{margin-left:auto}.path span{color:var(--green)}.hero{text-align:center;padding:28px 10px 38px}.prompt{font-size:11px;color:var(--green);margin-bottom:16px;letter-spacing:1px}.prompt:before{content:"root@ndra:~$ ";color:var(--muted)}.hero h1{font-size:clamp(30px,6vw,58px);line-height:1;letter-spacing:-3px;color:#f1fff5;text-shadow:0 0 30px rgba(0,255,102,.08)}.hero h1 span{color:var(--green);text-shadow:0 0 18px rgba(0,255,102,.3)}.hero p{max-width:720px;margin:18px auto 0;font-size:11px;line-height:1.9;color:var(--muted)}.hero p b{color:#a5ffc1;font-weight:500}.tools{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{background:linear-gradient(145deg,rgba(6,14,9,.95),rgba(3,8,5,.95));border:1px solid var(--line);position:relative;padding:22px;overflow:hidden}.card:before{content:"";position:absolute;left:0;top:0;width:100%;height:1px;background:linear-gradient(90deg,transparent,var(--green),transparent);opacity:.35}.card-title{display:flex;align-items:center;justify-content:space-between;padding-bottom:15px;border-bottom:1px solid var(--line);margin-bottom:20px}.title-left{display:flex;align-items:center;gap:9px;font-size:11px;font-weight:800;color:#d9ffe5;letter-spacing:.7px}.title-icon{color:var(--green)}.badge{font-size:8px;padding:5px 8px;border:1px solid rgba(0,255,102,.22);color:#70ff99;background:rgba(0,255,102,.035)}.tabs{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:4px;border:1px solid var(--line);background:#020604;margin-bottom:18px}.tab{border:1px solid transparent;background:transparent;color:#456252;padding:10px;font-family:inherit;font-size:9px;cursor:pointer}.tab.active{color:var(--green);border-color:rgba(0,255,102,.18);background:rgba(0,255,102,.06)}.form-group{margin-bottom:17px}label{display:block;font-size:9px;color:#6d947d;letter-spacing:1px;font-weight:800;margin-bottom:8px}input[type=file],input[type=text],input[type=url],textarea{width:100%;background:#020503;border:1px solid #173a23;outline:none;color:#dffff0;font-family:inherit;font-size:10px;padding:12px;border-radius:2px;transition:.2s}input[type=file],input[type=text],input[type=url]{height:43px;padding:0 12px}textarea{min-height:110px;resize:vertical;line-height:1.7}input:focus,textarea:focus{border-color:var(--green2);box-shadow:0 0 0 2px rgba(0,255,102,.04),0 0 20px rgba(0,255,102,.04)}input::placeholder,textarea::placeholder{color:#294435}input[type=file]{padding:5px}input[type=file]::file-selector-button{border:1px solid #19532d;background:#07150c;color:#73ff9b;font-family:inherit;font-size:9px;padding:7px 10px;margin-right:9px;cursor:pointer}.action{width:100%;height:46px;border:1px solid rgba(0,255,102,.4);background:linear-gradient(90deg,rgba(0,255,102,.08),rgba(0,255,102,.02)),#06100a;color:var(--green);font-family:inherit;font-size:10px;font-weight:900;letter-spacing:.7px;cursor:pointer;position:relative;overflow:hidden}.action:hover{background:rgba(0,255,102,.1);box-shadow:0 0 25px rgba(0,255,102,.07)}.action:disabled{opacity:.4;cursor:not-allowed}.action:after{content:"";position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);animation:scan 2.8s infinite}@keyframes scan{to{left:150%}}.loading{display:none;padding:25px 0 5px;text-align:center}.loader{width:26px;height:26px;border:2px solid #17321f;border-top-color:var(--green);border-radius:50%;animation:spin .65s linear infinite;margin:auto auto 10px}@keyframes spin{to{transform:rotate(360deg)}}.loading p{font-size:9px;color:var(--muted)}.result{display:none;grid-column:1/-1}.message{font-size:9px;padding:11px 13px;border:1px solid;margin-bottom:17px;line-height:1.7}.success{color:#70ff99;background:rgba(0,255,102,.035);border-color:rgba(0,255,102,.18)}.error{color:#ff8585;background:rgba(255,59,59,.035);border-color:rgba(255,59,59,.2)}.preview{border:1px solid var(--line);background:linear-gradient(45deg,#030805 25%,transparent 25%),linear-gradient(-45deg,#030805 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#030805 75%),linear-gradient(-45deg,transparent 75%,#030805 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0;padding:15px;text-align:center;margin-bottom:18px;min-height:220px;display:flex;align-items:center;justify-content:center}.preview img{max-width:100%;max-height:650px;display:block;margin:auto}.link-label,.code-title{font-size:9px;color:#60816d;margin-bottom:7px}.link-row{display:flex;gap:7px;margin-bottom:18px}.link-row input{flex:1}.small-btn{height:43px;padding:0 15px;background:#07100a;border:1px solid #173a23;color:#8cb49b;font-family:inherit;font-size:9px;font-weight:800;cursor:pointer}.small-btn:hover{color:var(--green);border-color:#26733e}.open{display:flex;align-items:center;justify-content:center;text-decoration:none}.code-title{font-weight:800;letter-spacing:.8px;margin-top:17px}pre{background:#010302;border:1px solid #102b19;padding:14px;color:#69e891;font-family:inherit;font-size:9px;line-height:1.75;overflow:auto;white-space:pre-wrap;word-break:break-word}.copy{margin-top:6px;background:#06100a;border:1px solid #163720;color:#60816d;padding:7px 10px;font-family:inherit;font-size:8px;cursor:pointer}.copy:hover{color:var(--green)}.full{grid-column:1/-1}.info-card{margin-top:18px}.info-row{display:flex;justify-content:space-between;gap:20px;padding:12px 0;border-bottom:1px solid #0d2114;font-size:9px}.info-row:last-child{border-bottom:0}.info-key{color:#4d6e59}.info-val{color:#b6e8c6;text-align:right;word-break:break-all}.green{color:var(--green)!important}.footer{text-align:center;padding:35px 10px 10px;font-size:8px;line-height:2;color:#294434}.footer span{color:#426d51}.cursor{display:inline-block;width:6px;height:11px;background:var(--green);margin-left:4px;animation:blink .8s infinite;vertical-align:-1px}@keyframes blink{50%{opacity:0}}@media(max-width:800px){.main{width:calc(100% - 22px);padding-top:25px}.header{padding:0 15px}.header-right .version{display:none}.tools{grid-template-columns:1fr}.result,.full{grid-column:auto}.hero{padding:25px 5px 32px}.hero h1{letter-spacing:-2px}.path{display:none}}@media(max-width:500px){.header{height:58px}.logo-box{width:30px;height:30px}.logo-text{font-size:11px}.main{width:calc(100% - 16px)}.card{padding:15px}.link-row{flex-direction:column}.small-btn{width:100%}.terminal-head{padding:12px}.hero p{font-size:10px}}
+html{scroll-behavior:smooth}
+body{font-family:"JetBrains Mono","Fira Code","SFMono-Regular",Consolas,monospace;background:radial-gradient(circle at 50% -10%,rgba(0,255,102,.09),transparent 35%),linear-gradient(rgba(0,255,102,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,102,.018) 1px,transparent 1px),var(--bg);background-size:auto,28px 28px,28px 28px;color:var(--text);min-height:100vh;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(transparent 50%,rgba(0,255,102,.012) 50%);background-size:100% 4px;z-index:999}
+::selection{background:rgba(0,255,102,.25);color:#fff}
+.app{width:100%;min-height:100vh}
+.header{height:66px;border-bottom:1px solid var(--line);background:rgba(2,4,3,.92);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:12px;font-weight:900;letter-spacing:1px}
+.logo-box{width:34px;height:34px;border:1px solid rgba(0,255,102,.45);display:flex;align-items:center;justify-content:center;color:var(--green);box-shadow:0 0 18px rgba(0,255,102,.08)}
+.logo-text{color:#fff;font-size:13px}
+.logo-text span{color:var(--green)}
+.header-right{display:flex;align-items:center;gap:18px;font-size:10px;color:var(--muted)}
+.online{display:flex;align-items:center;gap:7px;color:#74ff9e}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green);animation:pulse 1.5s infinite}
+@keyframes pulse{50%{opacity:.35}}
+.main{width:min(1120px,calc(100% - 30px));margin:auto;padding:42px 0 60px}
+.terminal-head{border:1px solid var(--line);background:rgba(4,10,6,.7);padding:15px 18px;margin-bottom:22px;display:flex;align-items:center;gap:12px;font-size:10px;color:var(--muted)}
+.term-dots{display:flex;gap:5px}
+.term-dots i{width:8px;height:8px;border-radius:50%;background:#17321f;display:block}
+.term-dots i:nth-child(1){background:#ff4d4d}
+.term-dots i:nth-child(2){background:#ffd23f}
+.term-dots i:nth-child(3){background:#00d95a}
+.path{margin-left:auto}
+.path span{color:var(--green)}
+.hero{text-align:center;padding:28px 10px 38px}
+.prompt{font-size:11px;color:var(--green);margin-bottom:16px;letter-spacing:1px}
+.prompt:before{content:"root@ndra:~$ ";color:var(--muted)}
+.hero h1{font-size:clamp(30px,6vw,58px);line-height:1;letter-spacing:-3px;color:#f1fff5;text-shadow:0 0 30px rgba(0,255,102,.08)}
+.hero h1 span{color:var(--green);text-shadow:0 0 18px rgba(0,255,102,.3)}
+.hero p{max-width:720px;margin:18px auto 0;font-size:11px;line-height:1.9;color:var(--muted)}
+.hero p b{color:#a5ffc1;font-weight:500}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.card{background:linear-gradient(145deg,rgba(6,14,9,.95),rgba(3,8,5,.95));border:1px solid var(--line);position:relative;padding:22px;overflow:hidden}
+.card:before{content:"";position:absolute;left:0;top:0;width:100%;height:1px;background:linear-gradient(90deg,transparent,var(--green),transparent);opacity:.35}
+.card-title{display:flex;align-items:center;justify-content:space-between;padding-bottom:15px;border-bottom:1px solid var(--line);margin-bottom:20px}
+.title-left{display:flex;align-items:center;gap:9px;font-size:11px;font-weight:800;color:#d9ffe5;letter-spacing:.7px}
+.title-icon{color:var(--green)}
+.badge{font-size:8px;padding:5px 8px;border:1px solid rgba(0,255,102,.22);color:#70ff99;background:rgba(0,255,102,.035)}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:4px;border:1px solid var(--line);background:#020604;margin-bottom:18px}
+.tab{border:1px solid transparent;background:transparent;color:#456252;padding:10px;font-family:inherit;font-size:9px;cursor:pointer}
+.tab.active{color:var(--green);border-color:rgba(0,255,102,.18);background:rgba(0,255,102,.06)}
+.form-group{margin-bottom:17px}
+label{display:block;font-size:9px;color:#6d947d;letter-spacing:1px;font-weight:800;margin-bottom:8px}
+input[type=file],input[type=text],input[type=url],textarea{width:100%;background:#020503;border:1px solid #173a23;outline:none;color:#dffff0;font-family:inherit;font-size:10px;padding:12px;border-radius:2px;transition:.2s}
+input[type=file],input[type=text],input[type=url]{height:43px;padding:0 12px}
+textarea{min-height:110px;resize:vertical;line-height:1.7}
+input:focus,textarea:focus{border-color:var(--green2);box-shadow:0 0 0 2px rgba(0,255,102,.04),0 0 20px rgba(0,255,102,.04)}
+input::placeholder,textarea::placeholder{color:#294435}
+input[type=file]{padding:5px}
+input[type=file]::file-selector-button{border:1px solid #19532d;background:#07150c;color:#73ff9b;font-family:inherit;font-size:9px;padding:7px 10px;margin-right:9px;cursor:pointer}
+.action{width:100%;height:46px;border:1px solid rgba(0,255,102,.4);background:linear-gradient(90deg,rgba(0,255,102,.08),rgba(0,255,102,.02)),#06100a;color:var(--green);font-family:inherit;font-size:10px;font-weight:900;letter-spacing:.7px;cursor:pointer;position:relative;overflow:hidden}
+.action:hover{background:rgba(0,255,102,.1);box-shadow:0 0 25px rgba(0,255,102,.07)}
+.action:disabled{opacity:.4;cursor:not-allowed}
+.action:after{content:"";position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);animation:scan 2.8s infinite}
+@keyframes scan{to{left:150%}}
+.loading{display:none;padding:25px 0 5px;text-align:center}
+.loader{width:26px;height:26px;border:2px solid #17321f;border-top-color:var(--green);border-radius:50%;animation:spin .65s linear infinite;margin:auto auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading p{font-size:9px;color:var(--muted)}
+.result{display:none;grid-column:1/-1}
+.message{font-size:9px;padding:11px 13px;border:1px solid;margin-bottom:17px;line-height:1.7}
+.success{color:#70ff99;background:rgba(0,255,102,.035);border-color:rgba(0,255,102,.18)}
+.error{color:#ff8585;background:rgba(255,59,59,.035);border-color:rgba(255,59,59,.2)}
+.preview{border:1px solid var(--line);background:linear-gradient(45deg,#030805 25%,transparent 25%),linear-gradient(-45deg,#030805 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#030805 75%),linear-gradient(-45deg,transparent 75%,#030805 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0;padding:15px;text-align:center;margin-bottom:18px;min-height:220px;display:flex;align-items:center;justify-content:center}
+.preview img{max-width:100%;max-height:650px;display:block;margin:auto}
+.link-label,.code-title{font-size:9px;color:#60816d;margin-bottom:7px}
+.link-row{display:flex;gap:7px;margin-bottom:18px}
+.link-row input{flex:1}
+.small-btn{height:43px;padding:0 15px;background:#07100a;border:1px solid #173a23;color:#8cb49b;font-family:inherit;font-size:9px;font-weight:800;cursor:pointer}
+.small-btn:hover{color:var(--green);border-color:#26733e}
+.open{display:flex;align-items:center;justify-content:center;text-decoration:none}
+.code-title{font-weight:800;letter-spacing:.8px;margin-top:17px}
+pre{background:#010302;border:1px solid #102b19;padding:14px;color:#69e891;font-family:inherit;font-size:9px;line-height:1.75;overflow:auto;white-space:pre-wrap;word-break:break-word}
+.copy{margin-top:6px;background:#06100a;border:1px solid #163720;color:#60816d;padding:7px 10px;font-family:inherit;font-size:8px;cursor:pointer}
+.copy:hover{color:var(--green)}
+.full{grid-column:1/-1}
+.info-card{margin-top:18px}
+.info-row{display:flex;justify-content:space-between;gap:20px;padding:12px 0;border-bottom:1px solid #0d2114;font-size:9px}
+.info-row:last-child{border-bottom:0}
+.info-key{color:#4d6e59}
+.info-val{color:#b6e8c6;text-align:right;word-break:break-all}
+.green{color:var(--green)!important}
+.footer{text-align:center;padding:35px 10px 10px;font-size:8px;line-height:2;color:#294434}
+.footer span{color:#426d51}
+.cursor{display:inline-block;width:6px;height:11px;background:var(--green);margin-left:4px;animation:blink .8s infinite;vertical-align:-1px}
+@keyframes blink{50%{opacity:0}}
+@media(max-width:800px){
+.main{width:calc(100% - 22px);padding-top:25px}
+.header{padding:0 15px}
+.header-right .version{display:none}
+.tools{grid-template-columns:1fr}
+.result,.full{grid-column:auto}
+.hero{padding:25px 5px 32px}
+.hero h1{letter-spacing:-2px}
+.path{display:none}
+}
+@media(max-width:500px){
+.header{height:58px}
+.logo-box{width:30px;height:30px}
+.logo-text{font-size:11px}
+.main{width:calc(100% - 16px)}
+.card{padding:15px}
+.link-row{flex-direction:column}
+.small-btn{width:100%}
+.terminal-head{padding:12px}
+.hero p{font-size:10px}
+}
 </style>
 </head>
+
 <body>
 <div class="app">
-<header class="header"><div class="logo"><div class="logo-box">&gt;_</div><div class="logo-text">NDRA <span>//</span> MEDIA API</div></div><div class="header-right"><div class="online"><span class="dot"></span>SYSTEM ONLINE</div><div class="version">API v2.1</div></div></header>
+
+<header class="header">
+  <div class="logo">
+    <div class="logo-box">&gt;_</div>
+    <div class="logo-text">NDRA <span>//</span> MEDIA API</div>
+  </div>
+
+  <div class="header-right">
+    <div class="online">
+      <span class="dot"></span>
+      SYSTEM ONLINE
+    </div>
+    <div class="version">API v2.1</div>
+  </div>
+</header>
+
 <main class="main">
-<div class="terminal-head"><div class="term-dots"><i></i><i></i><i></i></div><div>terminal://ndra-official/api</div><div class="path">endpoint: <span id="terminalEndpoint">/api/bratelegan</span></div></div>
-<section class="hero"><div class="prompt">MEDIA_ENGINE.init()<span class="cursor"></span></div><h1>NDRA <span>MEDIA</span> API</h1><p>REST API untuk <b>Brat Elegan animasi</b> dan <b>stempel LUNAS</b>. Buat media langsung dari browser dengan endpoint yang simpel.</p></section>
-<div class="tools">
-<section class="card"><div class="card-title"><div class="title-left"><span class="title-icon">$</span>BRAT ELEGAN</div><div class="badge">GET /api/bratelegan</div></div><div class="form-group"><label>TEXT</label><textarea id="bratText" maxlength="500" placeholder="tulis kata-kata di sini..."></textarea></div><button class="action" id="bratBtn" onclick="processBrat()">&gt; GENERATE ANIMATED BRAT</button><div class="loading" id="bratLoading"><div class="loader"></div><p>MEMBUAT FRAME SATU PER SATU...</p></div></section>
-<section class="card"><div class="card-title"><div class="title-left"><span class="title-icon">$</span>LUNAS STAMPLE</div><div class="badge">POST /api/lunas</div></div><div class="tabs"><button class="tab active" id="fileTab" onclick="switchMode('file')">[ FILE ]</button><button class="tab" id="urlTab" onclick="switchMode('url')">[ URL ]</button></div><div id="fileMode"><div class="form-group"><label>IMAGE FILE</label><input type="file" id="imageFile" accept="image/*"></div></div><div id="urlMode" style="display:none"><div class="form-group"><label>IMAGE URL</label><input type="url" id="imageUrl" placeholder="https://domain.com/image.jpg"></div></div><div class="form-group"><label>STAMPLE TEXT</label><input type="text" id="stampText" value="LUNAS" maxlength="50" placeholder="LUNAS"></div><button class="action" id="processBtn" onclick="processStample()">&gt; EXECUTE STAMPLE PROCESS</button><div class="loading" id="loading"><div class="loader"></div><p>PROCESSING IMAGE...</p></div></section>
-<section class="card result" id="result"><div id="message"></div><div class="preview"><img id="resultImage" alt="API result"></div><div class="link-label">RESULT URL</div><div class="link-row"><input type="text" id="resultUrl" readonly><button class="small-btn" onclick="copyValue('resultUrl')">COPY</button><a class="small-btn open" id="openBtn" target="_blank">OPEN</a></div><div class="code-title">REQUEST</div><pre id="requestCode"></pre><button class="copy" onclick="copyText('requestCode')">COPY REQUEST</button><div class="code-title">RESPONSE</div><pre id="responseCode"></pre></section>
-<section class="card full"><div class="card-title"><div class="title-left"><span class="title-icon">$</span>BRAT ELEGAN API DOCS</div><div class="badge">READY</div></div><div class="info-row"><div class="info-key">METHOD</div><div class="info-val green">GET /api/bratelegan</div></div><div class="info-row"><div class="info-key">PARAMETER</div><div class="info-val">text=kata-kata</div></div><div class="info-row"><div class="info-key">OUTPUT</div><div class="info-val">image/webp — animated</div></div><div class="info-row"><div class="info-key">ANIMATION</div><div class="info-val">kata muncul satu per satu</div></div><div class="code-title">EXAMPLE URL</div><pre id="exampleUrl"></pre><button class="copy" onclick="copyText('exampleUrl')">COPY URL</button><div class="code-title">GET EXAMPLE</div><pre id="getExample"></pre></section>
+
+<div class="terminal-head">
+  <div class="term-dots">
+    <i></i><i></i><i></i>
+  </div>
+  <div>terminal://ndra-official/api</div>
+  <div class="path">
+    endpoint:
+    <span id="terminalEndpoint">/api/bratelegan</span>
+  </div>
 </div>
-<div class="footer">NDRA OFFICIAL MEDIA API<br><span>Brat Elegan • LUNAS • animated media • 2026</span></div>
-</main></div>
+
+<section class="hero">
+  <div class="prompt">
+    MEDIA_ENGINE.init()<span class="cursor"></span>
+  </div>
+
+  <h1>
+    NDRA <span>MEDIA</span> API
+  </h1>
+
+  <p>
+    REST API untuk <b>Brat Elegan animasi</b> dan
+    <b>stempel LUNAS</b>. Buat media langsung dari browser
+    dengan endpoint yang simpel.
+  </p>
+</section>
+
+<div class="tools">
+
+<section class="card">
+
+  <div class="card-title">
+    <div class="title-left">
+      <span class="title-icon">$</span>
+      BRAT ELEGAN
+    </div>
+
+    <div class="badge">
+      GET /api/bratelegan
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>TEXT</label>
+
+    <textarea
+      id="bratText"
+      maxlength="500"
+      placeholder="tulis kata-kata di sini..."
+    ></textarea>
+  </div>
+
+  <button
+    class="action"
+    id="bratBtn"
+    onclick="processBrat()"
+  >
+    &gt; GENERATE ANIMATED BRAT
+  </button>
+
+  <div
+    class="loading"
+    id="bratLoading"
+  >
+    <div class="loader"></div>
+    <p>MEMBUAT &amp; UPLOAD MEDIA...</p>
+  </div>
+
+</section>
+
+
+<section class="card">
+
+  <div class="card-title">
+    <div class="title-left">
+      <span class="title-icon">$</span>
+      LUNAS STAMPLE
+    </div>
+
+    <div class="badge">
+      POST /api/lunas
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button
+      class="tab active"
+      id="fileTab"
+      onclick="switchMode('file')"
+    >
+      [ FILE ]
+    </button>
+
+    <button
+      class="tab"
+      id="urlTab"
+      onclick="switchMode('url')"
+    >
+      [ URL ]
+    </button>
+  </div>
+
+  <div id="fileMode">
+
+    <div class="form-group">
+      <label>IMAGE FILE</label>
+
+      <input
+        type="file"
+        id="imageFile"
+        accept="image/*"
+      >
+    </div>
+
+  </div>
+
+  <div
+    id="urlMode"
+    style="display:none"
+  >
+
+    <div class="form-group">
+      <label>IMAGE URL</label>
+
+      <input
+        type="url"
+        id="imageUrl"
+        placeholder="https://domain.com/image.jpg"
+      >
+    </div>
+
+  </div>
+
+  <div class="form-group">
+    <label>STAMPLE TEXT</label>
+
+    <input
+      type="text"
+      id="stampText"
+      value="LUNAS"
+      maxlength="50"
+      placeholder="LUNAS"
+    >
+  </div>
+
+  <button
+    class="action"
+    id="processBtn"
+    onclick="processStample()"
+  >
+    &gt; EXECUTE STAMPLE PROCESS
+  </button>
+
+  <div
+    class="loading"
+    id="loading"
+  >
+    <div class="loader"></div>
+    <p>PROCESSING IMAGE...</p>
+  </div>
+
+</section>
+
+
+<section
+  class="card result"
+  id="result"
+>
+
+  <div id="message"></div>
+
+  <div class="preview">
+    <img
+      id="resultImage"
+      alt="API result"
+    >
+  </div>
+
+  <div class="link-label">
+    RESULT URL
+  </div>
+
+  <div class="link-row">
+
+    <input
+      type="text"
+      id="resultUrl"
+      readonly
+    >
+
+    <button
+      class="small-btn"
+      onclick="copyValue('resultUrl')"
+    >
+      COPY
+    </button>
+
+    <a
+      class="small-btn open"
+      id="openBtn"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      OPEN
+    </a>
+
+  </div>
+
+  <div class="code-title">
+    REQUEST
+  </div>
+
+  <pre id="requestCode"></pre>
+
+  <button
+    class="copy"
+    onclick="copyText('requestCode')"
+  >
+    COPY REQUEST
+  </button>
+
+  <div class="code-title">
+    RESPONSE
+  </div>
+
+  <pre id="responseCode"></pre>
+
+</section>
+
+
+<section class="card full">
+
+  <div class="card-title">
+
+    <div class="title-left">
+      <span class="title-icon">$</span>
+      BRAT ELEGAN API DOCS
+    </div>
+
+    <div class="badge">
+      READY
+    </div>
+
+  </div>
+
+  <div class="info-row">
+    <div class="info-key">
+      METHOD
+    </div>
+
+    <div class="info-val green">
+      GET /api/bratelegan
+    </div>
+  </div>
+
+  <div class="info-row">
+    <div class="info-key">
+      PARAMETER
+    </div>
+
+    <div class="info-val">
+      text=kata-kata
+    </div>
+  </div>
+
+  <div class="info-row">
+    <div class="info-key">
+      OUTPUT
+    </div>
+
+    <div class="info-val">
+      JSON → URL Termai
+    </div>
+  </div>
+
+  <div class="info-row">
+    <div class="info-key">
+      CONTENT
+    </div>
+
+    <div class="info-val">
+      image/gif — animated
+    </div>
+  </div>
+
+  <div class="info-row">
+    <div class="info-key">
+      ANIMATION
+    </div>
+
+    <div class="info-val">
+      kata muncul satu per satu
+    </div>
+  </div>
+
+  <div class="code-title">
+    EXAMPLE URL
+  </div>
+
+  <pre id="exampleUrl"></pre>
+
+  <button
+    class="copy"
+    onclick="copyText('exampleUrl')"
+  >
+    COPY URL
+  </button>
+
+  <div class="code-title">
+    GET EXAMPLE
+  </div>
+
+  <pre id="getExample"></pre>
+
+</section>
+
+</div>
+
+<div class="footer">
+  NDRA OFFICIAL MEDIA API
+  <br>
+  <span>
+    Brat Elegan • LUNAS • animated media • 2026
+  </span>
+</div>
+
+</main>
+</div>
+
 <script>
-const base=location.origin
-const $=id=>document.getElementById(id)
-$('exampleUrl').textContent=base+'/api/bratelegan?text='+encodeURIComponent('selain donatur dilarang ngatur')
-$('getExample').textContent='GET '+$('exampleUrl').textContent
-function switchMode(mode){$('fileMode').style.display=mode==='file'?'block':'none';$('urlMode').style.display=mode==='url'?'block':'none';$('fileTab').classList.toggle('active',mode==='file');$('urlTab').classList.toggle('active',mode==='url')}
-function showResult(){ $('result').style.display='block'; $('result').scrollIntoView({behavior:'smooth',block:'start'}) }
-function setMessage(ok,text){$('message').className='message '+(ok?'success':'error');$('message').textContent=text}
-async function processBrat(){
- const text=$('bratText').value.trim(); if(!text)return alert('Isi text dulu.')
- const btn=$('bratBtn'); btn.disabled=true; $('bratLoading').style.display='block'
- try{
-  const url=base+'/api/bratelegan?text='+encodeURIComponent(text)
-  const response=await fetch(url)
-  if(!response.ok){let e={};try{e=await response.json()}catch{};throw new Error(e.error||'HTTP '+response.status)}
-  const blob=await response.blob(); const objectUrl=URL.createObjectURL(blob)
-  $('resultImage').src=objectUrl; $('resultUrl').value=url; $('openBtn').href=objectUrl
-  $('requestCode').textContent='curl -G '+JSON.stringify(base+'/api/bratelegan')+' \\\n  --data-urlencode '+JSON.stringify('text='+text)
-  $('responseCode').textContent=JSON.stringify({status:true,creator:'Ndra09',content_type:'image/webp',animated:true,text:text},null,2)
-  setMessage(true,'Brat Elegan berhasil dibuat. Kata muncul satu per satu.')
-  showResult()
- }catch(e){setMessage(false,e.message||'Gagal membuat Brat Elegan.');showResult()}
- finally{btn.disabled=false;$('bratLoading').style.display='none'}
+
+const base = location.origin
+
+const $ = id =>
+  document.getElementById(id)
+
+
+$('exampleUrl').textContent =
+  base +
+  '/api/bratelegan?text=' +
+  encodeURIComponent(
+    'selain donatur dilarang ngatur'
+  )
+
+
+$('getExample').textContent =
+  'GET ' +
+  $('exampleUrl').textContent
+
+
+function switchMode(mode) {
+
+  $('fileMode').style.display =
+    mode === 'file'
+      ? 'block'
+      : 'none'
+
+  $('urlMode').style.display =
+    mode === 'url'
+      ? 'block'
+      : 'none'
+
+  $('fileTab').classList.toggle(
+    'active',
+    mode === 'file'
+  )
+
+  $('urlTab').classList.toggle(
+    'active',
+    mode === 'url'
+  )
 }
-async function processStample(){
- const file=$('imageFile').files[0]; const url=$('imageUrl').value.trim(); const text=$('stampText').value.trim()||'LUNAS'; if(!file&&!url)return alert('Pilih file atau isi URL gambar.')
- const btn=$('processBtn');btn.disabled=true;$('loading').style.display='block'
- try{
-  const body={text}; if(file){body.base64=await fileToBase64(file)}else body.url=url
-  const response=await fetch(base+'/api/lunas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
-  const data=await response.json();if(!response.ok||!data.status)throw new Error(data.error||'Gagal memproses gambar')
-  $('resultImage').src=data.result.url_gambar;$('resultUrl').value=data.result.url_gambar;$('openBtn').href=data.result.url_gambar
-  $('requestCode').textContent='POST '+base+'/api/lunas\\n\\n'+JSON.stringify(body,null,2);$('responseCode').textContent=JSON.stringify(data,null,2)
-  setMessage(true,'Gambar berhasil diberi stempel.') ;showResult()
- }catch(e){setMessage(false,e.message||'Terjadi kesalahan.');showResult()}finally{btn.disabled=false;$('loading').style.display='none'}
+
+
+function showResult() {
+
+  $('result').style.display =
+    'block'
+
+  $('result').scrollIntoView({
+    behavior: 'smooth',
+    block: 'start'
+  })
 }
-function fileToBase64(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)})}
-function copyValue(id){$(id).select();document.execCommand('copy')}
-function copyText(id){navigator.clipboard?.writeText($(id).textContent).then(()=>{}).catch(()=>{})}
+
+
+function setMessage(
+  ok,
+  text
+) {
+
+  $('message').className =
+    'message ' +
+    (
+      ok
+        ? 'success'
+        : 'error'
+    )
+
+  $('message').textContent =
+    text
+}
+
+
+async function processBrat() {
+
+  const text =
+    $('bratText')
+      .value
+      .trim()
+
+  if (!text) {
+    return alert(
+      'Isi text dulu.'
+    )
+  }
+
+  const btn =
+    $('bratBtn')
+
+  btn.disabled = true
+
+  $('bratLoading').style.display =
+    'block'
+
+  try {
+
+    const apiUrl =
+      base +
+      '/api/bratelegan?text=' +
+      encodeURIComponent(text)
+
+    const response =
+      await fetch(apiUrl)
+
+    let data
+
+    try {
+
+      data =
+        await response.json()
+
+    } catch {
+
+      throw new Error(
+        'API tidak mengembalikan JSON yang valid.'
+      )
+
+    }
+
+    if (
+      !response.ok ||
+      !data.status
+    ) {
+
+      throw new Error(
+        data.error ||
+        'Gagal membuat Brat Elegan.'
+      )
+
+    }
+
+    const imageUrl =
+      data?.result?.url_gambar
+
+    if (!imageUrl) {
+
+      throw new Error(
+        'API tidak mengembalikan URL Termai.'
+      )
+
+    }
+
+    $('resultImage').src =
+      imageUrl
+
+    $('resultUrl').value =
+      imageUrl
+
+    $('openBtn').href =
+      imageUrl
+
+    $('requestCode').textContent =
+      'curl -G ' +
+      JSON.stringify(
+        base +
+        '/api/bratelegan'
+      ) +
+      ' \\\n  --data-urlencode ' +
+      JSON.stringify(
+        'text=' + text
+      )
+
+    $('responseCode').textContent =
+      JSON.stringify(
+        data,
+        null,
+        2
+      )
+
+    setMessage(
+      true,
+      'Brat Elegan berhasil dibuat dan diupload ke Termai.'
+    )
+
+    showResult()
+
+  } catch (e) {
+
+    setMessage(
+      false,
+      e.message ||
+      'Gagal membuat Brat Elegan.'
+    )
+
+    showResult()
+
+  } finally {
+
+    btn.disabled = false
+
+    $('bratLoading').style.display =
+      'none'
+  }
+}
+
+
+async function processStample() {
+
+  const file =
+    $('imageFile')
+      .files[0]
+
+  const url =
+    $('imageUrl')
+      .value
+      .trim()
+
+  const text =
+    $('stampText')
+      .value
+      .trim() ||
+    'LUNAS'
+
+  if (!file && !url) {
+
+    return alert(
+      'Pilih file atau isi URL gambar.'
+    )
+
+  }
+
+  const btn =
+    $('processBtn')
+
+  btn.disabled = true
+
+  $('loading').style.display =
+    'block'
+
+  try {
+
+    const body = {
+      text
+    }
+
+    if (file) {
+
+      body.base64 =
+        await fileToBase64(
+          file
+        )
+
+    } else {
+
+      body.url =
+        url
+
+    }
+
+    const response =
+      await fetch(
+        base +
+        '/api/lunas',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type':
+              'application/json'
+          },
+          body:
+            JSON.stringify(body)
+        }
+      )
+
+    const data =
+      await response.json()
+
+    if (
+      !response.ok ||
+      !data.status
+    ) {
+
+      throw new Error(
+        data.error ||
+        'Gagal memproses gambar'
+      )
+
+    }
+
+    $('resultImage').src =
+      data.result.url_gambar
+
+    $('resultUrl').value =
+      data.result.url_gambar
+
+    $('openBtn').href =
+      data.result.url_gambar
+
+    $('requestCode').textContent =
+      'POST ' +
+      base +
+      '/api/lunas\n\n' +
+      JSON.stringify(
+        body,
+        null,
+        2
+      )
+
+    $('responseCode').textContent =
+      JSON.stringify(
+        data,
+        null,
+        2
+      )
+
+    setMessage(
+      true,
+      'Gambar berhasil diberi stempel.'
+    )
+
+    showResult()
+
+  } catch (e) {
+
+    setMessage(
+      false,
+      e.message ||
+      'Terjadi kesalahan.'
+    )
+
+    showResult()
+
+  } finally {
+
+    btn.disabled = false
+
+    $('loading').style.display =
+      'none'
+  }
+}
+
+
+function fileToBase64(file) {
+
+  return new Promise(
+    (
+      resolve,
+      reject
+    ) => {
+
+      const r =
+        new FileReader()
+
+      r.onload =
+        () =>
+          resolve(
+            r.result
+          )
+
+      r.onerror =
+        reject
+
+      r.readAsDataURL(
+        file
+      )
+
+    }
+  )
+}
+
+
+function copyValue(id) {
+
+  $(id).select()
+
+  document.execCommand(
+    'copy'
+  )
+}
+
+
+function copyText(id) {
+
+  navigator.clipboard
+    ?.writeText(
+      $(id).textContent
+    )
+    .then(() => {})
+    .catch(() => {})
+
+}
+
 </script>
+
 </body>
 </html>
