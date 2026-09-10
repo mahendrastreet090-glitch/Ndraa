@@ -423,7 +423,7 @@ function getBestFontSize(
   preparedWords
 ) {
 
-  let size = 150
+  let size = 180
 
   while (
     size > 40
