@@ -2,6 +2,7 @@ const sharp = require('sharp')
 const GIFEncoder = require('gif-encoder-2')
 const opentype = require('opentype.js')
 const twemoji = require('twemoji')
+const emojiRegex = require('emoji-regex')
 const path = require('path')
 const fs = require('fs')
 const https = require('https')
@@ -15,10 +16,12 @@ const FONT_PATH = path.join(
 const WIDTH = 1024
 const HEIGHT = 1024
 
-const BOLD_OFFSET = 3.8
-const BOLD_STEPS = 10
+const SIDE_PADDING = 70
+const WORD_GAP_RATIO = 0.22
+const LINE_GAP_RATIO = 0.18
 
-const EMOJI_SIZE_MULTIPLIER = 1.05
+const BOLD_OFFSET = 3.2
+const BOLD_STEPS = 10
 
 const CACHE_DIR = '/tmp/twemoji-cache'
 
@@ -49,89 +52,11 @@ try {
   )
 }
 
-function escapeXml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;')
-}
-
-function wrapText(text, maxChars) {
-  const words =
-    text.trim().split(/\s+/)
-
-  const lines = []
-
-  let line = ''
-
-  for (const word of words) {
-
-    if (!line) {
-      line = word
-      continue
-    }
-
-    const test =
-      line + ' ' + word
-
-    if (
-      test.length <=
-      maxChars
-    ) {
-      line = test
-    } else {
-      lines.push(line)
-      line = word
-    }
-  }
-
-  if (line) {
-    lines.push(line)
-  }
-
-  return lines.length
-    ? lines
-    : ['']
-}
-
-function getFontSize(text) {
-
-  if (text.length <= 15) {
-    return 156
-  }
-
-  if (text.length <= 30) {
-    return 136
-  }
-
-  if (text.length <= 50) {
-    return 116
-  }
-
-  if (text.length <= 75) {
-    return 96
-  }
-
-  if (text.length <= 100) {
-    return 80
-  }
-
-  return 68
-}
-
 function splitWords(text) {
   return text
     .trim()
     .split(/\s+/)
     .filter(Boolean)
-}
-
-function getEmojiCodePoints(emoji) {
-  return twemoji.convert.toCodePoint(
-    emoji
-  )
 }
 
 function getEmojiUrl(code) {
@@ -145,52 +70,65 @@ function getEmojiUrl(code) {
 }
 
 function downloadFile(url) {
-
   return new Promise(
     (resolve, reject) => {
 
-      https.get(
-        url,
-        response => {
+      const request =
+        https.get(
+          url,
+          response => {
 
-          if (
-            response.statusCode !== 200
-          ) {
-            response.resume()
+            if (
+              response.statusCode !== 200
+            ) {
+              response.resume()
 
-            return reject(
-              new Error(
-                `Emoji HTTP ${response.statusCode}`
+              return reject(
+                new Error(
+                  `Emoji HTTP ${response.statusCode}`
+                )
               )
+            }
+
+            const chunks = []
+
+            response.on(
+              'data',
+              chunk => {
+                chunks.push(chunk)
+              }
+            )
+
+            response.on(
+              'end',
+              () => {
+                resolve(
+                  Buffer.concat(chunks)
+                )
+              }
+            )
+
+            response.on(
+              'error',
+              reject
             )
           }
+        )
 
-          const chunks = []
-
-          response.on(
-            'data',
-            chunk => {
-              chunks.push(chunk)
-            }
-          )
-
-          response.on(
-            'end',
-            () => {
-              resolve(
-                Buffer.concat(chunks)
-              )
-            }
-          )
-
-          response.on(
-            'error',
-            reject
-          )
-        }
-      ).on(
+      request.on(
         'error',
         reject
+      )
+
+      request.setTimeout(
+        8000,
+        () => {
+          request.destroy(
+            new Error(
+              'Emoji download timeout'
+            )
+          )
+        }
       )
     }
   )
@@ -211,6 +149,7 @@ async function getEmojiSvg(code) {
         cacheFile
       )
     ) {
+
       return fs.readFileSync(
         cacheFile
       )
@@ -222,45 +161,122 @@ async function getEmojiSvg(code) {
     getEmojiUrl(code)
 
   const data =
-    await downloadFile(url)
+    await downloadFile(
+      url
+    )
 
   try {
+
     fs.writeFileSync(
       cacheFile,
       data
     )
+
   } catch {}
 
   return data
 }
 
+function findEmojiParts(text) {
+
+  const regex =
+    emojiRegex()
+
+  const parts = []
+
+  let lastIndex = 0
+  let match
+
+  while (
+    (match = regex.exec(text))
+  ) {
+
+    if (
+      match.index >
+      lastIndex
+    ) {
+
+      parts.push({
+        type: 'text',
+        value:
+          text.slice(
+            lastIndex,
+            match.index
+          )
+      })
+    }
+
+    parts.push({
+      type: 'emoji',
+      value: match[0],
+      code:
+        twemoji.convert.toCodePoint(
+          match[0]
+        )
+    })
+
+    lastIndex =
+      regex.lastIndex
+  }
+
+  if (
+    lastIndex <
+    text.length
+  ) {
+
+    parts.push({
+      type: 'text',
+      value:
+        text.slice(
+          lastIndex
+        )
+    })
+  }
+
+  if (!parts.length) {
+
+    parts.push({
+      type: 'text',
+      value: text
+    })
+  }
+
+  return parts
+}
+
 async function prepareEmojiAssets(text) {
+
+  const regex =
+    emojiRegex()
+
+  const codes =
+    new Set()
+
+  let match
+
+  while (
+    (match = regex.exec(text))
+  ) {
+
+    codes.add(
+      twemoji.convert.toCodePoint(
+        match[0]
+      )
+    )
+  }
 
   const assets = {}
 
-  twemoji.parse(
-    text,
-    {
-      callback: icon => {
-
-        if (!assets[icon]) {
-          assets[icon] = null
-        }
-
-        return ''
-      }
-    }
-  )
-
-  const codes =
-    Object.keys(assets)
-
-  for (const code of codes) {
+  for (
+    const code of codes
+  ) {
 
     try {
 
       const svg =
-        await getEmojiSvg(code)
+        await getEmojiSvg(
+          code
+        )
 
       assets[code] =
         `data:image/svg+xml;base64,${svg.toString('base64')}`
@@ -278,85 +294,22 @@ async function prepareEmojiAssets(text) {
   return assets
 }
 
-function parseWordParts(word) {
+function getFontAdvance(
+  text,
+  fontSize
+) {
 
-  const parts = []
+  if (!text) {
+    return 0
+  }
 
-  let lastIndex = 0
-
-  const markerStart = '⟦'
-  const markerEnd = '⟧'
-
-  const parsed =
-    twemoji.parse(
-      word,
-      {
-        callback: icon => {
-          return (
-            markerStart +
-            icon +
-            markerEnd
-          )
-        }
-      }
-    )
-
-  const regex =
-    /⟦([^⟧]+)⟧/g
-
-  let match
-
-  while (
-    (match = regex.exec(parsed))
-  ) {
-
-    if (
-      match.index >
-      lastIndex
-    ) {
-
-      parts.push({
-        type: 'text',
-        value:
-          parsed.slice(
-            lastIndex,
-            match.index
-          )
-      })
+  return font.getAdvanceWidth(
+    text,
+    fontSize,
+    {
+      kerning: true
     }
-
-    parts.push({
-      type: 'emoji',
-      code: match[1]
-    })
-
-    lastIndex =
-      regex.lastIndex
-  }
-
-  if (
-    lastIndex <
-    parsed.length
-  ) {
-
-    parts.push({
-      type: 'text',
-      value:
-        parsed.slice(
-          lastIndex
-        )
-    })
-  }
-
-  if (!parts.length) {
-
-    parts.push({
-      type: 'text',
-      value: word
-    })
-  }
-
-  return parts
+  )
 }
 
 function getPartWidth(
@@ -368,18 +321,12 @@ function getPartWidth(
     part.type === 'emoji'
   ) {
 
-    return (
-      fontSize *
-      EMOJI_SIZE_MULTIPLIER
-    )
+    return fontSize * 1.02
   }
 
-  return font.getAdvanceWidth(
+  return getFontAdvance(
     part.value,
-    fontSize,
-    {
-      kerning: true
-    }
+    fontSize
   )
 }
 
@@ -389,7 +336,9 @@ function getWordWidth(
 ) {
 
   const parts =
-    parseWordParts(word)
+    findEmojiParts(
+      word
+    )
 
   let width = 0
 
@@ -405,6 +354,121 @@ function getWordWidth(
   }
 
   return width
+}
+
+function calculateLines(
+  words,
+  fontSize
+) {
+
+  const maxWidth =
+    WIDTH -
+    SIDE_PADDING * 2
+
+  const gap =
+    fontSize *
+    WORD_GAP_RATIO
+
+  const lines = []
+
+  let current = []
+  let currentWidth = 0
+
+  for (
+    const word of words
+  ) {
+
+    const wordWidth =
+      getWordWidth(
+        word,
+        fontSize
+      )
+
+    const nextWidth =
+      current.length
+        ? currentWidth +
+          gap +
+          wordWidth
+        : wordWidth
+
+    if (
+      current.length &&
+      nextWidth > maxWidth
+    ) {
+
+      lines.push({
+        words: current,
+        width:
+          currentWidth
+      })
+
+      current = [word]
+      currentWidth =
+        wordWidth
+
+    } else {
+
+      current.push(word)
+      currentWidth =
+        nextWidth
+    }
+  }
+
+  if (current.length) {
+
+    lines.push({
+      words: current,
+      width:
+        currentWidth
+    })
+  }
+
+  return lines
+}
+
+function getBestFontSize(
+  words
+) {
+
+  let size =
+    150
+
+  while (
+    size > 40
+  ) {
+
+    const lines =
+      calculateLines(
+        words,
+        size
+      )
+
+    const lineHeight =
+      size * 1.16
+
+    const totalHeight =
+      lines.length *
+      lineHeight
+
+    const tooTall =
+      totalHeight >
+      HEIGHT - 150
+
+    const tooManyLines =
+      lines.length > 5
+
+    if (
+      !tooTall &&
+      !tooManyLines
+    ) {
+
+      return size
+    }
+
+    size -= 4
+  }
+
+  return 40
 }
 
 function createBoldTextPath(
@@ -470,88 +534,25 @@ function createBoldTextPath(
   return result.join('\n')
 }
 
-function createTextPart(
-  text,
-  x,
-  y,
-  fontSize
-) {
-
-  return createBoldTextPath(
-    text,
-    x,
-    y,
-    fontSize
-  )
-}
-
-function createEmojiPart(
-  code,
-  x,
-  y,
-  fontSize,
-  assets
-) {
-
-  const src =
-    assets[code]
-
-  if (!src) {
-    return ''
-  }
-
-  const size =
-    fontSize *
-    EMOJI_SIZE_MULTIPLIER
-
-  const emojiY =
-    y -
-    fontSize *
-    0.90
-
-  return `
-    <image
-      href="${src}"
-      x="${x}"
-      y="${emojiY}"
-      width="${size}"
-      height="${size}"
-      preserveAspectRatio="xMidYMid meet"
-    />
-  `
-}
-
-async function buildLayout(
+function buildLayout(
   words,
   fontSize
 ) {
 
-  const fullText =
-    words.join(' ')
-
-  const maxChars =
-    fullText.length <= 25
-      ? 16
-      : fullText.length <= 50
-        ? 18
-        : fullText.length <= 80
-          ? 21
-          : 24
-
   const lines =
-    wrapText(
-      fullText,
-      maxChars
+    calculateLines(
+      words,
+      fontSize
     )
 
   const lineHeight =
-    fontSize * 1.12
+    fontSize * 1.16
 
   const totalHeight =
     lines.length *
     lineHeight
 
-  let startY =
+  let y =
     (
       HEIGHT -
       totalHeight
@@ -562,61 +563,33 @@ async function buildLayout(
 
   let globalIndex = 0
 
-  for (const line of lines) {
-
-    const lineWords =
-      line.split(/\s+/)
-
-    const data = []
-
-    for (
-      const word of lineWords
-    ) {
-
-      const width =
-        getWordWidth(
-          word,
-          fontSize
-        )
-
-      data.push({
-        word,
-        width
-      })
-    }
+  for (
+    const line of lines
+  ) {
 
     const gap =
-      fontSize * 0.25
-
-    const lineWidth =
-      data.reduce(
-        (
-          total,
-          item
-        ) =>
-          total +
-          item.width,
-        0
-      ) +
-      gap *
-      Math.max(
-        0,
-        data.length - 1
-      )
+      fontSize *
+      WORD_GAP_RATIO
 
     let x =
       (
         WIDTH -
-        lineWidth
+        line.width
       ) / 2
 
     for (
-      const item of data
+      const word of line.words
     ) {
 
       const parts =
-        parseWordParts(
-          item.word
+        findEmojiParts(
+          word
+        )
+
+      const wordWidth =
+        getWordWidth(
+          word,
+          fontSize
         )
 
       const wordParts = []
@@ -647,7 +620,7 @@ async function buildLayout(
             font.getPath(
               part.value,
               partX,
-              startY,
+              y,
               fontSize
             )
 
@@ -696,17 +669,15 @@ async function buildLayout(
           minY =
             Math.min(
               minY,
-              startY -
-              fontSize *
-              0.90
+              y -
+              fontSize * 0.90
             )
 
           maxY =
             Math.max(
               maxY,
-              startY +
-              fontSize *
-              0.10
+              y +
+              fontSize * 0.10
             )
         }
 
@@ -720,47 +691,105 @@ async function buildLayout(
           partWidth
       }
 
-      const centerX =
-        (
-          minX +
-          maxX
-        ) / 2
+      if (
+        minX === Infinity
+      ) {
 
-      const centerY =
-        (
-          minY +
-          maxY
-        ) / 2
+        minX = x
+        maxX =
+          x + wordWidth
+
+        minY =
+          y - fontSize
+
+        maxY = y
+      }
 
       result.push({
         index: globalIndex,
-        word: item.word,
+        word,
         x,
-        y: startY,
+        y,
         width:
           maxX - minX,
         height:
           maxY - minY,
-        centerX,
-        centerY,
+        centerX:
+          (
+            minX +
+            maxX
+          ) / 2,
+        centerY:
+          (
+            minY +
+            maxY
+          ) / 2,
         parts: wordParts
       })
 
       x +=
-        item.width +
+        wordWidth +
         gap
 
       globalIndex++
     }
 
-    startY +=
-      lineHeight
+    y += lineHeight
   }
 
   return result
 }
 
-async function createSvg(
+function renderWord(
+  item,
+  fontSize,
+  assets
+) {
+
+  return item.parts
+    .map(part => {
+
+      if (
+        part.type === 'text'
+      ) {
+
+        return createBoldTextPath(
+          part.value,
+          part.x,
+          item.y,
+          fontSize
+        )
+      }
+
+      const src =
+        assets[part.code]
+
+      if (!src) {
+        return ''
+      }
+
+      const size =
+        fontSize * 1.02
+
+      const emojiY =
+        item.y -
+        fontSize * 0.90
+
+      return `
+        <image
+          href="${src}"
+          x="${part.x}"
+          y="${emojiY}"
+          width="${size}"
+          height="${size}"
+          preserveAspectRatio="xMidYMid meet"
+        />
+      `
+    })
+    .join('\n')
+}
+
+function createSvg(
   words,
   visibleCount,
   activeIndex,
@@ -769,14 +798,13 @@ async function createSvg(
   assets
 ) {
 
-  const text =
-    words.join(' ')
-
   const fontSize =
-    getFontSize(text)
+    getBestFontSize(
+      words
+    )
 
   const layout =
-    await buildLayout(
+    buildLayout(
       words,
       fontSize
     )
@@ -801,11 +829,10 @@ async function createSvg(
       continue
     }
 
-    const isActive =
+    if (
       item.index ===
       activeIndex
-
-    if (isActive) {
+    ) {
 
       const cx =
         item.centerX
@@ -822,53 +849,35 @@ async function createSvg(
         >
 
           <rect
-            x="${item.x - 10}"
+            x="${item.x - 18}"
             y="${item.y - fontSize}"
-            width="${item.width + 20}"
-            height="${fontSize * 1.35}"
-            rx="${fontSize * 0.15}"
+            width="${item.width + 36}"
+            height="${fontSize * 1.25}"
+            rx="${fontSize * 0.12}"
             fill="#000000"
-            opacity="0.18"
+            opacity="0.20"
             filter="url(#shadowBlur)"
-            transform="translate(5 7)"
+            transform="translate(8 10)"
           />
 
-          ${item.parts.map(
-            part => {
-
-              if (
-                part.type ===
-                'text'
-              ) {
-
-                return createTextPart(
-                  part.value,
-                  part.x,
-                  item.y,
-                  fontSize
-                )
-              }
-
-              return createEmojiPart(
-                part.code,
-                part.x,
-                item.y,
-                fontSize,
-                assets
-              )
-            }
-          ).join('\n')}
+          ${renderWord(
+            item,
+            fontSize,
+            assets
+          )}
 
         </g>
       `)
 
-      if (shineProgress < 1) {
+      if (
+        shineProgress < 1
+      ) {
 
         const shineX =
           item.x -
-          item.width * 1.5 +
+          item.width * 1.4 +
           item.width *
-          4 *
+          3.2 *
           shineProgress
 
         elements.push(`
@@ -880,8 +889,8 @@ async function createSvg(
             <rect
               x="${shineX}"
               y="${item.y - fontSize}"
-              width="${fontSize * 0.25}"
-              height="${fontSize * 2.4}"
+              width="${fontSize * 0.22}"
+              height="${fontSize * 2.5}"
               rx="${fontSize * 0.12}"
               fill="#ffffff"
               opacity="0.95"
@@ -895,10 +904,10 @@ async function createSvg(
 
       const sparkleSize =
         Math.max(
-          16,
+          14,
           Math.min(
-            34,
-            fontSize * 0.22
+            32,
+            fontSize * 0.20
           )
         )
 
@@ -913,7 +922,7 @@ async function createSvg(
 
       const sparkleY =
         item.y -
-        fontSize * 0.22
+        fontSize * 0.20
 
       let sparkleOpacity = 1
 
@@ -950,13 +959,13 @@ async function createSvg(
           <path
             d="
               M ${sparkleX} ${sparkleY - sparkleSize}
-              L ${sparkleX + sparkleSize * 0.25} ${sparkleY - sparkleSize * 0.25}
+              L ${sparkleX + sparkleSize * 0.24} ${sparkleY - sparkleSize * 0.24}
               L ${sparkleX + sparkleSize} ${sparkleY}
-              L ${sparkleX + sparkleSize * 0.25} ${sparkleY + sparkleSize * 0.25}
+              L ${sparkleX + sparkleSize * 0.24} ${sparkleY + sparkleSize * 0.24}
               L ${sparkleX} ${sparkleY + sparkleSize}
-              L ${sparkleX - sparkleSize * 0.25} ${sparkleY + sparkleSize * 0.25}
+              L ${sparkleX - sparkleSize * 0.24} ${sparkleY + sparkleSize * 0.24}
               L ${sparkleX - sparkleSize} ${sparkleY}
-              L ${sparkleX - sparkleSize * 0.25} ${sparkleY - sparkleSize * 0.25}
+              L ${sparkleX - sparkleSize * 0.24} ${sparkleY - sparkleSize * 0.24}
               Z
             "
             fill="#ffffff"
@@ -980,31 +989,11 @@ async function createSvg(
 
       elements.push(`
         <g>
-          ${item.parts.map(
-            part => {
-
-              if (
-                part.type ===
-                'text'
-              ) {
-
-                return createTextPart(
-                  part.value,
-                  part.x,
-                  item.y,
-                  fontSize
-                )
-              }
-
-              return createEmojiPart(
-                part.code,
-                part.x,
-                item.y,
-                fontSize,
-                assets
-              )
-            }
-          ).join('\n')}
+          ${renderWord(
+            item,
+            fontSize,
+            assets
+          )}
         </g>
       `)
     }
@@ -1019,9 +1008,9 @@ async function createSvg(
         id="activeClip"
       >
         <rect
-          x="${active.x - 20}"
+          x="${active.x - 30}"
           y="${active.y - fontSize}"
-          width="${active.width + 40}"
+          width="${active.width + 60}"
           height="${fontSize * 1.5}"
         />
       </clipPath>
@@ -1117,7 +1106,7 @@ async function renderFrame(
 ) {
 
   const svg =
-    await createSvg(
+    createSvg(
       words,
       visibleCount,
       activeIndex,
@@ -1252,7 +1241,6 @@ async function createGif(text) {
     )
 
   encoder.setRepeat(0)
-
   encoder.setQuality(8)
 
   encoder.start()
@@ -1432,4 +1420,4 @@ module.exports =
             'Gagal membuat Brat Elegan'
         })
     }
-  }
+          }
