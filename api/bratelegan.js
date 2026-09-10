@@ -736,7 +736,7 @@ function renderWord(
     .join('')
 }
 
-function renderGrayWord(
+function renderWordGray(
   item,
   fontSize,
   assets
@@ -752,7 +752,7 @@ function renderGrayWord(
             part.x,
             item.y,
             fontSize,
-            '#d0d0d0'
+            '#bdbdbd'
           )
         }
 
@@ -779,7 +779,7 @@ function renderGrayWord(
             y="${emojiY}"
             width="${size}"
             height="${size}"
-            opacity="0.20"
+            opacity="0.28"
             preserveAspectRatio="xMidYMid meet"
           />
         `
@@ -788,212 +788,181 @@ function renderGrayWord(
     .join('')
 }
 
-function renderAllGray(
-  layout,
-  fontSize,
-  assets
-) {
-  return layout
-    .map(
-      item => `
-        <g>
-          ${renderGrayWord(
-            item,
-            fontSize,
-            assets
-          )}
-        </g>
-      `
-    )
-    .join('')
-}
-
-function renderCompleted(
+function renderLayout(
   layout,
   fontSize,
   assets,
-  completedCount
+  visibleCount,
+  grayFirst
 ) {
   return layout
-    .filter(
-      item =>
-        item.index <
-        completedCount
-    )
     .map(
-      item => `
-        <g>
-          ${renderWord(
-            item,
-            fontSize,
-            assets
-          )}
-        </g>
-      `
+      item => {
+        if (
+          item.index >=
+          visibleCount
+        ) {
+          return ''
+        }
+
+        if (
+          grayFirst &&
+          item.index === 0
+        ) {
+          return `
+            <g>
+              ${renderWordGray(
+                item,
+                fontSize,
+                assets
+              )}
+            </g>
+          `
+        }
+
+        return `
+          <g>
+            ${renderWord(
+              item,
+              fontSize,
+              assets
+            )}
+          </g>
+        `
+      }
     )
     .join('')
-}
-
-function renderActive(
-  item,
-  fontSize,
-  assets
-) {
-  return `
-    <g>
-      ${renderWord(
-        item,
-        fontSize,
-        assets
-      )}
-    </g>
-  `
 }
 
 function createSvg(
   layout,
   fontSize,
-  completedCount,
+  visibleCount,
   activeIndex,
-  progress,
+  activeScale,
+  wobbleRotate,
+  wobbleY,
+  grayFirst,
   shineProgress,
-  assets,
-  finalPhase
+  showShine
 ) {
-  const gray =
-    renderAllGray(
-      layout,
-      fontSize,
-      assets
-    )
+  const assets =
+    createSvg.assets
 
-  const completed =
-    renderCompleted(
+  const normal =
+    renderLayout(
       layout,
       fontSize,
       assets,
-      completedCount
+      visibleCount,
+      grayFirst
     )
 
-  let activeHtml = ''
-
-  if (
-    activeIndex >= 0 &&
-    activeIndex < layout.length &&
-    progress > 0
-  ) {
-    const active =
-      layout[
-        activeIndex
-      ]
-
-    activeHtml =
-      renderActive(
-        active,
-        fontSize,
-        assets
-      )
-  }
-
-  let activeClip = ''
+  let active = ''
 
   if (
     activeIndex >= 0 &&
     activeIndex < layout.length
   ) {
-    const active =
+    const item =
       layout[
         activeIndex
       ]
 
-    const left =
-      active.x - 20
+    const cx =
+      item.centerX
 
-    const right =
-      active.x +
-      active.width +
-      20
+    const cy =
+      item.centerY
 
-    const revealX =
-      left +
-      (
-        right -
-        left
-      ) *
-      progress
+    active = `
+      <g
+        transform="
+          translate(${cx} ${cy})
+          translate(0 ${wobbleY})
+          rotate(${wobbleRotate})
+          scale(${activeScale})
+          translate(${-cx} ${-cy})
+        "
+      >
+        ${renderWord(
+          item,
+          fontSize,
+          assets
+        )}
+      </g>
+    `
+  }
 
-    activeClip = `
-      <clipPath id="wordReveal">
-        <rect
-          x="${left}"
-          y="${active.y - fontSize * 1.2}"
-          width="${Math.max(
-            0,
-            revealX - left
-          )}"
-          height="${fontSize * 1.8}"
-        />
-      </clipPath>
+  let wobbleGroup = ''
+
+  if (
+    activeIndex < 0
+  ) {
+    wobbleGroup = `
+      <g
+        transform="
+          translate(
+            0 ${wobbleY}
+          )
+          rotate(
+            ${wobbleRotate}
+            ${WIDTH / 2}
+            ${HEIGHT / 2}
+          )
+        "
+      >
+        ${normal}
+      </g>
     `
   } else {
-    activeClip = `
-      <clipPath id="wordReveal">
-        <rect
-          x="0"
-          y="0"
-          width="0"
-          height="0"
-        />
-      </clipPath>
-    `
+    wobbleGroup = normal
   }
 
   let shine = ''
 
   if (
-    finalPhase &&
-    shineProgress < 1
+    showShine
   ) {
-    const shineWidth =
-      fontSize * 0.18
-
-    const startX =
-      -fontSize * 2
-
-    const endX =
-      WIDTH +
-      fontSize * 2
-
     const shineX =
-      startX +
+      -fontSize * 2 +
       (
-        endX -
-        startX
+        WIDTH +
+        fontSize * 4
       ) *
       shineProgress
 
+    const shineWidth =
+      fontSize * 0.28
+
     shine = `
       <g
+        transform="
+          rotate(
+            16
+            ${shineX}
+            ${HEIGHT / 2}
+          )
+        "
         opacity="0.95"
-        transform="rotate(14 ${shineX} ${HEIGHT / 2})"
       >
         <rect
           x="${shineX - shineWidth}"
-          y="-200"
+          y="-300"
           width="${shineWidth}"
-          height="${HEIGHT + 400}"
+          height="${HEIGHT + 600}"
           fill="#ffffff"
-          opacity="0.95"
+          opacity="0.90"
           filter="url(#shineBlur)"
         />
 
         <rect
-          x="${shineX - shineWidth * 0.25}"
-          y="-200"
-          width="${shineWidth * 0.5}"
-          height="${HEIGHT + 400}"
+          x="${shineX - shineWidth * 0.22}"
+          y="-300"
+          width="${shineWidth * 0.44}"
+          height="${HEIGHT + 600}"
           fill="#ffffff"
-          opacity="0.75"
+          opacity="0.92"
         />
       </g>
     `
@@ -1011,59 +980,42 @@ function createSvg(
 
         <filter
           id="shineBlur"
-          x="-200%"
-          y="-20%"
-          width="400%"
-          height="140%"
+          x="-300%"
+          y="-30%"
+          width="600%"
+          height="160%"
         >
           <feGaussianBlur
-            stdDeviation="8"
+            stdDeviation="9"
           />
         </filter>
-
-        ${activeClip}
 
       </defs>
 
       <rect
-        x="0"
-        y="0"
         width="${WIDTH}"
         height="${HEIGHT}"
         fill="#ffffff"
       />
 
-      ${gray}
+      ${wobbleGroup}
 
-      ${completed}
-
-      <g clip-path="url(#wordReveal)">
-        ${activeHtml}
-      </g>
+      ${active}
 
       ${
-        finalPhase
+        showShine
           ? `
             <g>
-              ${layout
-                .map(
-                  item => `
-                    ${renderWord(
-                      item,
-                      fontSize,
-                      assets
-                    )}
-                  `
-                )
-                .join('')}
+              ${renderLayout(
+                layout,
+                fontSize,
+                assets,
+                layout.length,
+                grayFirst
+              )}
             </g>
 
-            <g
-              opacity="0.95"
-              style="mix-blend-mode:screen"
-            >
-              ${shine}
-            </g>
+            ${shine}
           `
           : ''
       }
@@ -1075,23 +1027,31 @@ function createSvg(
 async function renderFrame(
   layout,
   fontSize,
-  completedCount,
+  visibleCount,
   activeIndex,
-  progress,
+  activeScale,
+  wobbleRotate,
+  wobbleY,
+  grayFirst,
   shineProgress,
-  assets,
-  finalPhase
+  showShine,
+  assets
 ) {
+  createSvg.assets =
+    assets
+
   const svg =
     createSvg(
       layout,
       fontSize,
-      completedCount,
+      visibleCount,
       activeIndex,
-      progress,
+      activeScale,
+      wobbleRotate,
+      wobbleY,
+      grayFirst,
       shineProgress,
-      assets,
-      finalPhase
+      showShine
     )
 
   return sharp(
@@ -1156,15 +1116,13 @@ async function createGif(
 
   const frames = []
 
-  const revealProgress = [
-    0.00,
-    0.12,
-    0.25,
-    0.40,
-    0.55,
-    0.70,
-    0.84,
+  const entranceScales = [
+    0.35,
+    0.58,
+    0.78,
     0.94,
+    1.06,
+    1.02,
     1.00
   ]
 
@@ -1177,22 +1135,22 @@ async function createGif(
     for (
       let i = 0;
       i <
-      revealProgress.length;
+      entranceScales.length;
       i++
     ) {
-      const progress =
-        revealProgress[i]
-
       const frame =
         await renderFrame(
           layout,
           fontSize,
+          wordIndex + 1,
           wordIndex,
-          wordIndex,
-          progress,
+          entranceScales[i],
+          0,
+          0,
+          false,
           1,
-          assets,
-          false
+          false,
+          assets
         )
 
       frames.push({
@@ -1201,7 +1159,9 @@ async function createGif(
         delay:
           i === 0
             ? 45
-            : 32
+            : i === 1
+              ? 38
+              : 32
       })
     }
 
@@ -1212,9 +1172,12 @@ async function createGif(
         wordIndex + 1,
         -1,
         1,
+        0,
+        0,
+        false,
         1,
-        assets,
-        false
+        false,
+        assets
       )
 
     frames.push({
@@ -1225,16 +1188,125 @@ async function createGif(
     })
   }
 
+  const wobbleFrames = [
+    {
+      rotate: 0,
+      y: 0,
+      delay: 45
+    },
+    {
+      rotate: -1.8,
+      y: -7,
+      delay: 42
+    },
+    {
+      rotate: 1.8,
+      y: 3,
+      delay: 42
+    },
+    {
+      rotate: -1.3,
+      y: -4,
+      delay: 42
+    },
+    {
+      rotate: 1.1,
+      y: 2,
+      delay: 42
+    },
+    {
+      rotate: -0.6,
+      y: -1,
+      delay: 42
+    },
+    {
+      rotate: 0,
+      y: 0,
+      delay: 80
+    }
+  ]
+
+  for (
+    const wobble of wobbleFrames
+  ) {
+    const frame =
+      await renderFrame(
+        layout,
+        fontSize,
+        layout.length,
+        -1,
+        1,
+        wobble.rotate,
+        wobble.y,
+        false,
+        1,
+        false,
+        assets
+      )
+
+    frames.push({
+      data:
+        frame.data,
+      delay:
+        wobble.delay
+    })
+  }
+
+  const grayBlink =
+    await renderFrame(
+      layout,
+      fontSize,
+      layout.length,
+      -1,
+      1,
+      0,
+      0,
+      true,
+      1,
+      false,
+      assets
+    )
+
+  frames.push({
+    data:
+      grayBlink.data,
+    delay:
+      75
+  })
+
+  const blackReturn =
+    await renderFrame(
+      layout,
+      fontSize,
+      layout.length,
+      -1,
+      1,
+      0,
+      0,
+      false,
+      1,
+      false,
+      assets
+    )
+
+  frames.push({
+    data:
+      blackReturn.data,
+    delay:
+      55
+  })
+
   const shineProgress = [
     0.00,
     0.08,
     0.18,
-    0.30,
-    0.42,
-    0.54,
-    0.66,
+    0.28,
+    0.38,
+    0.48,
+    0.58,
+    0.68,
     0.78,
-    0.90,
+    0.88,
     1.00
   ]
 
@@ -1251,9 +1323,12 @@ async function createGif(
         layout.length,
         -1,
         1,
+        0,
+        0,
+        false,
         shineProgress[i],
-        assets,
-        true
+        true,
+        assets
       )
 
     frames.push({
@@ -1262,8 +1337,8 @@ async function createGif(
       delay:
         i ===
         shineProgress.length - 1
-          ? 850
-          : 38
+          ? 700
+          : 35
     })
   }
 
@@ -1442,7 +1517,7 @@ module.exports =
             error:
               'Parameter text wajib diisi',
             example:
-              '/api/bratelegan?text=halo 😂🔥'
+              '/api/bratelegan?text=selain donatur dilarang ngatur 😂'
           })
       }
 
