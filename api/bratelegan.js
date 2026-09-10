@@ -71,6 +71,7 @@ function downloadFile(url) {
       response => {
         if (response.statusCode !== 200) {
           response.resume()
+
           return reject(
             new Error(
               `Emoji HTTP ${response.statusCode}`
@@ -80,19 +81,33 @@ function downloadFile(url) {
 
         const chunks = []
 
-        response.on('data', chunk => {
-          chunks.push(chunk)
-        })
+        response.on(
+          'data',
+          chunk => {
+            chunks.push(chunk)
+          }
+        )
 
-        response.on('end', () => {
-          resolve(Buffer.concat(chunks))
-        })
+        response.on(
+          'end',
+          () => {
+            resolve(
+              Buffer.concat(chunks)
+            )
+          }
+        )
 
-        response.on('error', reject)
+        response.on(
+          'error',
+          reject
+        )
       }
     )
 
-    request.on('error', reject)
+    request.on(
+      'error',
+      reject
+    )
 
     request.setTimeout(
       10000,
@@ -108,30 +123,39 @@ function downloadFile(url) {
 }
 
 async function getEmojiPng(code) {
-  const cacheFile = path.join(
-    CACHE_DIR,
-    `${code}.png`
-  )
+  const cacheFile =
+    path.join(
+      CACHE_DIR,
+      `${code}.png`
+    )
 
   try {
-    if (fs.existsSync(cacheFile)) {
-      return fs.readFileSync(cacheFile)
+    if (
+      fs.existsSync(
+        cacheFile
+      )
+    ) {
+      return fs.readFileSync(
+        cacheFile
+      )
     }
   } catch {}
 
-  const svg = await downloadFile(
-    getEmojiUrl(code)
-  )
+  const svg =
+    await downloadFile(
+      getEmojiUrl(code)
+    )
 
-  const png = await sharp(
-    svg,
-    {
-      density: 300
-    }
-  )
-    .ensureAlpha()
-    .png()
-    .toBuffer()
+  const png =
+    await sharp(
+      svg,
+      {
+        density: 300
+      }
+    )
+      .ensureAlpha()
+      .png()
+      .toBuffer()
 
   try {
     fs.writeFileSync(
@@ -144,42 +168,61 @@ async function getEmojiPng(code) {
 }
 
 function findEmojiParts(text) {
-  const regex = emojiRegex()
+  const regex =
+    emojiRegex()
+
   const parts = []
 
   let lastIndex = 0
   let match
 
-  while ((match = regex.exec(text))) {
-    if (match.index > lastIndex) {
+  while (
+    (match = regex.exec(text))
+  ) {
+    if (
+      match.index >
+      lastIndex
+    ) {
       parts.push({
         type: 'text',
-        value: text.slice(
-          lastIndex,
-          match.index
-        )
+        value:
+          text.slice(
+            lastIndex,
+            match.index
+          )
       })
     }
 
     parts.push({
       type: 'emoji',
-      value: match[0],
-      code: twemoji.convert.toCodePoint(
-        match[0]
-      )
+      value:
+        match[0],
+      code:
+        twemoji.convert.toCodePoint(
+          match[0]
+        )
     })
 
-    lastIndex = regex.lastIndex
+    lastIndex =
+      regex.lastIndex
   }
 
-  if (lastIndex < text.length) {
+  if (
+    lastIndex <
+    text.length
+  ) {
     parts.push({
       type: 'text',
-      value: text.slice(lastIndex)
+      value:
+        text.slice(
+          lastIndex
+        )
     })
   }
 
-  if (!parts.length) {
+  if (
+    !parts.length
+  ) {
     parts.push({
       type: 'text',
       value: text
@@ -190,12 +233,17 @@ function findEmojiParts(text) {
 }
 
 async function prepareEmojiAssets(text) {
-  const regex = emojiRegex()
-  const codes = new Set()
+  const regex =
+    emojiRegex()
+
+  const codes =
+    new Set()
 
   let match
 
-  while ((match = regex.exec(text))) {
+  while (
+    (match = regex.exec(text))
+  ) {
     codes.add(
       twemoji.convert.toCodePoint(
         match[0]
@@ -203,34 +251,37 @@ async function prepareEmojiAssets(text) {
     )
   }
 
-  const entries = await Promise.all(
-    [...codes].map(
-      async code => {
-        try {
-          const png =
-            await getEmojiPng(code)
+  const entries =
+    await Promise.all(
+      [...codes].map(
+        async code => {
+          try {
+            const png =
+              await getEmojiPng(
+                code
+              )
 
-          return [
-            code,
-            `data:image/png;base64,${png.toString(
-              'base64'
-            )}`
-          ]
-        } catch (err) {
-          console.error(
-            'EMOJI LOAD ERROR:',
-            code,
-            err.message
-          )
+            return [
+              code,
+              `data:image/png;base64,${png.toString(
+                'base64'
+              )}`
+            ]
+          } catch (err) {
+            console.error(
+              'EMOJI LOAD ERROR:',
+              code,
+              err.message
+            )
 
-          return [
-            code,
-            ''
-          ]
+            return [
+              code,
+              ''
+            ]
+          }
         }
-      }
+      )
     )
-  )
 
   return Object.fromEntries(
     entries
@@ -261,7 +312,7 @@ function getPartWidth(
   if (
     part.type === 'emoji'
   ) {
-    return fontSize * 1.00
+    return fontSize
   }
 
   return getFontAdvance(
@@ -271,12 +322,15 @@ function getPartWidth(
 }
 
 function prepareWords(words) {
-  return words.map(word => {
-    return {
+  return words.map(
+    word => ({
       word,
-      parts: findEmojiParts(word)
-    }
-  })
+      parts:
+        findEmojiParts(
+          word
+        )
+    })
+  )
 }
 
 function calculateLines(
@@ -326,22 +380,36 @@ function calculateLines(
       nextWidth > maxWidth
     ) {
       lines.push({
-        words: current,
-        width: currentWidth
+        words:
+          current,
+        width:
+          currentWidth
       })
 
-      current = [item]
-      currentWidth = wordWidth
+      current = [
+        item
+      ]
+
+      currentWidth =
+        wordWidth
     } else {
-      current.push(item)
-      currentWidth = nextWidth
+      current.push(
+        item
+      )
+
+      currentWidth =
+        nextWidth
     }
   }
 
-  if (current.length) {
+  if (
+    current.length
+  ) {
     lines.push({
-      words: current,
-      width: currentWidth
+      words:
+        current,
+      width:
+        currentWidth
     })
   }
 
@@ -353,7 +421,9 @@ function getBestFontSize(
 ) {
   let size = 190
 
-  while (size > 40) {
+  while (
+    size > 40
+  ) {
     const lines =
       calculateLines(
         preparedWords,
@@ -386,9 +456,7 @@ function createBoldTextPath(
   x,
   y,
   fontSize,
-  fill = '#000000',
-  stroke = 'none',
-  strokeWidth = 0
+  fill = '#000000'
 ) {
   const result = []
 
@@ -403,7 +471,7 @@ function createBoldTextPath(
   result.push(
     `<path d="${base.toPathData(
       2
-    )}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linejoin="round"/>`
+    )}" fill="${fill}"/>`
   )
 
   for (
@@ -436,7 +504,7 @@ function createBoldTextPath(
     result.push(
       `<path d="${bold.toPathData(
         2
-      )}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linejoin="round"/>`
+      )}" fill="${fill}"/>`
     )
   }
 
@@ -485,12 +553,6 @@ function buildLayout(
     for (
       const item of line.words
     ) {
-      const parts =
-        item.parts
-
-      const wordWidth =
-        item.width
-
       const wordParts = []
 
       let partX = x
@@ -501,7 +563,7 @@ function buildLayout(
       let maxY = -Infinity
 
       for (
-        const part of parts
+        const part of item.parts
       ) {
         const partWidth =
           getPartWidth(
@@ -578,30 +640,25 @@ function buildLayout(
         wordParts.push({
           ...part,
           x: partX,
-          width: partWidth
+          width:
+            partWidth
         })
 
-        partX += partWidth
-      }
-
-      if (
-        minX === Infinity
-      ) {
-        minX = x
-        maxX =
-          x + wordWidth
-        minY =
-          y - fontSize
-        maxY = y
+        partX +=
+          partWidth
       }
 
       result.push({
-        index: result.length,
-        word: item.word,
+        index:
+          result.length,
+        word:
+          item.word,
         x,
         y,
-        width: maxX - minX,
-        height: maxY - minY,
+        width:
+          maxX - minX,
+        height:
+          maxY - minY,
         centerX:
           (
             minX +
@@ -612,11 +669,12 @@ function buildLayout(
             minY +
             maxY
           ) / 2,
-        parts: wordParts
+        parts:
+          wordParts
       })
 
       x +=
-        wordWidth +
+        item.width +
         gap
     }
 
@@ -630,55 +688,90 @@ function renderWord(
   item,
   fontSize,
   assets,
-  mode = 'black'
+  color = '#000000'
 ) {
   return item.parts
-    .map(part => {
-      if (
-        part.type === 'text'
-      ) {
+    .map(
+      part => {
         if (
-          mode === 'gray'
+          part.type === 'text'
         ) {
           return createBoldTextPath(
             part.value,
             part.x,
             item.y,
             fontSize,
-            '#ffffff',
-            '#d3d3d3',
-            2.2
+            color
           )
         }
 
-        return createBoldTextPath(
-          part.value,
-          part.x,
-          item.y,
-          fontSize,
-          '#000000'
-        )
+        const src =
+          assets[
+            part.code
+          ]
+
+        if (!src) {
+          return ''
+        }
+
+        const size =
+          fontSize
+
+        const emojiY =
+          item.y -
+          fontSize * 0.86
+
+        return `
+          <image
+            href="${src}"
+            x="${part.x}"
+            y="${emojiY}"
+            width="${size}"
+            height="${size}"
+            preserveAspectRatio="xMidYMid meet"
+          />
+        `
       }
+    )
+    .join('')
+}
 
-      const src =
-        assets[
-          part.code
-        ]
+function renderGrayWord(
+  item,
+  fontSize,
+  assets
+) {
+  return item.parts
+    .map(
+      part => {
+        if (
+          part.type === 'text'
+        ) {
+          return createBoldTextPath(
+            part.value,
+            part.x,
+            item.y,
+            fontSize,
+            '#d0d0d0'
+          )
+        }
 
-      if (!src) {
-        return ''
-      }
+        const src =
+          assets[
+            part.code
+          ]
 
-      const size =
-        fontSize * 1.00
+        if (!src) {
+          return ''
+        }
 
-      const emojiY =
-        item.y -
-        fontSize * 0.86
+        const size =
+          fontSize
 
-      if (
-        mode === 'gray'
-      ) {
+        const emojiY =
+          item.y -
+          fontSize * 0.86
+
         return `
           <image
             href="${src}"
@@ -687,127 +780,224 @@ function renderWord(
             width="${size}"
             height="${size}"
             opacity="0.20"
-            filter="url(#emojiGray)"
             preserveAspectRatio="xMidYMid meet"
           />
         `
       }
-
-      return `
-        <image
-          href="${src}"
-          x="${part.x}"
-          y="${emojiY}"
-          width="${size}"
-          height="${size}"
-          preserveAspectRatio="xMidYMid meet"
-        />
-      `
-    })
+    )
     .join('')
 }
 
-function renderAll(
+function renderAllGray(
+  layout,
+  fontSize,
+  assets
+) {
+  return layout
+    .map(
+      item => `
+        <g>
+          ${renderGrayWord(
+            item,
+            fontSize,
+            assets
+          )}
+        </g>
+      `
+    )
+    .join('')
+}
+
+function renderCompleted(
   layout,
   fontSize,
   assets,
-  mode
+  completedCount
 ) {
   return layout
-    .map(item => {
-      return `
+    .filter(
+      item =>
+        item.index <
+        completedCount
+    )
+    .map(
+      item => `
         <g>
           ${renderWord(
             item,
             fontSize,
-            assets,
-            mode
+            assets
           )}
         </g>
       `
-    })
+    )
     .join('')
 }
 
-function createWipeClip(
-  progress
+function renderActive(
+  item,
+  fontSize,
+  assets
 ) {
-  const extra = 250
-
-  const x =
-    -extra +
-    (
-      WIDTH +
-      extra * 2
-    ) *
-    progress
-
-  const slant =
-    fontSizeGlobal * 0.65
-
   return `
-    <clipPath id="wipeClip">
-      <polygon points="
-        ${x - slant},0
-        ${x + slant},0
-        ${x + slant},${HEIGHT}
-        ${x - slant},${HEIGHT}
-      "/>
-    </clipPath>
+    <g>
+      ${renderWord(
+        item,
+        fontSize,
+        assets
+      )}
+    </g>
   `
 }
-
-let fontSizeGlobal = 100
 
 function createSvg(
   layout,
   fontSize,
+  completedCount,
+  activeIndex,
   progress,
-  assets
+  shineProgress,
+  assets,
+  finalPhase
 ) {
-  fontSizeGlobal =
-    fontSize
-
   const gray =
-    renderAll(
+    renderAllGray(
+      layout,
+      fontSize,
+      assets
+    )
+
+  const completed =
+    renderCompleted(
       layout,
       fontSize,
       assets,
-      'gray'
+      completedCount
     )
 
-  const black =
-    renderAll(
-      layout,
-      fontSize,
-      assets,
-      'black'
-    )
+  let activeHtml = ''
 
-  const extra = 260
+  if (
+    activeIndex >= 0 &&
+    activeIndex < layout.length &&
+    progress > 0
+  ) {
+    const active =
+      layout[
+        activeIndex
+      ]
 
-  const wipeX =
-    -extra +
-    (
-      WIDTH +
-      extra * 2
-    ) *
-    progress
+    activeHtml =
+      renderActive(
+        active,
+        fontSize,
+        assets
+      )
+  }
 
-  const slant =
-    fontSize * 0.62
+  let activeClip = ''
 
-  const clip =
-    `
-      <clipPath id="wipeClip">
-        <polygon points="
-          ${wipeX - slant},0
-          ${wipeX + slant},0
-          ${wipeX + slant},${HEIGHT}
-          ${wipeX - slant},${HEIGHT}
-        "/>
+  if (
+    activeIndex >= 0 &&
+    activeIndex < layout.length
+  ) {
+    const active =
+      layout[
+        activeIndex
+      ]
+
+    const left =
+      active.x - 20
+
+    const right =
+      active.x +
+      active.width +
+      20
+
+    const revealX =
+      left +
+      (
+        right -
+        left
+      ) *
+      progress
+
+    activeClip = `
+      <clipPath id="wordReveal">
+        <rect
+          x="${left}"
+          y="${active.y - fontSize * 1.2}"
+          width="${Math.max(
+            0,
+            revealX - left
+          )}"
+          height="${fontSize * 1.8}"
+        />
       </clipPath>
     `
+  } else {
+    activeClip = `
+      <clipPath id="wordReveal">
+        <rect
+          x="0"
+          y="0"
+          width="0"
+          height="0"
+        />
+      </clipPath>
+    `
+  }
+
+  let shine = ''
+
+  if (
+    finalPhase &&
+    shineProgress < 1
+  ) {
+    const shineWidth =
+      fontSize * 0.18
+
+    const startX =
+      -fontSize * 2
+
+    const endX =
+      WIDTH +
+      fontSize * 2
+
+    const shineX =
+      startX +
+      (
+        endX -
+        startX
+      ) *
+      shineProgress
+
+    shine = `
+      <g
+        opacity="0.95"
+        transform="rotate(14 ${shineX} ${HEIGHT / 2})"
+      >
+        <rect
+          x="${shineX - shineWidth}"
+          y="-200"
+          width="${shineWidth}"
+          height="${HEIGHT + 400}"
+          fill="#ffffff"
+          opacity="0.95"
+          filter="url(#shineBlur)"
+        />
+
+        <rect
+          x="${shineX - shineWidth * 0.25}"
+          y="-200"
+          width="${shineWidth * 0.5}"
+          height="${HEIGHT + 400}"
+          fill="#ffffff"
+          opacity="0.75"
+        />
+      </g>
+    `
+  }
 
   return `
     <svg
@@ -820,19 +1010,18 @@ function createSvg(
       <defs>
 
         <filter
-          id="emojiGray"
-          x="-30%"
-          y="-30%"
-          width="160%"
-          height="160%"
+          id="shineBlur"
+          x="-200%"
+          y="-20%"
+          width="400%"
+          height="140%"
         >
-          <feColorMatrix
-            type="saturate"
-            values="0"
+          <feGaussianBlur
+            stdDeviation="8"
           />
         </filter>
 
-        ${clip}
+        ${activeClip}
 
       </defs>
 
@@ -844,13 +1033,40 @@ function createSvg(
         fill="#ffffff"
       />
 
-      <g>
-        ${gray}
+      ${gray}
+
+      ${completed}
+
+      <g clip-path="url(#wordReveal)">
+        ${activeHtml}
       </g>
 
-      <g clip-path="url(#wipeClip)">
-        ${black}
-      </g>
+      ${
+        finalPhase
+          ? `
+            <g>
+              ${layout
+                .map(
+                  item => `
+                    ${renderWord(
+                      item,
+                      fontSize,
+                      assets
+                    )}
+                  `
+                )
+                .join('')}
+            </g>
+
+            <g
+              opacity="0.95"
+              style="mix-blend-mode:screen"
+            >
+              ${shine}
+            </g>
+          `
+          : ''
+      }
 
     </svg>
   `
@@ -859,15 +1075,23 @@ function createSvg(
 async function renderFrame(
   layout,
   fontSize,
+  completedCount,
+  activeIndex,
   progress,
-  assets
+  shineProgress,
+  assets,
+  finalPhase
 ) {
   const svg =
     createSvg(
       layout,
       fontSize,
+      completedCount,
+      activeIndex,
       progress,
-      assets
+      shineProgress,
+      assets,
+      finalPhase
     )
 
   return sharp(
@@ -876,7 +1100,8 @@ async function renderFrame(
     .png()
     .raw()
     .toBuffer({
-      resolveWithObject: true
+      resolveWithObject:
+        true
     })
 }
 
@@ -886,7 +1111,9 @@ async function createGif(
   const words =
     splitWords(text)
 
-  if (!words.length) {
+  if (
+    !words.length
+  ) {
     throw new Error(
       'Text tidak boleh kosong'
     )
@@ -929,60 +1156,116 @@ async function createGif(
 
   const frames = []
 
-  const progressList = [
+  const revealProgress = [
+    0.00,
+    0.12,
+    0.25,
+    0.40,
+    0.55,
+    0.70,
+    0.84,
+    0.94,
+    1.00
+  ]
+
+  for (
+    let wordIndex = 0;
+    wordIndex <
+    layout.length;
+    wordIndex++
+  ) {
+    for (
+      let i = 0;
+      i <
+      revealProgress.length;
+      i++
+    ) {
+      const progress =
+        revealProgress[i]
+
+      const frame =
+        await renderFrame(
+          layout,
+          fontSize,
+          wordIndex,
+          wordIndex,
+          progress,
+          1,
+          assets,
+          false
+        )
+
+      frames.push({
+        data:
+          frame.data,
+        delay:
+          i === 0
+            ? 45
+            : 32
+      })
+    }
+
+    const hold =
+      await renderFrame(
+        layout,
+        fontSize,
+        wordIndex + 1,
+        -1,
+        1,
+        1,
+        assets,
+        false
+      )
+
+    frames.push({
+      data:
+        hold.data,
+      delay:
+        70
+    })
+  }
+
+  const shineProgress = [
     0.00,
     0.08,
-    0.16,
-    0.24,
-    0.32,
-    0.40,
-    0.48,
-    0.56,
-    0.64,
-    0.72,
-    0.80,
-    0.88,
-    0.96,
+    0.18,
+    0.30,
+    0.42,
+    0.54,
+    0.66,
+    0.78,
+    0.90,
     1.00
   ]
 
   for (
     let i = 0;
-    i < progressList.length;
+    i <
+    shineProgress.length;
     i++
   ) {
     const frame =
       await renderFrame(
         layout,
         fontSize,
-        progressList[i],
-        assets
+        layout.length,
+        -1,
+        1,
+        shineProgress[i],
+        assets,
+        true
       )
 
     frames.push({
-      data: frame.data,
+      data:
+        frame.data,
       delay:
-        i === 0
-          ? 120
-          : i >=
-            progressList.length - 2
-            ? 70
-            : 35
+        i ===
+        shineProgress.length - 1
+          ? 850
+          : 38
     })
   }
-
-  const finalFrame =
-    await renderFrame(
-      layout,
-      fontSize,
-      1,
-      assets
-    )
-
-  frames.push({
-    data: finalFrame.data,
-    delay: 900
-  })
 
   const encoder =
     new GIFEncoder(
@@ -1023,7 +1306,8 @@ async function uploadTermai(
     new Blob(
       [imageBuffer],
       {
-        type: 'image/gif'
+        type:
+          'image/gif'
       }
     )
 
@@ -1042,7 +1326,9 @@ async function uploadTermai(
       }
     )
 
-  if (!response.ok) {
+  if (
+    !response.ok
+  ) {
     const errorText =
       await response.text()
 
@@ -1131,8 +1417,10 @@ module.exports =
         return res
           .status(405)
           .json({
-            status: false,
-            creator: 'Ndra09',
+            status:
+              false,
+            creator:
+              'Ndra09',
             error:
               'Gunakan method GET atau POST'
           })
@@ -1147,8 +1435,10 @@ module.exports =
         return res
           .status(400)
           .json({
-            status: false,
-            creator: 'Ndra09',
+            status:
+              false,
+            creator:
+              'Ndra09',
             error:
               'Parameter text wajib diisi',
             example:
@@ -1162,8 +1452,10 @@ module.exports =
         return res
           .status(400)
           .json({
-            status: false,
-            creator: 'Ndra09',
+            status:
+              false,
+            creator:
+              'Ndra09',
             error:
               'Text maksimal 300 karakter'
           })
@@ -1173,8 +1465,10 @@ module.exports =
         return res
           .status(500)
           .json({
-            status: false,
-            creator: 'Ndra09',
+            status:
+              false,
+            creator:
+              'Ndra09',
             error:
               'Font Aptos.ttf tidak ditemukan. Pastikan file ada di assets/Aptos.ttf'
           })
@@ -1209,15 +1503,18 @@ module.exports =
       return res
         .status(200)
         .json({
-          status: true,
-          creator: 'Ndra09',
+          status:
+            true,
+          creator:
+            'Ndra09',
           result: {
             text,
             url_gambar:
               imageUrl,
             content_type:
               'image/gif',
-            animated: true,
+            animated:
+              true,
             message:
               'Brat Elegan berhasil dibuat',
             processing_time:
@@ -1233,8 +1530,10 @@ module.exports =
       return res
         .status(500)
         .json({
-          status: false,
-          creator: 'Ndra09',
+          status:
+            false,
+          creator:
+            'Ndra09',
           error:
             error.message ||
             'Gagal membuat Brat Elegan'
