@@ -1,5 +1,17 @@
 const sharp = require('sharp')
 const GIFEncoder = require('gif-encoder-2')
+const opentype = require('opentype.js')
+const path = require('path')
+
+const FONT_PATH = path.join(process.cwd(), 'assets', 'Aptos.ttf')
+
+let font
+
+try {
+  font = opentype.loadSync(FONT_PATH)
+} catch (err) {
+  console.error('FONT LOAD ERROR:', err)
+}
 
 function escapeXml(str) {
   return String(str)
@@ -10,7 +22,7 @@ function escapeXml(str) {
     .replace(/'/g, '&apos;')
 }
 
-function wrapText(text, maxChars = 16) {
+function wrapText(text, maxChars) {
   const words = text.trim().split(/\s+/)
   const lines = []
   let line = ''
@@ -36,55 +48,97 @@ function wrapText(text, maxChars = 16) {
   return lines.length ? lines : ['']
 }
 
-function createSvg(text) {
-  const lines = wrapText(text, 17)
+function textToPath(text, fontSize) {
+  if (!font) {
+    throw new Error('Aptos.ttf tidak ditemukan di assets/')
+  }
 
+  const pathObj = font.getPath(text, 0, 0, fontSize)
+
+  return pathObj.toPathData(2)
+}
+
+function getFontSize(text) {
+  if (text.length <= 15) return 78
+  if (text.length <= 30) return 68
+  if (text.length <= 50) return 58
+  if (text.length <= 75) return 48
+  if (text.length <= 100) return 40
+
+  return 34
+}
+
+function createSvg(text) {
   const width = 512
   const height = 512
 
-  let fontSize = 62
+  const fontSize = getFontSize(text)
 
-  if (text.length > 35) fontSize = 52
-  if (text.length > 55) fontSize = 44
-  if (text.length > 75) fontSize = 37
-  if (text.length > 100) fontSize = 32
+  const maxChars =
+    text.length <= 25 ? 16 :
+    text.length <= 50 ? 18 :
+    text.length <= 80 ? 21 :
+    24
+
+  const lines = wrapText(text, maxChars)
 
   const lineHeight = fontSize * 1.12
   const totalHeight = lines.length * lineHeight
-  const startY = (height - totalHeight) / 2 + fontSize
 
-  const textSvg = lines
-    .map((line, index) => {
-      const y = startY + index * lineHeight
+  let startY =
+    (height - totalHeight) / 2 +
+    fontSize
 
-      return `
-        <text
-          x="256"
-          y="${y}"
-          text-anchor="middle"
-          font-family="DejaVu Sans, sans-serif"
-          font-size="${fontSize}px"
-          font-weight="700"
-          fill="#000000"
-        >${escapeXml(line)}</text>
-      `
-    })
-    .join('')
+  const paths = []
+
+  for (const line of lines) {
+    const pathData = textToPath(line, fontSize)
+
+    const tempPath = font.getPath(
+      line,
+      0,
+      0,
+      fontSize
+    )
+
+    const box = tempPath.getBoundingBox()
+
+    const textWidth = box.x2 - box.x1
+
+    const x = (width - textWidth) / 2 - box.x1
+
+    const y = startY
+
+    const translatedPath = font
+      .getPath(line, x, y, fontSize)
+      .toPathData(2)
+
+    paths.push(`
+      <path
+        d="${translatedPath}"
+        fill="#000000"
+      />
+    `)
+
+    startY += lineHeight
+  }
 
   return `
     <svg
-      width="${width}"
-      height="${height}"
-      viewBox="0 0 ${width} ${height}"
       xmlns="http://www.w3.org/2000/svg"
+      width="512"
+      height="512"
+      viewBox="0 0 512 512"
     >
       <rect
+        x="0"
+        y="0"
         width="512"
         height="512"
         fill="#ffffff"
       />
 
-      ${textSvg}
+      ${paths.join('\n')}
     </svg>
   `
 }
@@ -92,10 +146,12 @@ function createSvg(text) {
 async function renderFrame(text) {
   const svg = createSvg(text)
 
-  return await sharp(Buffer.from(svg))
+  return sharp(Buffer.from(svg))
     .png()
     .raw()
-    .toBuffer({ resolveWithObject: true })
+    .toBuffer({
+      resolveWithObject: true
+    })
 }
 
 function splitWords(text) {
@@ -115,27 +171,35 @@ async function createGif(text) {
   const frames = []
 
   for (let i = 1; i <= words.length; i++) {
-    const currentText = words.slice(0, i).join(' ')
+    const currentText = words
+      .slice(0, i)
+      .join(' ')
+
     const frame = await renderFrame(currentText)
 
     frames.push(frame)
   }
 
-  const encoder = new GIFEncoder(512, 512, 'neuquant', true)
+  const encoder = new GIFEncoder(
+    512,
+    512,
+    'neuquant',
+    true
+  )
 
-  encoder.setDelay(550)
   encoder.setRepeat(0)
   encoder.setQuality(10)
 
   encoder.start()
 
   for (const frame of frames) {
+    encoder.setDelay(500)
     encoder.addFrame(frame.data)
   }
 
-  encoder.setDelay(1800)
-
   const lastFrame = frames[frames.length - 1]
+
+  encoder.setDelay(1800)
   encoder.addFrame(lastFrame.data)
 
   encoder.finish()
@@ -145,10 +209,7 @@ async function createGif(text) {
 
 function getText(req) {
   if (req.method === 'GET') {
-    return (
-      req.query?.text ||
-      ''
-    )
+    return req.query?.text || ''
   }
 
   if (req.method === 'POST') {
@@ -169,7 +230,10 @@ function getText(req) {
 
 module.exports = async (req, res) => {
   try {
-    if (req.method !== 'GET' && req.method !== 'POST') {
+    if (
+      req.method !== 'GET' &&
+      req.method !== 'POST'
+    ) {
       return res.status(405).json({
         status: false,
         creator: 'Ndra09',
@@ -177,14 +241,17 @@ module.exports = async (req, res) => {
       })
     }
 
-    const text = String(getText(req)).trim()
+    const text = String(
+      getText(req)
+    ).trim()
 
     if (!text) {
       return res.status(400).json({
         status: false,
         creator: 'Ndra09',
         error: 'Parameter text wajib diisi',
-        example: '/api/bratelegan?text=halo dunia'
+        example:
+          '/api/bratelegan?text=halo dunia'
       })
     }
 
@@ -196,24 +263,46 @@ module.exports = async (req, res) => {
       })
     }
 
+    if (!font) {
+      return res.status(500).json({
+        status: false,
+        creator: 'Ndra09',
+        error:
+          'Font Aptos.ttf tidak ditemukan. Pastikan file ada di assets/Aptos.ttf'
+      })
+    }
+
     const result = await createGif(text)
 
-    res.setHeader('Content-Type', 'image/gif')
+    res.setHeader(
+      'Content-Type',
+      'image/gif'
+    )
+
     res.setHeader(
       'Content-Disposition',
       'inline; filename="bratelegan.gif"'
     )
-    res.setHeader('Cache-Control', 'no-store')
+
+    res.setHeader(
+      'Cache-Control',
+      'no-store'
+    )
 
     return res.status(200).send(result)
 
   } catch (error) {
-    console.error('BRAT ELEGAN ERROR:', error)
+    console.error(
+      'BRAT ELEGAN ERROR:',
+      error
+    )
 
     return res.status(500).json({
       status: false,
       creator: 'Ndra09',
-      error: error.message || 'Gagal membuat Brat Elegan'
+      error:
+        error.message ||
+        'Gagal membuat Brat Elegan'
     })
   }
 }
