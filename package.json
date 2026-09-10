@@ -1,11 +1,10 @@
 {
-  "name": "ndra09-api",
-  "version": "2.1.1",
-  "description": "NDRA OFFICIAL Image Stamp and Brat Elegan REST API",
-  "author": "Ndra09",
-  "license": "MIT",
+  "name": "ndraa-media-api",
+  "version": "1.0.0",
+  "private": true,
   "dependencies": {
+    "sharp": "^0.34.3",
     "gif-encoder-2": "^1.0.5",
-    "sharp": "^0.34.3"
+    "opentype.js": "^1.3.4"
   }
 }
