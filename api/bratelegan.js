@@ -1,20 +1,12 @@
-import sharp from 'sharp'
-import fs from 'fs'
-import path from 'path'
-import GIFEncoder from 'gif-encoder-2'
-
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '1mb'
-    }
-  }
-}
+const sharp = require('sharp')
+const fs = require('fs')
+const path = require('path')
+const GIFEncoder = require('gif-encoder-2')
 
 const CREATOR = 'Ndra09'
 const FONT_PATH = path.join(process.cwd(), 'assets', 'Aptos.ttf')
 const SIZE = 512
-const DELAY = 260
+const DELAY = 300
 const MAX_WORDS = 40
 const MAX_CHARS = 500
 
@@ -36,14 +28,14 @@ function splitWords(text) {
     .filter(Boolean)
 }
 
-function wrapWords(words, maxChars = 16) {
+function wrapWords(words, maxChars) {
   const lines = []
   let line = ''
 
   for (const word of words) {
-    const candidate = line ? `${line} ${word}` : word
-    if (candidate.length <= maxChars || !line) {
-      line = candidate
+    const next = line ? `${line} ${word}` : word
+    if (!line || next.length <= maxChars) {
+      line = next
     } else {
       lines.push(line)
       line = word
@@ -54,61 +46,56 @@ function wrapWords(words, maxChars = 16) {
   return lines
 }
 
-function makeSvg(lines, visibleCount, currentWordIndex, totalWords) {
-  const fontSize = lines.length <= 2 ? 76 : lines.length <= 3 ? 68 : lines.length <= 5 ? 58 : 48
+function getLayout(words) {
+  const longest = Math.max(...words.map(w => w.length), 1)
+  let maxChars = 15
+  if (longest >= 24) maxChars = 12
+  else if (longest >= 18) maxChars = 13
+  else if (longest >= 14) maxChars = 14
+
+  const lines = wrapWords(words, maxChars)
+  const fontSize = lines.length <= 2 ? 74 : lines.length <= 3 ? 66 : lines.length <= 4 ? 58 : 50
   const lineHeight = Math.round(fontSize * 1.08)
   const totalHeight = lines.length * lineHeight
   const startY = Math.round((SIZE - totalHeight) / 2 + fontSize * 0.82)
 
-  const fontFace = fs.existsSync(FONT_PATH)
-    ? `<style>@font-face{font-family:NdraAptos;src:url('file://${FONT_PATH}')} text{font-family:NdraAptos,Arial,sans-serif;font-weight:900;}</style>`
-    : `<style>text{font-family:Arial,sans-serif;font-weight:900;}</style>`
+  return { lines, fontSize, lineHeight, startY }
+}
 
-  let wordCounter = 0
+function makeSvg(words, visibleCount, layout) {
+  const { lines, fontSize, lineHeight, startY } = layout
+  let wordIndex = 0
   const nodes = []
 
-  for (const [lineIndex, line] of lines.entries()) {
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+    const wordsInLine = lines[lineIndex].split(' ')
     const y = startY + lineIndex * lineHeight
-    const words = line.split(' ')
-    const gap = ' '
+    const parts = []
 
-    const tspans = words.map(word => {
-      const index = wordCounter++
+    for (const word of wordsInLine) {
+      const index = wordIndex++
       const visible = index < visibleCount
-      const current = index === currentWordIndex
-      let fill = '#111111'
-      let opacity = '1'
+      const fill = visible ? '#111111' : '#ffffff'
+      parts.push(`<tspan fill="${fill}">${escapeXml(word)}</tspan>`)
+      if (word !== wordsInLine[wordsInLine.length - 1]) parts.push('<tspan fill="#ffffff"> </tspan>')
+    }
 
-      if (!visible) {
-        fill = '#111111'
-        opacity = '0'
-      } else if (current) {
-        fill = '#111111'
-        opacity = '1'
-      }
-
-      return `<tspan fill="${fill}" opacity="${opacity}">${escapeXml(word)}</tspan>`
-    }).join(gap)
-
-    nodes.push(`<text x="256" y="${y}" text-anchor="middle" font-size="${fontSize}" letter-spacing="-1.2">${tspans}</text>`)
+    nodes.push(`<text x="256" y="${y}" text-anchor="middle">${parts.join('')}</text>`)
   }
 
+  const fontStyle = `<style>text{font-family:"DejaVu Sans",sans-serif;font-weight:700;}</style>`
+
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}">
-  ${fontFace}
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  ${fontStyle}
   <rect width="512" height="512" fill="#ffffff"/>
   ${nodes.join('')}
 </svg>`
 }
 
-async function createFrame(words, visibleCount, currentWordIndex) {
-  const visibleWords = words.slice(0, visibleCount)
-  const lines = wrapWords(visibleWords)
-  const svg = makeSvg(lines, visibleCount, currentWordIndex, words.length)
-
-  return sharp(Buffer.from(svg))
-    .png()
-    .toBuffer()
+async function createFrame(words, visibleCount, layout) {
+  const svg = makeSvg(words, visibleCount, layout)
+  return sharp(Buffer.from(svg)).png().toBuffer()
 }
 
 async function createAnimatedWebp(text) {
@@ -118,26 +105,24 @@ async function createAnimatedWebp(text) {
   if (String(text).length > MAX_CHARS) throw new Error(`Maksimal ${MAX_CHARS} karakter`)
   if (words.length > MAX_WORDS) throw new Error(`Maksimal ${MAX_WORDS} kata`)
 
+  const layout = getLayout(words)
   const frames = []
 
   for (let i = 1; i <= words.length; i++) {
-    frames.push(await createFrame(words, i, i - 1))
+    frames.push(await createFrame(words, i, layout))
   }
 
-  const finalFrame = await createFrame(words, words.length, -1)
+  const finalFrame = await createFrame(words, words.length, layout)
   frames.push(finalFrame, finalFrame, finalFrame)
 
-  const encoder = new GIFEncoder(SIZE, SIZE, 'neuquant', true)
+  const encoder = new GIFEncoder(SIZE, SIZE, 'neuquant', false)
   encoder.setDelay(DELAY)
   encoder.setRepeat(0)
   encoder.setQuality(10)
   encoder.start()
 
   for (const frame of frames) {
-    const raw = await sharp(frame)
-      .ensureAlpha()
-      .raw()
-      .toBuffer()
+    const raw = await sharp(frame).ensureAlpha().raw().toBuffer()
     encoder.addFrame(raw)
   }
 
@@ -145,18 +130,17 @@ async function createAnimatedWebp(text) {
   const gifBuffer = encoder.out.getData()
 
   return sharp(gifBuffer, { animated: true })
-    .webp({ quality: 90, effort: 4, loop: 0, delay: DELAY })
+    .webp({ quality: 92, effort: 4, loop: 0, delay: DELAY })
     .toBuffer()
 }
 
 function getText(req) {
-  if (req.method === 'GET') {
-    return req.query?.text || ''
-  }
+  if (req.method === 'GET') return req.query?.text || ''
 
   if (typeof req.body === 'string') {
     try {
-      return JSON.parse(req.body)?.text || ''
+      const parsed = JSON.parse(req.body)
+      return parsed?.text || ''
     } catch {
       return ''
     }
@@ -165,25 +149,20 @@ function getText(req) {
   return req.body?.text || ''
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
-  res.setHeader('Cache-Control', 'no-store')
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate')
 
   if (req.method === 'OPTIONS') return res.status(204).end()
 
   if (!['GET', 'POST'].includes(req.method)) {
-    return res.status(405).json({
-      status: false,
-      creator: CREATOR,
-      error: 'Gunakan method GET atau POST'
-    })
+    return res.status(405).json({ status: false, creator: CREATOR, error: 'Gunakan method GET atau POST' })
   }
 
   try {
     const text = String(getText(req) || '').trim()
-
     if (!text) {
       return res.status(400).json({
         status: false,
@@ -194,18 +173,12 @@ export default async function handler(req, res) {
     }
 
     const image = await createAnimatedWebp(text)
-
     res.setHeader('Content-Type', 'image/webp')
     res.setHeader('Content-Length', image.length)
     res.setHeader('Content-Disposition', 'inline; filename="bratelegan.webp"')
     return res.status(200).send(image)
   } catch (error) {
     console.error('[BRAT ELEGAN API ERROR]', error)
-
-    return res.status(500).json({
-      status: false,
-      creator: CREATOR,
-      error: error?.message || 'Terjadi kesalahan internal pada server'
-    })
+    return res.status(500).json({ status: false, creator: CREATOR, error: error?.message || 'Terjadi kesalahan internal pada server' })
   }
 }
